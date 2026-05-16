@@ -1,0 +1,26 @@
+.imageWrapper {
+  width: 100%;
+  max-width: var(--responsive-max-width-desktop, 1200px);
+  margin: 0 auto;
+}
+
+@media (max-width: 767px) {
+  .imageWrapper {
+    max-width: var(--responsive-max-width-mobile, 100%);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .imageWrapper {
+    max-width: var(--responsive-max-width-tablet, 720px);
+  }
+}
+
+.responsiveImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 1rem;
+}

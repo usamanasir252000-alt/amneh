@@ -20,7 +20,7 @@ export default function Hero() {
           src="/background.jpeg"
           alt="Luxury beauty collection background"
           fill
-          className="h-full w-full object-cover object-center"
+          className="h-full w-full object-cover object-center lg:object-right"
           priority
           sizes="100vw"
         />
@@ -37,7 +37,7 @@ export default function Hero() {
           initial={{ opacity: 0, x: -48 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.9, ease: "easeOut" }}
-          className="w-full text-center lg:w-2/5 lg:text-left lg:pl-8 xl:pl-20"
+          className="w-full text-center lg:w-2/5 lg:text-left "
         >
           <p className="text-sm uppercase tracking-[0.42em] text-white/80 sm:text-base">
             Luxury Beauty Collection
@@ -62,15 +62,9 @@ export default function Hero() {
             >
               Shop Now
             </a>
-            <a
-              href="#contact"
-              className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-10 py-4 text-sm font-medium uppercase tracking-[0.2em] text-white/90 transition duration-300 hover:border-white/50 hover:bg-white/15"
-            >
-              Contact Us
-            </a>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:max-w-xl">
+          {/* <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:max-w-xl">
             <div className="rounded-[2rem] border border-white/15 bg-white/10 p-6 text-left shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-sm">
               <p className="text-3xl font-semibold text-white">120+</p>
               <p className="mt-2 text-sm uppercase tracking-[0.2em] text-white/60">
@@ -83,7 +77,7 @@ export default function Hero() {
                 beauty experience
               </p>
             </div>
-          </div>
+          </div> */}
         </motion.div>
       </div>
 
