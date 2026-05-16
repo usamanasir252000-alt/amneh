@@ -1,77 +1,117 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "Collections", href: "#collections" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact Us", href: "#contact" },
+  { label: "skincare", href: "/skincare" },
+  { label: "fragrance", href: "#fragrance" },
+  { label: "makeup", href: "#makeup" },
+  { label: "discover", href: "#discover" },
+  { label: "rewards", href: "#rewards" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const textColor = scrolled ? "text-gray-600" : "text-white/85";
+  const iconColor = scrolled ? "text-gray-700" : "text-white";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/10 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-12">
-        <a
-          href="#home"
-          className="flex items-center gap-3 font-semibold uppercase tracking-[0.32em] text-white"
-        >
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-3xl bg-white/15 text-lg text-white shadow-soft">
-            B
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.07)]"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-3">
+        {/* Left: country */}
+        <div className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${scrolled ? "text-gray-500" : "text-white/75"}`}>
+          <span className="uppercase tracking-wide">us</span>
+          <span className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${scrolled ? "border-gray-400" : "border-white/60"}`}>
+            $
           </span>
-          BEAUTLI
+        </div>
+
+        {/* Center: logo */}
+        <a href="/" className="absolute left-1/2 -translate-x-1/2">
+          <img
+            src="/logo.svg"
+            alt="amneh."
+            className={`h-8 w-auto transition-all duration-300 ${!scrolled ? "brightness-0 invert" : ""}`}
+          />
         </a>
 
-        <nav className="hidden items-center gap-10 lg:flex">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium uppercase tracking-[0.25em] text-white transition hover:text-white/90"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-
-        <button
-          type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white transition hover:bg-white/15 lg:hidden"
-          onClick={() => setIsOpen((prev) => !prev)}
-          aria-label="Toggle mobile menu"
-        >
-          <span className="relative block h-5 w-5">
-            <span
-              className={`absolute left-0 top-0 h-[2px] w-full rounded-full bg-white transition-transform ${isOpen ? "translate-y-2 rotate-45" : ""}`}
-            />
-            <span
-              className={`absolute left-0 top-2.5 h-[2px] w-full rounded-full bg-white transition-opacity ${isOpen ? "opacity-0" : "opacity-100"}`}
-            />
-            <span
-              className={`absolute left-0 top-5 h-[2px] w-full rounded-full bg-white transition-transform ${isOpen ? "-translate-y-2 -rotate-45" : ""}`}
-            />
-          </span>
-        </button>
+        {/* Right: icons */}
+        <div className={`flex items-center gap-3 transition-colors duration-300 ${iconColor}`}>
+          <button aria-label="Wishlist" className="hidden hover:opacity-70 sm:block transition-opacity">
+            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+          <button aria-label="Account" className="hidden hover:opacity-70 sm:block transition-opacity">
+            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+          <button aria-label="Search" className="hidden hover:opacity-70 sm:block transition-opacity">
+            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+          <button aria-label="Cart" className="hover:opacity-70 transition-opacity">
+            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </button>
+          <button
+            className="ml-1 hover:opacity-70 transition-opacity lg:hidden"
+            onClick={() => setIsOpen((p) => !p)}
+            aria-label="Menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <AnimatePresence>
-        {isOpen ? (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="absolute inset-x-4 top-full z-20 mt-2 rounded-3xl bg-black/85 p-5 shadow-2xl shadow-black/20 ring-1 ring-white/10 lg:hidden"
+      {/* Desktop nav row */}
+      <nav className={`hidden border-t lg:flex items-center justify-center gap-10 py-2.5 transition-colors duration-300 ${scrolled ? "border-gray-100" : "border-white/15"}`}>
+        {navItems.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            className={`text-[13px] tracking-wide transition-all duration-300 hover:opacity-100 ${textColor} opacity-90`}
           >
-            <div className="flex flex-col gap-3">
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden border-t border-white/15 bg-white/95 backdrop-blur-sm lg:hidden"
+          >
+            <div className="flex flex-col divide-y divide-gray-100">
               {navItems.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  className="rounded-3xl px-4 py-3 text-sm font-medium uppercase tracking-[0.22em] text-white transition hover:bg-white/10"
+                  className="px-6 py-3.5 text-sm text-gray-700 hover:bg-gray-50"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
@@ -79,7 +119,7 @@ export default function Navbar() {
               ))}
             </div>
           </motion.div>
-        ) : null}
+        )}
       </AnimatePresence>
     </header>
   );
