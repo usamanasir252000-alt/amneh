@@ -44,13 +44,13 @@ export default function Hero() {
       {/* Gradient overlay for text legibility */}
       <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
 
-      {/* Text content — bottom-left, slightly inset like Kylie */}
-      <div className="relative z-20 flex h-full items-end pb-20 pl-16 lg:pl-24">
+      {/* Text content — bottom-left on desktop, centered on mobile */}
+      <div className="relative z-20 flex h-full items-end justify-center px-6 pb-20 text-center md:justify-start md:px-16 lg:px-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: "easeOut" }}
-          className="max-w-md text-white"
+          className="max-w-md text-white md:text-left"
         >
           <p className="text-xs uppercase tracking-[0.38em] text-white/70 mb-3">
             just dropped
