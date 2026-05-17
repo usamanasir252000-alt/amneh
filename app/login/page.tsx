@@ -10,13 +10,13 @@ export default function LoginPage() {
 
   return (
     <AuthPageShell>
-      <div className="rounded-3xl bg-white/95 p-8 shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-gray-200 sm:p-10">
+      <div className="rounded-3xl bg-white/20 p-8 shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-white/40 backdrop-blur-xl sm:p-10">
         <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.4em] text-[#9f7c89]">
+          <p className="text-xs uppercase tracking-[0.35em] text-[#9f7c89]">
             welcome back
           </p>
-          <h1 className="mt-6 text-4xl font-bold uppercase tracking-[0.18em] text-[#8c5e6c] sm:text-5xl">
-            LOGIN
+          <h1 className="mt-6 text-3xl font-bold uppercase tracking-[0.16em] text-[#8c5e6c] sm:text-4xl">
+            login
           </h1>
         </div>
 
@@ -30,7 +30,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
             />
           </div>
           <div>
@@ -42,7 +42,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="password"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
             />
           </div>
 
