@@ -24,39 +24,6 @@ export default function Footer() {
   return (
     <footer className="bg-transparent">
       {/* Newsletter */}
-      <div className="flex flex-col items-center py-14 px-6">
-        <p className="mb-5 text-sm text-gray-700 tracking-wide">
-          sign up for updates:
-        </p>
-        <form
-          className="flex w-full max-w-[460px] gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setEmail("");
-          }}
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email address"
-            className="flex-1 border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none focus:border-gray-500"
-          />
-          <button
-            type="submit"
-            className="border border-gray-800 bg-white px-6 py-2.5 text-xs uppercase tracking-[0.18em] text-gray-900 hover:bg-gray-900 hover:text-white transition"
-          >
-            submit
-          </button>
-        </form>
-        <p className="mt-3 text-xs text-gray-400">
-          by signing up you agree to our{" "}
-          <a href="#" className="underline hover:text-gray-600">
-            terms
-          </a>
-          .
-        </p>
-      </div>
 
       {/* Social icons */}
       <div className="flex justify-center gap-6 pb-8">
