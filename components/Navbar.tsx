@@ -3,8 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import AuthModal from "@/components/AuthModal";
 
 const navItems = [
   { label: "skincare", href: "/skincare" },
@@ -17,8 +17,8 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const { getTotalItems, openCart } = useCart();
-  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -42,9 +42,13 @@ export default function Navbar() {
     >
       <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-3">
         {/* Left: country */}
-        <div className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${useDarkNav ? "text-gray-500" : "text-white/75"}`}>
+        <div
+          className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${useDarkNav ? "text-gray-500" : "text-white/75"}`}
+        >
           <span className="uppercase tracking-wide">us</span>
-          <span className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${useDarkNav ? "border-gray-400" : "border-white/60"}`}>
+          <span
+            className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${useDarkNav ? "border-gray-400" : "border-white/60"}`}
+          >
             $
           </span>
         </div>
@@ -84,7 +88,7 @@ export default function Navbar() {
             aria-label="Account"
             className="hidden hover:opacity-70 sm:block transition-opacity"
             type="button"
-            onClick={() => router.push("/login")}
+            onClick={() => setAuthModalOpen(true)}
           >
             <svg
               className="h-[18px] w-[18px]"
@@ -210,10 +214,21 @@ export default function Navbar() {
                   {item.label}
                 </a>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthModalOpen(true);
+                  setIsOpen(false);
+                }}
+                className="w-full px-6 py-3.5 text-left text-sm font-semibold text-[#5f3d4e] hover:bg-gray-50"
+              >
+                sign in / sign up
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </header>
   );
 }
