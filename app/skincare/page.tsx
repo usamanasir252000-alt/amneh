@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { useCart } from "@/context/CartContext";
+import { useState } from "react";
 
 const serums = [
   {
@@ -10,7 +14,7 @@ const serums = [
     tagline: "24-hour moisture",
     description:
       "A powerhouse formula with hyaluronic acid and ceramides that delivers intense, long-lasting hydration and restores the skin barrier.",
-    price: "$38",
+    price: 38,
     badge: "best seller",
   },
   {
@@ -20,7 +24,7 @@ const serums = [
     tagline: "resurface + renew",
     description:
       "An overnight resurfacing serum with glycolic acid and niacinamide that smooths texture, minimises pores and evens skin tone.",
-    price: "$42",
+    price: 42,
     badge: "new",
   },
   {
@@ -30,7 +34,7 @@ const serums = [
     tagline: "illuminate + even",
     description:
       "A brightening serum packed with glutathione and vitamin C that targets dark spots and delivers a luminous, glass-skin glow.",
-    price: "$45",
+    price: 45,
     badge: "new",
   },
 ];
@@ -55,6 +59,21 @@ function Stars({ count = 4 }: { count?: number }) {
 }
 
 export default function SkincareePage() {
+  const { addItem } = useCart();
+  const [addedItem, setAddedItem] = useState<string | null>(null);
+
+  const handleAddToCart = (serum: (typeof serums)[0]) => {
+    addItem({
+      id: serum.id,
+      name: serum.name,
+      price: serum.price,
+      image: serum.image,
+    });
+
+    setAddedItem(serum.id);
+    setTimeout(() => setAddedItem(null), 2000);
+  };
+
   return (
     <main className="bg-[#faf5f6]">
       <Navbar />
@@ -72,7 +91,9 @@ export default function SkincareePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
         <div className="relative z-10 flex h-full items-end px-10 pb-10 lg:px-16">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 mb-2">collection</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/70 mb-2">
+              collection
+            </p>
             <h1 className="text-5xl font-bold uppercase tracking-tight text-white">
               Skincare
             </h1>
@@ -100,8 +121,13 @@ export default function SkincareePage() {
       </div>
 
       {/* Serums section */}
-      <section id="serums" className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10">
-        <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">amneh. skincare</h2>
+      <section
+        id="serums"
+        className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10"
+      >
+        <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">
+          amneh. skincare
+        </h2>
         <h3 className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900">
           Serums
         </h3>
@@ -127,19 +153,28 @@ export default function SkincareePage() {
               <div className="mt-4 flex items-start justify-between">
                 <div className="flex-1 pr-4">
                   <Stars count={serum.badge === "best seller" ? 5 : 4} />
-                  <p className="mt-1.5 text-[15px] font-semibold text-gray-900">{serum.name}</p>
+                  <p className="mt-1.5 text-[15px] font-semibold text-gray-900">
+                    {serum.name}
+                  </p>
                   <p className="text-[13px] text-[#7d4f5a]">{serum.tagline}</p>
                   <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
                     {serum.description}
                   </p>
                 </div>
                 <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">
-                  {serum.price}
+                  ${serum.price}
                 </span>
               </div>
 
-              <button className="mt-4 w-full border border-gray-900 py-2.5 text-xs uppercase tracking-[0.2em] text-gray-900 transition duration-300 hover:bg-gray-900 hover:text-white">
-                add to cart
+              <button
+                onClick={() => handleAddToCart(serum)}
+                className={`mt-4 w-full border py-2.5 text-xs uppercase tracking-[0.2em] transition duration-300 relative overflow-hidden ${
+                  addedItem === serum.id
+                    ? "bg-rose-400 text-white border-rose-400"
+                    : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+                }`}
+              >
+                {addedItem === serum.id ? "✓ Added to cart" : "add to cart"}
               </button>
             </div>
           ))}
@@ -168,11 +203,17 @@ export default function SkincareePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
-            <h2 className="text-3xl font-bold uppercase tracking-tight" style={{ color: "#d4a8b4" }}>
-              The Full<br />Routine
+            <h2
+              className="text-3xl font-bold uppercase tracking-tight"
+              style={{ color: "#d4a8b4" }}
+            >
+              The Full
+              <br />
+              Routine
             </h2>
             <p className="mt-4 text-sm leading-7 text-white/80">
-              pair with our moisturizers and toners for a complete glow-boosting ritual.
+              pair with our moisturizers and toners for a complete glow-boosting
+              ritual.
             </p>
             <a
               href="#"

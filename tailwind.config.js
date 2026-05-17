@@ -10,7 +10,7 @@ module.exports = {
         blush: "#f6d1d8",
         petal: "#f8e4e7",
         pearl: "#ffffff",
-        rose: "#b0517f",
+        // rose: "#b0517f",
       },
     },
   },

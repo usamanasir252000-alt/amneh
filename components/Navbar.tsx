@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
 
 const navItems = [
   { label: "skincare", href: "/skincare" },
@@ -15,6 +17,8 @@ const navItems = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { getTotalItems, openCart } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -55,41 +59,126 @@ export default function Navbar() {
         </a>
 
         {/* Right: icons */}
-        <div className={`flex items-center gap-3 transition-colors duration-300 ${iconColor}`}>
-          <button aria-label="Wishlist" className="hidden hover:opacity-70 sm:block transition-opacity">
-            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        <div
+          className={`flex items-center gap-3 transition-colors duration-300 ${iconColor}`}
+        >
+          <button
+            aria-label="Wishlist"
+            className="hidden hover:opacity-70 sm:block transition-opacity"
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
             </svg>
           </button>
-          <button aria-label="Account" className="hidden hover:opacity-70 sm:block transition-opacity">
-            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <button
+            aria-label="Account"
+            className="hidden hover:opacity-70 sm:block transition-opacity"
+            type="button"
+            onClick={() => router.push("/login")}
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
             </svg>
           </button>
-          <button aria-label="Search" className="hidden hover:opacity-70 sm:block transition-opacity">
-            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <button
+            aria-label="Search"
+            className="hidden hover:opacity-70 sm:block transition-opacity"
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
           </button>
-          <button aria-label="Cart" className="hover:opacity-70 transition-opacity">
-            <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          <button
+            onClick={openCart}
+            aria-label="Cart"
+            className="relative hover:opacity-70 transition-opacity"
+            type="button"
+          >
+            <svg
+              className="h-[18px] w-[18px]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
             </svg>
+            <AnimatePresence>
+              {getTotalItems() > 0 && (
+                <motion.div
+                  key={`badge-${getTotalItems()}`}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="absolute -top-2 -right-2 w-5 h-5 min-w-5 min-h-5 rounded-full bg-rose-400 text-white text-[11px] font-bold flex items-center justify-center leading-none flex-shrink-0"
+                >
+                  {getTotalItems()}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </button>
           <button
             className="ml-1 hover:opacity-70 transition-opacity lg:hidden"
             onClick={() => setIsOpen((p) => !p)}
             aria-label="Menu"
+            type="button"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+              />
             </svg>
           </button>
         </div>
       </div>
 
       {/* Desktop nav row */}
-      <nav className={`hidden border-t lg:flex items-center justify-center gap-10 py-2.5 transition-colors duration-300 ${scrolled ? "border-gray-100" : "border-white/15"}`}>
+      <nav
+        className={`hidden border-t lg:flex items-center justify-center gap-10 py-2.5 transition-colors duration-300 ${scrolled ? "border-gray-100" : "border-white/15"}`}
+      >
         {navItems.map((item) => (
           <a
             key={item.label}
