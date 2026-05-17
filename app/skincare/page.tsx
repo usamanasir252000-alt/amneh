@@ -64,13 +64,13 @@ export default function SkincareePage() {
 
   const handleAddToCart = (serum: (typeof serums)[0]) => {
     addItem({
-      id: serum.id,
+      id: String(serum.id),
       name: serum.name,
       price: serum.price,
       image: serum.image,
     });
 
-    setAddedItem(serum.id);
+    setAddedItem(String(serum.id));
     setTimeout(() => setAddedItem(null), 2000);
   };
 
@@ -169,12 +169,12 @@ export default function SkincareePage() {
               <button
                 onClick={() => handleAddToCart(serum)}
                 className={`mt-4 w-full border py-2.5 text-xs uppercase tracking-[0.2em] transition duration-300 relative overflow-hidden ${
-                  addedItem === serum.id
+                  addedItem === String(serum.id)
                     ? "bg-rose-400 text-white border-rose-400"
                     : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
                 }`}
               >
-                {addedItem === serum.id ? "✓ Added to cart" : "add to cart"}
+                {addedItem === String(serum.id) ? "✓ Added to cart" : "add to cart"}
               </button>
             </div>
           ))}
