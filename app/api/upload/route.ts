@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
+
+export const dynamic = "force-dynamic";
 import path from "path";
 
 export async function POST(request: Request) {
