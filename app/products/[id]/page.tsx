@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -52,17 +52,6 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
-  const imgContainerRef = useRef<HTMLDivElement>(null);
-  const LENS_SIZE = 180;
-  const ZOOM = 1.5;
-  const [lens, setLens] = useState<{ x: number; y: number } | null>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = imgContainerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setLens({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -150,12 +139,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Main image */}
-            <div
-              ref={imgContainerRef}
-              className="flex-1 bg-[#eeebe8] overflow-hidden relative cursor-crosshair select-none"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => setLens(null)}
-            >
+            <div className="flex-1 bg-[#eeebe8] overflow-hidden relative group">
               {/* Image 1 — always rendered, sets the container height */}
               <Image
                 src={images[0]?.url ?? "/shot1.png"}
@@ -164,6 +148,7 @@ export default function ProductDetailPage() {
                 height={0}
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 style={{ width: "100%", height: "auto", visibility: activeImage === 0 ? "visible" : "hidden" }}
+                className="transition-transform duration-500 ease-out group-hover:scale-105"
                 priority
               />
               {/* Image 2+ — absolutely fills the same space */}
@@ -173,41 +158,12 @@ export default function ProductDetailPage() {
                   src={img.url}
                   alt={product.name}
                   fill
-                  className={`object-cover transition-opacity duration-300 ${activeImage === i + 1 ? "opacity-100" : "opacity-0"}`}
+                  className={`object-cover transition-all duration-500 ease-out group-hover:scale-105 ${activeImage === i + 1 ? "opacity-100" : "opacity-0"}`}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               ))}
-
-              {/* Magnifier lens */}
-              {lens && imgContainerRef.current && (() => {
-                const W = imgContainerRef.current!.offsetWidth;
-                const H = imgContainerRef.current!.offsetHeight;
-                const src = activeImage === 0
-                  ? (images[0]?.url ?? "/shot1.png")
-                  : (images[activeImage]?.url ?? images[0]?.url ?? "/shot1.png");
-                return (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: lens.x - LENS_SIZE / 2,
-                      top: lens.y - LENS_SIZE / 2,
-                      width: LENS_SIZE,
-                      height: LENS_SIZE,
-                      borderRadius: "50%",
-                      backgroundImage: `url(${src})`,
-                      backgroundSize: `${W * ZOOM}px ${H * ZOOM}px`,
-                      backgroundPosition: `${-(lens.x * ZOOM - LENS_SIZE / 2)}px ${-(lens.y * ZOOM - LENS_SIZE / 2)}px`,
-                      backgroundRepeat: "no-repeat",
-                      border: "2px solid rgba(255,255,255,0.95)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-                      pointerEvents: "none",
-                      zIndex: 30,
-                    }}
-                  />
-                );
-              })()}
               {/* Badge */}
-              <span className="absolute top-4 left-4 bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-gray-700 shadow-sm">
+              <span className="absolute top-4 left-4 bg-white px-3 py-1 text-[10px] uppercase tracking-widest text-gray-700 shadow-sm z-10">
                 {product.badge}
               </span>
             </div>
