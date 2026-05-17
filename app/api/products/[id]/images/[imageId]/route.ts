@@ -24,6 +24,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
   const { imageId } = await params;
-  await prisma.productImage.delete({ where: { id: imageId } });
+  await prisma.productImage.deleteMany({ where: { id: imageId } });
   return NextResponse.json({ success: true });
 }

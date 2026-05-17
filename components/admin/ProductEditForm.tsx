@@ -135,7 +135,7 @@ export default function ProductEditForm({ product }: Props) {
   };
 
   const handleDeleteImage = async (img: ProductImage) => {
-    if (isEdit) {
+    if (isEdit && !img.id.startsWith("temp-")) {
       await fetch(`/api/products/${product!.id}/images/${img.id}`, { method: "DELETE" });
     }
     setImages((prev) => prev.filter((i) => i.id !== img.id));
