@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const navItems = [
@@ -21,22 +22,25 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const textColor = scrolled ? "text-gray-600" : "text-white/85";
-  const iconColor = scrolled ? "text-gray-700" : "text-white";
+  const pathname = usePathname();
+  const isSkincarePage = pathname === "/skincare";
+  const useDarkNav = scrolled || isSkincarePage;
+  const textColor = useDarkNav ? "text-gray-600" : "text-white/85";
+  const iconColor = useDarkNav ? "text-gray-700" : "text-white";
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
+        useDarkNav
           ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.07)]"
           : "bg-transparent"
       }`}
     >
       <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-3">
         {/* Left: country */}
-        <div className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${scrolled ? "text-gray-500" : "text-white/75"}`}>
+        <div className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${useDarkNav ? "text-gray-500" : "text-white/75"}`}>
           <span className="uppercase tracking-wide">us</span>
-          <span className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${scrolled ? "border-gray-400" : "border-white/60"}`}>
+          <span className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${useDarkNav ? "border-gray-400" : "border-white/60"}`}>
             $
           </span>
         </div>
@@ -46,7 +50,7 @@ export default function Navbar() {
           <img
             src="/logo.svg"
             alt="amneh."
-            className={`h-8 w-auto transition-all duration-300 ${!scrolled ? "brightness-0 invert" : ""}`}
+            className={`h-8 w-auto transition-all duration-300 ${!useDarkNav ? "brightness-0 invert" : ""}`}
           />
         </a>
 

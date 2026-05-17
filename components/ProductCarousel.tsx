@@ -6,7 +6,7 @@ import { useState } from "react";
 const products = [
   {
     id: 1,
-    image: "/product1.jpeg",
+    image: "/shot1.png",
     name: "blush glow",
     type: "hydrating serum",
     shades: "+3 shades",
@@ -15,7 +15,7 @@ const products = [
   },
   {
     id: 2,
-    image: "/r3.jpg",
+    image: "/shot2.png",
     name: "petal tint",
     type: "velvet lip butter",
     shades: "+5 shades",
@@ -24,21 +24,12 @@ const products = [
   },
   {
     id: 3,
-    image: "/r4.jpg",
+    image: "/shot3.png",
     name: "rose bloom",
     type: "radiance oil",
     shades: "+2 shades",
     badge: "best seller",
     price: "$42",
-  },
-  {
-    id: 4,
-    image: "/r5.jpg",
-    name: "silk rose",
-    type: "cloud balm",
-    shades: "+4 shades",
-    badge: "best seller",
-    price: "$26",
   },
 ];
 
@@ -80,7 +71,7 @@ export default function ProductCarousel() {
                   src={p.image}
                   alt={p.name}
                   fill
-                  className="object-cover object-center transition duration-500 group-hover:scale-105"
+                  className="object-contain object-center transition duration-500 group-hover:scale-105"
                   sizes="25vw"
                 />
                 <span className="absolute left-3 top-3 text-xs text-gray-700">{p.shades}</span>

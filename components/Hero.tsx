@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const heroImages = [
   "/r1.jpg",
-  "/background1.jpeg",
-  "/backgorund2.jpeg",
+  "/r7.jpg",
   "/r5.jpg",
 ];
 
@@ -17,29 +16,39 @@ export default function Hero() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveIdx((i) => (i + 1) % heroImages.length);
-    }, 2000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <section className="relative h-screen w-full overflow-hidden">
-      {/* All hero images stacked — only active one is visible (instant cut) */}
-      {heroImages.map((src, i) => (
-        <div
-          key={src}
-          className="absolute inset-0"
-          style={{ opacity: i === activeIdx ? 1 : 0 }}
-        >
-          <Image
-            src={src}
-            alt="amneh collection"
-            fill
-            className="object-cover object-center"
-            priority={i === 0}
-            sizes="100vw"
-          />
-        </div>
-      ))}
+      {/* Hero images with glow transition effect */}
+      <AnimatePresence mode="wait">
+        {heroImages.map((src, i) => (
+          i === activeIdx && (
+            <motion.div
+              key={src}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                boxShadow: "inset 0 0 60px rgba(255, 255, 255, 0.1)",
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <Image
+                src={src}
+                alt="amneh collection"
+                fill
+                className="object-cover object-center"
+                priority={i === 0}
+                sizes="100vw"
+              />
+            </motion.div>
+          )
+        ))}
+      </AnimatePresence>
 
       {/* Gradient overlay for text legibility */}
       <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />

@@ -5,7 +5,7 @@ import Footer from "../../components/Footer";
 const serums = [
   {
     id: 1,
-    image: "/product2.jpeg",
+    image: "/shot1.png",
     name: "intensive hydration serum",
     tagline: "24-hour moisture",
     description:
@@ -15,7 +15,7 @@ const serums = [
   },
   {
     id: 2,
-    image: "/r3.jpg",
+    image: "/shot2.png",
     name: "glycolic night serum",
     tagline: "resurface + renew",
     description:
@@ -25,7 +25,7 @@ const serums = [
   },
   {
     id: 3,
-    image: "/r4.jpg",
+    image: "/shot3.png",
     name: "glutathione brightening serum",
     tagline: "illuminate + even",
     description:
@@ -62,7 +62,7 @@ export default function SkincareePage() {
       {/* Category hero banner */}
       <div className="relative mt-[88px] h-[42vh] min-h-[280px] w-full overflow-hidden">
         <Image
-          src="/background2.jpeg"
+          src="/r1.jpg"
           alt="amneh skincare"
           fill
           className="object-cover object-center"
