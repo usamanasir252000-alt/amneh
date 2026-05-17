@@ -29,7 +29,7 @@ export default function FeatureSplit() {
       {/* Right card */}
       <div className="relative flex-1 min-h-[340px] overflow-hidden group">
         <Image
-          src="/backgorund2.jpeg"
+          src="/r7.jpg"
           alt="Luminous skin care"
           fill
           className="object-cover object-center transition duration-700 group-hover:scale-105"
