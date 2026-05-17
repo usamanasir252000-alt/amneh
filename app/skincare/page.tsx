@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useCart } from "@/context/CartContext";
@@ -59,11 +60,11 @@ function SkincareProductCard({ product }: { product: Product }) {
 
   return (
     <div className="group cursor-pointer">
-      <div
-        className="relative overflow-hidden bg-[#f0ece8] aspect-[3/4]"
+      <Link href={`/products/${product.id}`} className="block"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
+    <div className="relative overflow-hidden bg-[#f0ece8] aspect-[3/4]">
         <Image
           src={primaryImage}
           alt={product.name}
@@ -84,6 +85,7 @@ function SkincareProductCard({ product }: { product: Product }) {
           {product.badge}
         </span>
       </div>
+      </Link>
 
       <div className="mt-4 flex items-start justify-between">
         <div className="flex-1 pr-4">

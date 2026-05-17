@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
@@ -69,7 +70,8 @@ export default function ProductCard({ product }: { product: Product }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Image */}
+      {/* Image — click goes to product page */}
+      <Link href={`/products/${product.id}`} className="block">
       <div className="relative overflow-hidden bg-[#eeebe8] aspect-square">
         <Image
           src={primaryImage}
@@ -92,6 +94,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.badge}
         </span>
       </div>
+      </Link>
 
       {/* Info */}
       <div className="mt-3 px-0.5">
