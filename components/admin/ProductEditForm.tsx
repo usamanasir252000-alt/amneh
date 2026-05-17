@@ -98,10 +98,24 @@ export default function ProductEditForm({ product }: Props) {
     if (!file) return;
     setUploading(true);
 
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      alert("Cloudinary is not configured. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET to your environment variables.");
+      setUploading(false);
+      return;
+    }
+
     const form = new FormData();
     form.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: form });
-    const { url } = await res.json();
+    form.append("upload_preset", uploadPreset);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: form,
+    });
+    const data = await res.json();
+    const url: string = data.secure_url;
 
     if (isEdit) {
       const sortOrder = images.length;
