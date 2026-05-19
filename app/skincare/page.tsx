@@ -64,7 +64,7 @@ function SkincareProductCard({ product }: { product: Product }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-    <div className="relative overflow-hidden bg-[#f0ece8] aspect-[3/4]">
+    <div className="relative overflow-hidden bg-[#dff0f8] aspect-[3/4]">
         <Image
           src={primaryImage}
           alt={product.name}
@@ -92,7 +92,7 @@ function SkincareProductCard({ product }: { product: Product }) {
           <Stars count={product.badge === "best seller" ? 5 : 4} />
           <p className="mt-1.5 text-[15px] font-semibold text-gray-900">{product.name}</p>
           {product.tagline && (
-            <p className="text-[13px] text-[#7d4f5a]">{product.tagline}</p>
+            <p className="text-[13px] text-[#2b6c8a]">{product.tagline}</p>
           )}
           {product.description && (
             <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">{product.description}</p>
@@ -126,7 +126,7 @@ export default function SkincarePage() {
   }, []);
 
   return (
-    <main className="bg-[#faf5f6]">
+    <main className="bg-[#f0f8fc]">
       <Navbar />
 
       {/* Category hero banner */}
@@ -182,16 +182,6 @@ export default function SkincarePage() {
         </div>
       </section>
 
-      {/* Shop all CTA */}
-      <div className="flex justify-center pb-16">
-        <a
-          href="#"
-          className="border border-gray-900 px-12 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
-        >
-          shop all skincare
-        </a>
-      </div>
-
       {/* Banner */}
       <div className="relative h-[50vh] min-h-[340px] w-full overflow-hidden">
         <Image
@@ -204,23 +194,17 @@ export default function SkincarePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
-            <h2 className="text-3xl font-bold uppercase tracking-tight" style={{ color: "#d4a8b4" }}>
+            <h2 className="text-3xl font-bold uppercase tracking-tight" style={{ color: "#9ac9df" }}>
               The Full<br />Routine
             </h2>
             <p className="mt-4 text-sm leading-7 text-white/80">
               pair with our moisturizers and toners for a complete glow-boosting ritual.
             </p>
-            <a
-              href="#"
-              className="mt-6 inline-flex items-center justify-center border border-white bg-white px-8 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-transparent hover:text-white transition duration-300"
-            >
-              explore
-            </a>
           </div>
         </div>
       </div>
 
-      <div className="h-[6px]" style={{ background: "#f0e0e4" }} />
+      <div className="h-[6px]" style={{ background: "#b8dff0" }} />
       <Footer />
     </main>
   );

@@ -219,7 +219,7 @@ export default function ProductEditForm({ product }: Props) {
         <div className="space-y-2 mb-4">
           {images.map((img, idx) => (
             <div key={img.id} className="flex items-center gap-3 group">
-              <div className="relative w-14 h-14 bg-[#eeebe8] rounded overflow-hidden flex-shrink-0">
+              <div className="relative w-14 h-14 bg-[#dff0f8] rounded overflow-hidden flex-shrink-0">
                 <Image src={img.url} alt="" fill className="object-contain" sizes="56px" />
               </div>
               <div className="flex-1 min-w-0">

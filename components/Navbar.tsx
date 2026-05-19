@@ -1,24 +1,36 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import AuthModal from "@/components/AuthModal";
 
+interface NavUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  loyaltyPoints: number;
+}
+
 const navItems = [
   { label: "skincare", href: "/skincare" },
-  { label: "fragrance", href: "#fragrance" },
-  { label: "makeup", href: "#makeup" },
-  { label: "discover", href: "#discover" },
-  { label: "rewards", href: "#rewards" },
+  { label: "discover", href: "/discover" },
+  { label: "rewards", href: "/rewards" },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<NavUser | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { getTotalItems, openCart } = useCart();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -26,7 +38,30 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const pathname = usePathname();
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((u) => setUser(u || null))
+      .catch(() => setUser(null));
+  }, [authModalOpen, pathname]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    setDropdownOpen(false);
+    setIsOpen(false);
+    router.push("/");
+  };
   const isSkincarePage = pathname === "/skincare";
   const useDarkNav = scrolled || isSkincarePage;
   const textColor = useDarkNav ? "text-gray-600" : "text-white/85";
@@ -66,62 +101,90 @@ export default function Navbar() {
         <div
           className={`flex items-center gap-3 transition-colors duration-300 ${iconColor}`}
         >
-          <button
-            aria-label="Wishlist"
-            className="hidden hover:opacity-70 sm:block transition-opacity"
-          >
-            <svg
-              className="h-[18px] w-[18px]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
+          {/* Profile / Account */}
+          {user ? (
+            <div className="relative hidden sm:block" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDropdownOpen((p) => !p)}
+                aria-label="Profile"
+                className="hover:opacity-70 transition-opacity flex items-center gap-1.5"
+              >
+                <svg
+                  className="h-[18px] w-[18px]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </button>
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-3 w-44 rounded-xl bg-white shadow-lg border border-gray-100 py-1.5 z-50"
+                  >
+                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                      <p className="text-[11px] text-gray-400 uppercase tracking-wider">signed in as</p>
+                      <p className="text-sm font-semibold text-gray-800 truncate">{user.firstName}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Log out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button
+              aria-label="Account"
+              className="hidden hover:opacity-70 sm:block transition-opacity"
+              type="button"
+              onClick={() => setAuthModalOpen(true)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
-          <button
-            aria-label="Account"
-            className="hidden hover:opacity-70 sm:block transition-opacity"
-            type="button"
-            onClick={() => setAuthModalOpen(true)}
-          >
-            <svg
-              className="h-[18px] w-[18px]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </button>
-          <button
-            aria-label="Search"
-            className="hidden hover:opacity-70 sm:block transition-opacity"
-          >
-            <svg
-              className="h-[18px] w-[18px]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
+              <svg
+                className="h-[18px] w-[18px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            </button>
+          )}
+
+          {/* Cart */}
           <button
             onClick={openCart}
             aria-label="Cart"
@@ -156,6 +219,8 @@ export default function Navbar() {
               )}
             </AnimatePresence>
           </button>
+
+          {/* Hamburger */}
           <button
             className="ml-1 hover:opacity-70 transition-opacity lg:hidden"
             onClick={() => setIsOpen((p) => !p)}
@@ -214,21 +279,45 @@ export default function Navbar() {
                   {item.label}
                 </a>
               ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthModalOpen(true);
-                  setIsOpen(false);
-                }}
-                className="w-full px-6 py-3.5 text-left text-sm font-semibold text-[#5f3d4e] hover:bg-gray-50"
-              >
-                sign in / sign up
-              </button>
+              {user ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="px-6 py-3.5 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full px-6 py-3.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    log out
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthModalOpen(true);
+                    setIsOpen(false);
+                  }}
+                  className="w-full px-6 py-3.5 text-left text-sm font-semibold text-[#5f3d4e] hover:bg-gray-50"
+                >
+                  sign in / sign up
+                </button>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <AuthModal open={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+        }}
+      />
     </header>
   );
 }

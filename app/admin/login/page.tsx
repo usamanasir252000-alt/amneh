@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf5f6] flex items-center justify-center">
+    <div className="min-h-screen bg-[#f0f8fc] flex items-center justify-center">
       <div className="w-full max-w-sm bg-white shadow-sm rounded-lg p-8">
         <div className="mb-8 text-center">
           <img src="/logo.svg" alt="amneh." className="h-8 mx-auto mb-2" />

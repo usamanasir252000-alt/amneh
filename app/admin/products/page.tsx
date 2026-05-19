@@ -43,7 +43,7 @@ export default async function AdminProductsPage() {
                 <tr key={p.id} className="hover:bg-gray-50 transition">
                   <td className="px-4 py-3">
                     {primaryImage ? (
-                      <div className="relative w-12 h-12 bg-[#eeebe8] rounded overflow-hidden">
+                      <div className="relative w-12 h-12 bg-[#dff0f8] rounded overflow-hidden">
                         <Image src={primaryImage} alt={p.name} fill className="object-contain" sizes="48px" />
                       </div>
                     ) : (

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type AuthModalMode = "signIn" | "signUp";
 
@@ -24,11 +25,15 @@ export default function AuthModal({
   const [lastName, setLastName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (open) {
       setMode(initialMode);
+      setError("");
     }
   }, [open, initialMode]);
 
@@ -38,8 +43,45 @@ export default function AuthModal({
     }
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError("");
+
+    if (mode === "signUp") {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      const endpoint = mode === "signIn" ? "/api/auth/login" : "/api/auth/register";
+      const body = mode === "signIn"
+        ? { email, password }
+        : { email, password, firstName, lastName };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+      } else {
+        onClose();
+        router.push("/");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,21 +122,18 @@ export default function AuthModal({
               </svg>
             </button>
 
-            {/* Inner Content Area - Grid Layout */}
-            <div className="grid h-full items-center gap-4 overflow-y-auto pr-1 sm:gap-6 lg:grid-cols-12 lg:gap-8 lg:overflow-visible">
-              {/* Left Column: Main Authentication Forms */}
-              <div className="flex flex-col justify-center lg:col-span-7 mx-auto w-full max-w-md h-full">
-                {/* Branding Block */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 xl:h-24 xl:w-24 transition-all">
-                    <Image
-                      src="/logo.svg"
-                      alt="amneh logo"
-                      fill
-                      priority
-                      className="object-contain"
-                    />
-                  </div>
+            <div className="grid gap-8 items-center lg:grid-cols-12">
+              {/* Left Column: Auth Form */}
+              <div className="lg:col-span-7 mx-auto w-full max-w-md">
+                <div className="flex justify-center">
+                  <Image
+                    src="/logo.svg"
+                    alt="amneh logo"
+                    width={90}
+                    height={90}
+                    priority
+                  />
+                </div>
 
                   <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.3em] text-[#9f7c89] sm:text-xs">
                     {mode === "signIn" ? "welcome back" : "new here?"}
@@ -120,7 +159,8 @@ export default function AuthModal({
                           value={firstName}
                           onChange={(event) => setFirstName(event.target.value)}
                           placeholder="first name"
-                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-3 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100 sm:px-4 sm:py-2.5 sm:text-sm"
+                          required
+                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
                         />
                       </label>
                       <label className="block">
@@ -147,7 +187,8 @@ export default function AuthModal({
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="email"
-                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-3 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100 sm:px-4 sm:py-2.5 sm:text-sm"
+                      required
+                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
                     />
                   </label>
 
@@ -160,86 +201,68 @@ export default function AuthModal({
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="password"
-                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-3 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100 sm:px-4 sm:py-2.5 sm:text-sm"
+                      required
+                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
                     />
                   </label>
 
                   {mode === "signUp" && (
-                    <label className="block">
-                      <span className="mb-0.5 block text-[10px] font-semibold text-gray-600 sm:text-xs">
-                        re-enter password
-                      </span>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(event) =>
-                          setConfirmPassword(event.target.value)
-                        }
-                        placeholder="re-enter password"
-                        className="w-full rounded-xl border border-gray-300 bg-white/80 px-3 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100 sm:px-4 sm:py-2.5 sm:text-sm"
-                      />
-                    </label>
-                  )}
-
-                  {/* Context Links Section */}
-                  <div className="flex items-center justify-between min-h-[20px]">
-                    {mode === "signUp" ? (
-                      <label className="flex items-start gap-2 text-[10px] text-gray-700 sm:text-xs">
+                    <>
+                      <label className="block">
+                        <span className="mb-1 block text-xs font-semibold text-gray-600">
+                          re-enter password
+                        </span>
+                        <input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(event) =>
+                            setConfirmPassword(event.target.value)
+                          }
+                          placeholder="re-enter password"
+                          required
+                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+                        />
+                      </label>
+                      <label className="flex items-start gap-3 text-xs text-gray-700">
                         <input
                           type="checkbox"
                           checked={agreeTerms}
                           onChange={(event) =>
                             setAgreeTerms(event.target.checked)
                           }
-                          className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
+                          required
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
                         />
-                        <span className="leading-tight">
-                          i agree to the{" "}
-                          <a
-                            href="#"
-                            className="underline text-gray-600 hover:text-gray-800"
-                          >
-                            terms
-                          </a>{" "}
-                          and{" "}
-                          <a
-                            href="#"
-                            className="underline text-gray-600 hover:text-gray-800"
-                          >
-                            privacy policy
-                          </a>
-                          .
+                        <span>
+                          i agree to amneh&apos;s terms and privacy policy.
                         </span>
                       </label>
-                    ) : (
-                      <>
-                        <span className="text-xs">&nbsp;</span>
-                        <a
-                          href="#"
-                          className="text-[10px] text-[#5f3d4e] underline hover:text-[#8c5e6c] sm:text-xs"
-                        >
-                          forgot password?
-                        </a>
-                      </>
-                    )}
-                  </div>
+                    </>
+                  )}
+
+                  {error && (
+                    <p className="text-xs text-red-500 text-center">{error}</p>
+                  )}
 
                   {/* Main Action Call */}
                   <button
                     type="submit"
-                    className="w-full rounded-xl border border-[#8c5e6c] bg-[#f8e8ed] px-4 py-2 text-xs uppercase tracking-[0.15em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm sm:tracking-[0.2em]"
+                    disabled={loading}
+                    className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {mode === "signIn" ? "sign in" : "create account"}
+                    {loading
+                      ? mode === "signIn" ? "signing in…" : "creating account…"
+                      : mode === "signIn" ? "sign in" : "create account"}
                   </button>
 
                   {/* Switch View Trigger */}
                   <div className="text-center text-[11px] text-gray-600 sm:text-xs">
                     {mode === "signIn" ? (
                       <>
-                        dont have an account?{" "}
+                        don&apos;t have an account?{" "}
                         <button
                           type="button"
-                          onClick={() => setMode("signUp")}
+                          onClick={() => { setMode("signUp"); setError(""); }}
                           className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
                         >
                           sign up
@@ -250,7 +273,7 @@ export default function AuthModal({
                         already have an account?{" "}
                         <button
                           type="button"
-                          onClick={() => setMode("signIn")}
+                          onClick={() => { setMode("signIn"); setError(""); }}
                           className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
                         >
                           sign in
@@ -261,16 +284,16 @@ export default function AuthModal({
                 </form>
               </div>
 
-              {/* Right Column: Promotional/Newsletter section */}
-              <div className="flex flex-col justify-center h-full border-t border-gray-100 pt-4 lg:col-span-5 lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0 xl:pl-8">
-                <div className="hidden lg:flex items-center gap-2 text-[9px] uppercase tracking-[0.3em] text-gray-400 mb-4 w-full xl:mb-6">
+              {/* Right Column: Newsletter */}
+              <div className="lg:col-span-5 flex flex-col justify-center h-full border-t border-gray-100 pt-6 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
+                <div className="hidden lg:flex items-center gap-3 text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-6 w-full">
                   <span className="h-px flex-1 bg-gray-200" />
                   <span>Stay Connected</span>
                   <span className="h-px flex-1 bg-gray-200" />
                 </div>
 
-                <div className="w-full rounded-2xl border border-gray-100 bg-[#faf5f6] p-4 text-center sm:p-5">
-                  <p className="mb-2 text-[11px] font-medium text-gray-700 tracking-wide sm:mb-3 sm:text-xs">
+                <div className="w-full rounded-3xl border border-gray-100 bg-[#f0f8fc] p-5 text-center">
+                  <p className="mb-4 text-xs font-medium text-gray-700 tracking-wide">
                     sign up for updates:
                   </p>
                   <form
@@ -294,12 +317,8 @@ export default function AuthModal({
                       submit
                     </button>
                   </form>
-                  <p className="mt-2 text-[9px] text-gray-400 leading-relaxed sm:mt-3">
-                    by signing up you agree to our{" "}
-                    <a href="#" className="underline hover:text-gray-600">
-                      terms
-                    </a>
-                    .
+                  <p className="mt-3 text-[10px] text-gray-400 leading-relaxed">
+                    by signing up you agree to our terms.
                   </p>
                 </div>
               </div>

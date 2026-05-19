@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#faf5f6]">
+      <main className="min-h-screen bg-[#f0f8fc]">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
@@ -83,7 +83,7 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <main className="min-h-screen bg-[#faf5f6]">
+      <main className="min-h-screen bg-[#f0f8fc]">
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <p className="text-gray-400 text-sm">Product not found.</p>
@@ -99,7 +99,7 @@ export default function ProductDetailPage() {
   const currentImage = images[activeImage]?.url ?? "/shot1.png";
 
   return (
-    <main className="min-h-screen bg-[#faf5f6]">
+    <main className="min-h-screen bg-[#f0f8fc]">
       <Navbar />
 
       {/* Breadcrumb */}
@@ -128,7 +128,7 @@ export default function ProductDetailPage() {
                   <button
                     key={img.id}
                     onClick={() => setActiveImage(i)}
-                    className={`relative w-16 h-16 bg-[#eeebe8] overflow-hidden border-2 transition-all duration-200 ${
+                    className={`relative w-16 h-16 bg-[#dff0f8] overflow-hidden border-2 transition-all duration-200 ${
                       activeImage === i ? "border-gray-900" : "border-transparent hover:border-gray-300"
                     }`}
                   >
@@ -139,7 +139,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Main image */}
-            <div className="flex-1 bg-[#eeebe8] overflow-hidden relative group">
+            <div className="flex-1 bg-[#dff0f8] overflow-hidden relative group">
               {/* Image 1 — always rendered, sets the container height */}
               <Image
                 src={images[0]?.url ?? "/shot1.png"}
@@ -172,7 +172,7 @@ export default function ProductDetailPage() {
           {/* Right: Product info */}
           <div className="flex flex-col">
             {/* Category tag */}
-            <p className="text-[11px] uppercase tracking-[0.3em] text-[#b07a8a] mb-3">{product.type}</p>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-[#4d9ab5] mb-3">{product.type}</p>
 
             {/* Name */}
             <h1 className="text-3xl lg:text-4xl font-bold uppercase tracking-tight text-gray-900 leading-tight mb-3">
@@ -271,8 +271,8 @@ export default function ProductDetailPage() {
                 { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label: "Dermatologist tested & approved" },
               ].map((f) => (
                 <div key={f.label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#f5eeef] flex items-center justify-center flex-shrink-0">
-                    <svg className="h-3.5 w-3.5 text-[#b07a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <div className="w-8 h-8 rounded-full bg-[#d6ecf7] flex items-center justify-center flex-shrink-0">
+                    <svg className="h-3.5 w-3.5 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                     </svg>
                   </div>

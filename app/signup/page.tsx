@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
 
 export default function SignupPage() {
@@ -12,6 +13,40 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToEmails, setAgreeToEmails] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, firstName, lastName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+      } else {
+        router.push("/");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthPageShell>
@@ -25,7 +60,7 @@ export default function SignupPage() {
           </h1>
         </div>
 
-        <form className="mt-10 space-y-6">
+        <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-2">
@@ -36,6 +71,7 @@ export default function SignupPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="first name"
+                required
                 className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
               />
             </div>
@@ -62,6 +98,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email"
+              required
               className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
             />
           </div>
@@ -75,6 +112,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="password"
+              required
               className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -91,11 +129,9 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="re-enter password"
+              required
               className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              must be at least 6 characters long
-            </p>
           </div>
 
           <div className="space-y-4">
@@ -107,17 +143,7 @@ export default function SignupPage() {
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
               />
               <span>
-                i would like to receive emails with updates on products, offers,
-                promotions, and other marketing information from kylie jenner
-                brands. i understand that i can opt out of these communications,
-                free of charge, at any time by sending an email to:{" "}
-                <a
-                  href="mailto:customerservice@kyliecosmetics.com"
-                  className="underline text-gray-600 hover:text-gray-800"
-                >
-                  customerservice@kyliecosmetics.com
-                </a>{" "}
-                with the subject line “unsubscribe”
+                i would like to receive emails with updates on products, offers, and promotions from amneh.
               </span>
             </label>
 
@@ -126,40 +152,25 @@ export default function SignupPage() {
                 type="checkbox"
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
+                required
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
               />
               <span>
-                please agree to our{" "}
-                <a
-                  href="#"
-                  className="underline text-gray-600 hover:text-gray-800"
-                >
-                  terms
-                </a>
-                ,{" "}
-                <a
-                  href="#"
-                  className="underline text-gray-600 hover:text-gray-800"
-                >
-                  privacy policy
-                </a>
-                , and{" "}
-                <a
-                  href="#"
-                  className="underline text-gray-600 hover:text-gray-800"
-                >
-                  rewards program terms
-                </a>{" "}
-                to create an account
+                i agree to amneh&apos;s terms, privacy policy, and rewards program terms
               </span>
             </label>
           </div>
 
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353]"
+            disabled={loading}
+            className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            create account
+            {loading ? "creating account…" : "create account"}
           </button>
 
           <div className="text-center text-sm text-gray-600">

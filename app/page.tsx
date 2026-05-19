@@ -1,7 +1,6 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import FeatureSplit from "../components/FeatureSplit";
-import ProductHighlight from "../components/ProductHighlight";
 import ProductCarousel from "../components/ProductCarousel";
 import PromoSection from "../components/PromoSection";
 import FullWidthBanner from "../components/FullWidthBanner";
@@ -15,9 +14,8 @@ export default function Home() {
       <Hero />
 
       {/* Sections separated by a visible blush-pink gap — paddingTop adds the gap after the hero too */}
-      <div className="flex flex-col" style={{ gap: "56px", background: "#eddde0", paddingTop: "56px" }}>
+      <div className="flex flex-col" style={{ gap: "56px", background: "#9ac9df", paddingTop: "56px" }}>
         <FeatureSplit />
-        <ProductHighlight />
         <ProductCarousel />
         <PromoSection />
         <FullWidthBanner />

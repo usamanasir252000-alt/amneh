@@ -72,7 +72,7 @@ export default function ProductCard({ product }: { product: Product }) {
     >
       {/* Image — click goes to product page */}
       <Link href={`/products/${product.id}`} className="block">
-      <div className="relative overflow-hidden bg-[#eeebe8] aspect-square">
+      <div className="relative overflow-hidden bg-[#dff0f8] aspect-square">
         <Image
           src={primaryImage}
           alt={product.name}

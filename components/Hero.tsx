@@ -65,16 +65,16 @@ export default function Hero() {
             just dropped
           </p>
           <h1 className="text-5xl sm:text-6xl font-bold uppercase tracking-tight leading-tight mb-5">
-            Luxury Beauty
+            Amneh Serum
             <br />
-            Essentials
+            Collection
           </h1>
           <p className="text-sm leading-7 text-white/80 mb-8 max-w-xs">
             meet our new juicy, long-lasting <strong>hydrating serum</strong>{" "}
-            and nourishing, glow-rich <strong>velvet balm</strong>.
+            and nourishing, glow-rich <strong></strong>
           </p>
           <a
-            href="#collections"
+            href="#products"
             className="inline-flex items-center justify-center border border-white bg-white px-8 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-transparent hover:text-white transition duration-300"
           >
             shop now

@@ -34,7 +34,7 @@ export default function ProductCarousel() {
   const visible = products.slice(start, start + perPage);
 
   return (
-    <section className="bg-[#faf5f6] py-14 px-6">
+    <section id="products" className="bg-[#f0f8fc] py-14 px-6" style={{ scrollMarginTop: "60px" }}>
       <div className="relative mx-auto max-w-screen-xl">
         <button
           onClick={() => setStart((s) => Math.max(0, s - 1))}
@@ -47,12 +47,15 @@ export default function ProductCarousel() {
           </svg>
         </button>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div
+          className="grid gap-4 justify-center"
+          style={{ gridTemplateColumns: `repeat(${Math.min(visible.length || 1, 4)}, minmax(0, 280px))` }}
+        >
           {visible.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
           {visible.length === 0 && (
-            <div className="col-span-4 py-16 text-center text-gray-300 text-sm">Loading products…</div>
+            <div className="py-16 text-center text-gray-300 text-sm">Loading products…</div>
           )}
         </div>
 
@@ -70,7 +73,7 @@ export default function ProductCarousel() {
 
       <div className="mt-10 flex justify-center">
         <a
-          href="#"
+          href="/skincare#serums"
           className="border border-gray-900 px-10 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
         >
           shop now
