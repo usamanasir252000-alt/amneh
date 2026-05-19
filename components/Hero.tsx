@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const heroImages = [
   "/r1.jpg",
-  "/background1.jpeg",
-  "/backgorund2.jpeg",
+  "/r7.jpg",
   "/r5.jpg",
 ];
 
@@ -17,29 +16,39 @@ export default function Hero() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveIdx((i) => (i + 1) % heroImages.length);
-    }, 2000);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <section className="relative h-screen w-full overflow-hidden">
-      {/* All hero images stacked — only active one is visible (instant cut) */}
-      {heroImages.map((src, i) => (
-        <div
-          key={src}
-          className="absolute inset-0"
-          style={{ opacity: i === activeIdx ? 1 : 0 }}
-        >
-          <Image
-            src={src}
-            alt="amneh collection"
-            fill
-            className="object-cover object-center"
-            priority={i === 0}
-            sizes="100vw"
-          />
-        </div>
-      ))}
+      {/* Hero images with glow transition effect */}
+      <AnimatePresence mode="wait">
+        {heroImages.map((src, i) => (
+          i === activeIdx && (
+            <motion.div
+              key={src}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                boxShadow: "inset 0 0 60px rgba(255, 255, 255, 0.1)",
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            >
+              <Image
+                src={src}
+                alt="amneh collection"
+                fill
+                className="object-cover object-center"
+                priority={i === 0}
+                sizes="100vw"
+              />
+            </motion.div>
+          )
+        ))}
+      </AnimatePresence>
 
       {/* Gradient overlay for text legibility */}
       <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
@@ -56,15 +65,16 @@ export default function Hero() {
             just dropped
           </p>
           <h1 className="text-5xl sm:text-6xl font-bold uppercase tracking-tight leading-tight mb-5">
-            Luxury Beauty<br />Essentials
+            Amneh Serum
+            <br />
+            Collection
           </h1>
           <p className="text-sm leading-7 text-white/80 mb-8 max-w-xs">
-            meet our new juicy, long-lasting{" "}
-            <strong>hydrating serum</strong> and nourishing, glow-rich{" "}
-            <strong>velvet balm</strong>.
+            meet our new juicy, long-lasting <strong>hydrating serum</strong>{" "}
+            and nourishing, glow-rich <strong></strong>
           </p>
           <a
-            href="#collections"
+            href="#products"
             className="inline-flex items-center justify-center border border-white bg-white px-8 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-transparent hover:text-white transition duration-300"
           >
             shop now

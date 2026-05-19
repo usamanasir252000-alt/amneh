@@ -20,7 +20,7 @@ export default function PromoSection() {
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-gray-900 mb-4">
             Online Exclusive
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold uppercase leading-tight" style={{ color: "#7d4f5a" }}>
+          <h2 className="text-4xl sm:text-5xl font-bold uppercase leading-tight" style={{ color: "#2b6c8a" }}>
             Free<br />Beauty Bag
           </h2>
           <p className="mt-5 text-sm text-gray-600 leading-7 max-w-xs">
@@ -30,7 +30,7 @@ export default function PromoSection() {
             free with any $55+ order. while supplies last. offer ends 5/31/26 @ 11:59 pm.
           </p>
           <a
-            href="#"
+            href="#products"
             className="mt-7 inline-flex items-center justify-center border border-gray-900 px-9 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
           >
             shop now

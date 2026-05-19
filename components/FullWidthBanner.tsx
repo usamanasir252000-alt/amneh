@@ -15,7 +15,7 @@ export default function FullWidthBanner() {
         <div className="max-w-xs">
           <h2
             className="text-3xl sm:text-4xl font-bold uppercase tracking-tight leading-snug"
-            style={{ color: "#d4a8b4" }}
+            style={{ color: "#FFFFFF" }}
           >
             The<br />Essentials
           </h2>
@@ -23,7 +23,7 @@ export default function FullWidthBanner() {
             warm, fresh, and radiant — discover our best-selling beauty essentials.
           </p>
           <a
-            href="#"
+            href="#products"
             className="mt-6 inline-flex items-center justify-center border border-white bg-white px-8 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-transparent hover:text-white transition duration-300"
           >
             shop now
