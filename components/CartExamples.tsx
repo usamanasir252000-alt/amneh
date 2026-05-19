@@ -118,7 +118,7 @@ function ProductCard({ product }: { product: any }) {
       </div>
       <div className="p-3">
         <h3 className="font-semibold text-sm text-gray-900">{product.name}</h3>
-        <p className="text-sm text-gray-600 mt-1">${product.price}</p>
+        <p className="text-sm text-gray-600 mt-1">PKR {product.price}</p>
         <motion.button
           onClick={handleAdd}
           whileTap={{ scale: 0.95 }}
@@ -157,7 +157,7 @@ export function CartStatus() {
         <strong>Cart Items:</strong> {getTotalItems()}
       </p>
       <p className="text-sm text-gray-700 mt-1">
-        <strong>Total:</strong> ${getTotalPrice().toFixed(2)}
+        <strong>Total:</strong> PKR {getTotalPrice().toFixed(2)}
       </p>
       {getTotalItems() > 0 && (
         <motion.button

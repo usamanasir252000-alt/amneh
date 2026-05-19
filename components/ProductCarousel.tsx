@@ -34,8 +34,26 @@ export default function ProductCarousel() {
   const visible = products.slice(start, start + perPage);
 
   return (
-    <section id="products" className="bg-[#f0f8fc] py-14 px-6" style={{ scrollMarginTop: "60px" }}>
-      <div className="relative mx-auto max-w-screen-xl">
+    <section id="products" className="bg-[#f0f8fc] py-14" style={{ scrollMarginTop: "60px" }}>
+
+      {/* ── Mobile: horizontal snap scroll ── */}
+      <div
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-3 [&::-webkit-scrollbar]:hidden lg:hidden"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {products.length === 0 ? (
+          <p className="py-16 text-center text-gray-300 text-sm w-full">Loading…</p>
+        ) : (
+          products.map((p) => (
+            <div key={p.id} className="min-w-[72%] sm:min-w-[44%] flex-shrink-0 snap-start">
+              <ProductCard product={p} />
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ── Desktop: paginated grid ── */}
+      <div className="hidden lg:block relative mx-auto max-w-screen-xl px-6">
         <button
           onClick={() => setStart((s) => Math.max(0, s - 1))}
           disabled={start === 0}
@@ -48,7 +66,7 @@ export default function ProductCarousel() {
         </button>
 
         <div
-          className="grid gap-4 justify-center"
+          className="grid gap-5 justify-center"
           style={{ gridTemplateColumns: `repeat(${Math.min(visible.length || 1, 4)}, minmax(0, 280px))` }}
         >
           {visible.map((p) => (
@@ -71,7 +89,19 @@ export default function ProductCarousel() {
         </button>
       </div>
 
-      <div className="mt-10 flex justify-center">
+      {/* Scroll hint dots — mobile only */}
+      {products.length > 1 && (
+        <div className="flex justify-center gap-1.5 mt-4 lg:hidden">
+          {products.map((_, i) => (
+            <span
+              key={i}
+              className="h-1.5 w-1.5 rounded-full bg-gray-300"
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-10 flex justify-center px-6">
         <a
           href="/skincare#serums"
           className="border border-gray-900 px-10 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"

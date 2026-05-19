@@ -99,7 +99,7 @@ function SkincareProductCard({ product }: { product: Product }) {
             <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">{product.description}</p>
           )}
         </div>
-        <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">${product.price}</span>
+        <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">PKR {product.price}</span>
       </div>
 
       <button

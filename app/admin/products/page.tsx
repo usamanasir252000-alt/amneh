@@ -53,7 +53,7 @@ export default async function AdminProductsPage() {
                   <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
                   <td className="px-4 py-3 text-gray-500">{p.type}</td>
                   <td className="px-4 py-3 text-gray-500">{p.category}</td>
-                  <td className="px-4 py-3 text-gray-900">${p.price}</td>
+                  <td className="px-4 py-3 text-gray-900">PKR {p.price}</td>
                   <td className="px-4 py-3 text-gray-500">{p.images.length}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">

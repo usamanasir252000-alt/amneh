@@ -76,17 +76,7 @@ export default function Navbar() {
       }`}
     >
       <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-3">
-        {/* Left: country */}
-        <div
-          className={`flex items-center gap-1.5 text-xs transition-colors duration-300 ${useDarkNav ? "text-gray-500" : "text-white/75"}`}
-        >
-          <span className="uppercase tracking-wide">us</span>
-          <span
-            className={`inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[10px] leading-none transition-colors duration-300 ${useDarkNav ? "border-gray-400" : "border-white/60"}`}
-          >
-            $
-          </span>
-        </div>
+        <div />
 
         {/* Center: logo */}
         <a href="/" className="absolute left-1/2 -translate-x-1/2">

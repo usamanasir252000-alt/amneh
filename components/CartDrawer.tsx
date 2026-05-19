@@ -113,7 +113,7 @@ export default function CartDrawer() {
                         online exclusive and limited time only.
                       </p>
                       <p className="text-xs text-gray-700">
-                        spend another ${(50 - totalPrice).toFixed(2)} and select
+                        spend another PKR {(50 - totalPrice).toFixed(2)} and select
                         1 free gift(s)
                       </p>
                     </motion.div>
@@ -152,7 +152,7 @@ export default function CartDrawer() {
                               </p>
                             )}
                             <p className="text-sm font-medium text-gray-900 mt-1">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              PKR {(item.price * item.quantity).toFixed(2)}
                             </p>
 
                             {/* Quantity Controls */}
@@ -204,7 +204,7 @@ export default function CartDrawer() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
                       <span className="font-medium text-gray-900">
-                        ${totalPrice.toFixed(2)}
+                        PKR {totalPrice.toFixed(2)}
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">

@@ -190,7 +190,7 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-5">
-              <span className="text-2xl font-semibold text-gray-900">${product.price}</span>
+              <span className="text-2xl font-semibold text-gray-900">PKR {product.price}</span>
               <span className="text-xs text-gray-400 uppercase tracking-wide">{product.shades}</span>
             </div>
 

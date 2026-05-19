@@ -15,7 +15,7 @@ export default function FullWidthBanner() {
         <div className="max-w-xs">
           <h2
             className="text-3xl sm:text-4xl font-bold uppercase tracking-tight leading-snug"
-            style={{ color: "#9ac9df" }}
+            style={{ color: "#FFFFFF" }}
           >
             The<br />Essentials
           </h2>
