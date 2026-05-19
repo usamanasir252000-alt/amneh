@@ -2,7 +2,6 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import FeatureSplit from "../components/FeatureSplit";
 import ProductCarousel from "../components/ProductCarousel";
-import PromoSection from "../components/PromoSection";
 import FullWidthBanner from "../components/FullWidthBanner";
 import SocialFeed from "../components/SocialFeed";
 import Footer from "../components/Footer";
@@ -17,7 +16,6 @@ export default function Home() {
       <div className="flex flex-col" style={{ gap: "56px", background: "#9ac9df", paddingTop: "56px" }}>
         <FeatureSplit />
         <ProductCarousel />
-        <PromoSection />
         <FullWidthBanner />
         <SocialFeed />
         <Footer />
