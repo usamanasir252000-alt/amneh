@@ -135,6 +135,7 @@ export default function AuthModal({
                   />
                 </div>
 
+                <div className="mt-4 text-center">
                   <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.3em] text-[#9f7c89] sm:text-xs">
                     {mode === "signIn" ? "welcome back" : "new here?"}
                   </p>

@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
+import BackButton from "@/components/BackButton";
 
 export default function DiscoverPage() {
   return (
@@ -11,6 +12,9 @@ export default function DiscoverPage() {
       <div className="relative h-[55vh] min-h-[360px] overflow-hidden mt-0">
         <Image src="/r1.jpg" alt="amneh discover" fill className="object-cover object-center" priority sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+        <div className="absolute top-24 left-6 z-20">
+          <BackButton light />
+        </div>
         <div className="relative z-10 flex h-full flex-col items-center justify-end pb-16 text-center px-6">
           <p className="text-xs uppercase tracking-[0.4em] text-white/70 mb-3">our story</p>
           <h1 className="text-5xl sm:text-6xl font-bold uppercase tracking-tight text-white">Discover Amneh</h1>

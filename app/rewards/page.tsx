@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import BackButton from "@/components/BackButton";
 
 interface User {
   id: string;
@@ -29,7 +30,7 @@ const REWARDS = [
 ];
 
 function getTier(points: number) {
-  return TIERS.findLast((t) => points >= t.min) ?? TIERS[0];
+  return [...TIERS].reverse().find((t) => points >= t.min) ?? TIERS[0];
 }
 
 function getNextTier(points: number) {
@@ -66,6 +67,9 @@ export default function RewardsPage() {
 
       {/* Header */}
       <div className="relative overflow-hidden bg-gray-900 pt-32 pb-16 text-center px-6">
+        <div className="absolute top-20 left-6 z-20">
+          <BackButton light />
+        </div>
         <div className="relative z-10">
           <p className="text-xs uppercase tracking-[0.4em] text-[#9ac9df] mb-3">loyalty program</p>
           <h1 className="text-5xl font-bold uppercase tracking-tight text-white">Amneh Rewards</h1>

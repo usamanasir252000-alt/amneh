@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
+import BackButton from "@/components/BackButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -37,6 +38,9 @@ export default function LoginPage() {
 
   return (
     <AuthPageShell>
+      <div className="mb-4">
+        <BackButton light />
+      </div>
       <div className="rounded-3xl bg-white/20 p-8 shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-white/40 backdrop-blur-xl sm:p-10">
         <div className="text-center">
           <p className="text-xs uppercase tracking-[0.35em] text-[#9f7c89]">

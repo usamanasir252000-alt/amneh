@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 interface User {
   id: string;
@@ -22,7 +23,7 @@ const TIERS = [
 ];
 
 function getTier(points: number) {
-  return TIERS.findLast((t) => points >= t.min) ?? TIERS[0];
+  return [...TIERS].reverse().find((t) => points >= t.min) ?? TIERS[0];
 }
 
 export default function ProfilePage() {
@@ -55,7 +56,10 @@ export default function ProfilePage() {
     <main className="bg-[#f0f8fc] min-h-screen">
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-6 py-32 lg:px-10">
+      <div className="max-w-2xl mx-auto px-6 pt-28 pb-12 lg:px-10">
+        <div className="mb-6">
+          <BackButton />
+        </div>
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />

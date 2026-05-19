@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
+import BackButton from "@/components/BackButton";
 
 interface ProductImage {
   id: string;
@@ -104,6 +105,9 @@ export default function ProductDetailPage() {
 
       {/* Breadcrumb */}
       <div className="max-w-screen-xl mx-auto px-6 lg:px-10 pt-28 pb-4">
+        <div className="mb-4">
+          <BackButton />
+        </div>
         <nav className="flex items-center gap-2 text-[11px] text-gray-400 uppercase tracking-widest">
           <Link href="/" className="hover:text-gray-700 transition">Home</Link>
           <span>/</span>
