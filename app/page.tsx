@@ -13,7 +13,10 @@ export default function Home() {
       <Hero />
 
       {/* Sections separated by a visible blush-pink gap — paddingTop adds the gap after the hero too */}
-      <div className="flex flex-col" style={{ gap: "56px", background: "#9ac9df", paddingTop: "56px" }}>
+      <div
+        className="flex flex-col"
+        style={{ gap: "56px", background: "#9ac9df", paddingTop: "56px" }}
+      >
         <FeatureSplit />
         <ProductCarousel />
         <FullWidthBanner />

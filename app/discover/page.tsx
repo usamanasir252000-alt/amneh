@@ -10,61 +10,92 @@ export default function DiscoverPage() {
 
       {/* Hero */}
       <div className="relative h-[55vh] min-h-[360px] overflow-hidden mt-0">
-        <Image src="/r1.jpg" alt="amneh discover" fill className="object-cover object-center" priority sizes="100vw" />
+        <Image
+          src="/r1.jpg"
+          alt="amneh discover"
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
         <div className="absolute top-24 left-6 z-20">
           <BackButton light />
         </div>
         <div className="relative z-10 flex h-full flex-col items-center justify-end pb-16 text-center px-6">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/70 mb-3">our story</p>
-          <h1 className="text-5xl sm:text-6xl font-bold uppercase tracking-tight text-white">Discover Amneh</h1>
+          <p className="text-xs uppercase tracking-[0.4em] text-white/70 mb-3">
+            our story
+          </p>
+          <h1 className="text-5xl sm:text-6xl font-bold uppercase tracking-tight text-white">
+            Discover Amneh
+          </h1>
         </div>
       </div>
 
       {/* Our Story */}
       <section className="max-w-3xl mx-auto px-6 py-20 lg:px-10">
-        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-6">the beginning</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-6">
+          the beginning
+        </p>
         <h2 className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-10 leading-snug">
-          Honest. Gentle.<br />Intentional.
+          Honest. Gentle.
+          <br />
+          Intentional.
         </h2>
 
         <div className="space-y-6 text-[15px] leading-8 text-gray-600">
           <p>
-            Amneh was created from a simple belief — that skincare should feel honest, gentle, and intentional.
-            In a world full of complicated routines and overwhelming choices, we wanted to bring things back to
-            simplicity. Products that respect your skin, your time, and your natural beauty.
+            Amneh was created from a simple belief — that skincare should feel
+            honest, gentle, and intentional. In a world full of complicated
+            routines and overwhelming choices, we wanted to bring things back to
+            simplicity. Products that respect your skin, your time, and your
+            natural beauty.
           </p>
           <p>
-            The name <strong className="text-gray-800">Amneh</strong> represents trust, purity, and care — values
-            that sit at the heart of everything we create. Each formula is thoughtfully developed to nourish and
-            support your skin, without unnecessary additives or noise. We don't believe in covering up imperfections.
-            We believe in enhancing what's already yours.
+            The name <strong className="text-gray-800">Amneh</strong> represents
+            trust, purity, and care — values that sit at the heart of everything
+            we create. Each formula is thoughtfully developed to nourish and
+            support your skin, without unnecessary additives or noise. We don't
+            believe in covering up imperfections. We believe in enhancing what's
+            already yours.
           </p>
           <p>
-            Amneh is more than skincare. It's a quiet ritual of self-respect, designed to help you feel comfortable
-            in your own skin, every single day.
+            Amneh is more than skincare. It's a quiet ritual of self-respect,
+            designed to help you feel comfortable in your own skin, every single
+            day.
           </p>
         </div>
       </section>
 
       {/* Divider image */}
       <div className="relative h-[40vh] min-h-[280px] overflow-hidden">
-        <Image src="/r7.jpg" alt="amneh ingredients" fill className="object-cover object-center" sizes="100vw" />
+        <Image
+          src="/r7.jpg"
+          alt="amneh ingredients"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative z-10 flex h-full items-center justify-center">
-          <p className="text-white text-2xl font-bold uppercase tracking-[0.25em]">Nature Meets Science</p>
+          <p className="text-white text-2xl font-bold uppercase tracking-[0.25em]">
+            Nature Meets Science
+          </p>
         </div>
       </div>
 
       {/* Fruit-based extracts */}
       <section className="max-w-5xl mx-auto px-6 py-20 lg:px-10">
-        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-4 text-center">what's inside</p>
+        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-4 text-center">
+          what's inside
+        </p>
         <h2 className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-4 text-center">
           Powered by Nature
         </h2>
         <p className="text-center text-gray-500 text-sm leading-7 mb-14 max-w-xl mx-auto">
-          Every amneh. formula is built around plant-derived, fruit-based extracts chosen for their proven ability
-          to nourish, brighten, and protect.
+          Every amneh. formula is built around plant-derived, fruit-based
+          extracts chosen for their proven ability to nourish, brighten, and
+          protect.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -72,45 +103,57 @@ export default function DiscoverPage() {
             {
               name: "Rosehip Extract",
               origin: "Chile & South Africa",
-              benefit: "Rich in vitamins A and C, rosehip oil deeply repairs the skin barrier, fades dark spots, and delivers lasting hydration.",
+              benefit:
+                "Rich in vitamins A and C, rosehip oil deeply repairs the skin barrier, fades dark spots, and delivers lasting hydration.",
               emoji: "🌹",
             },
             {
               name: "Pomegranate Seed Oil",
               origin: "Mediterranean",
-              benefit: "Packed with antioxidants and punicic acid, it shields skin from environmental stress and promotes cell renewal.",
+              benefit:
+                "Packed with antioxidants and punicic acid, it shields skin from environmental stress and promotes cell renewal.",
               emoji: "🍎",
             },
             {
               name: "Papaya Enzyme",
               origin: "Tropical Regions",
-              benefit: "Papain gently exfoliates dead skin cells, evens tone, and reveals a smoother, more luminous complexion.",
+              benefit:
+                "Papain gently exfoliates dead skin cells, evens tone, and reveals a smoother, more luminous complexion.",
               emoji: "🍈",
             },
             {
               name: "Sea Buckthorn Berry",
               origin: "Himalayas & Europe",
-              benefit: "One of nature's most nutrient-dense berries — packed with omegas 3, 6, 7, and 9 for intensive skin repair.",
+              benefit:
+                "One of nature's most nutrient-dense berries — packed with omegas 3, 6, 7, and 9 for intensive skin repair.",
               emoji: "🫐",
             },
             {
               name: "Green Tea Extract",
               origin: "East Asia",
-              benefit: "A powerful antioxidant that calms inflammation, minimises pores, and protects against UV-induced damage.",
+              benefit:
+                "A powerful antioxidant that calms inflammation, minimises pores, and protects against UV-induced damage.",
               emoji: "🍵",
             },
             {
               name: "Hyaluronic Acid (Plant-Derived)",
               origin: "Fermented Botanical",
-              benefit: "Draws moisture from the environment into the skin, delivering 24-hour hydration at multiple skin layers.",
+              benefit:
+                "Draws moisture from the environment into the skin, delivering 24-hour hydration at multiple skin layers.",
               emoji: "💧",
             },
           ].map((item) => (
             <div key={item.name} className="bg-white rounded-xl p-6 shadow-sm">
               <div className="text-3xl mb-4">{item.emoji}</div>
-              <p className="text-[10px] uppercase tracking-widest text-[#4d9ab5] mb-1">{item.origin}</p>
-              <h3 className="text-[15px] font-semibold text-gray-900 mb-3">{item.name}</h3>
-              <p className="text-[13px] leading-6 text-gray-500">{item.benefit}</p>
+              <p className="text-[10px] uppercase tracking-widest text-[#4d9ab5] mb-1">
+                {item.origin}
+              </p>
+              <h3 className="text-[15px] font-semibold text-gray-900 mb-3">
+                {item.name}
+              </h3>
+              <p className="text-[13px] leading-6 text-gray-500">
+                {item.benefit}
+              </p>
             </div>
           ))}
         </div>
@@ -118,10 +161,15 @@ export default function DiscoverPage() {
 
       {/* Instagram CTA */}
       <section className="bg-white py-16 px-6 text-center">
-        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-3">follow along</p>
-        <h2 className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-4">Join the Community</h2>
+        <p className="text-xs uppercase tracking-[0.35em] text-[#4d9ab5] mb-3">
+          follow along
+        </p>
+        <h2 className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-4">
+          Join the Community
+        </h2>
         <p className="text-gray-500 text-sm leading-7 max-w-md mx-auto mb-8">
-          Share your amneh. ritual, discover new looks, and connect with a community that believes in honest beauty.
+          Share your amneh. ritual, discover new looks, and connect with a
+          community that believes in honest beauty.
         </p>
         <a
           href="https://instagram.com/amnehofficial"

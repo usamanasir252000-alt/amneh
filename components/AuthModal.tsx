@@ -60,10 +60,12 @@ export default function AuthModal({
 
     setLoading(true);
     try {
-      const endpoint = mode === "signIn" ? "/api/auth/login" : "/api/auth/register";
-      const body = mode === "signIn"
-        ? { email, password }
-        : { email, password, firstName, lastName };
+      const endpoint =
+        mode === "signIn" ? "/api/auth/login" : "/api/auth/register";
+      const body =
+        mode === "signIn"
+          ? { email, password }
+          : { email, password, firstName, lastName };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -252,8 +254,12 @@ export default function AuthModal({
                     className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading
-                      ? mode === "signIn" ? "signing in…" : "creating account…"
-                      : mode === "signIn" ? "sign in" : "create account"}
+                      ? mode === "signIn"
+                        ? "signing in…"
+                        : "creating account…"
+                      : mode === "signIn"
+                        ? "sign in"
+                        : "create account"}
                   </button>
 
                   {/* Switch View Trigger */}
@@ -263,7 +269,10 @@ export default function AuthModal({
                         don&apos;t have an account?{" "}
                         <button
                           type="button"
-                          onClick={() => { setMode("signUp"); setError(""); }}
+                          onClick={() => {
+                            setMode("signUp");
+                            setError("");
+                          }}
                           className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
                         >
                           sign up
@@ -274,7 +283,10 @@ export default function AuthModal({
                         already have an account?{" "}
                         <button
                           type="button"
-                          onClick={() => { setMode("signIn"); setError(""); }}
+                          onClick={() => {
+                            setMode("signIn");
+                            setError("");
+                          }}
                           className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
                         >
                           sign in

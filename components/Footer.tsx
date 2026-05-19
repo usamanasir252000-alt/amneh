@@ -51,7 +51,7 @@ export default function Footer() {
             <span key={label} className="text-[13px] text-gray-600">
               {label}
             </span>
-          )
+          ),
         )}
       </div>
 

@@ -4,11 +4,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
-const heroImages = [
-  "/r1.jpg",
-  "/r7.jpg",
-  "/r5.jpg",
-];
+const heroImages = ["/r1.jpg", "/r7.jpg", "/r5.jpg"];
 
 export default function Hero() {
   const [activeIdx, setActiveIdx] = useState(0);
@@ -24,30 +20,31 @@ export default function Hero() {
     <section className="relative h-screen w-full overflow-hidden">
       {/* Hero images with glow transition effect */}
       <AnimatePresence mode="wait">
-        {heroImages.map((src, i) => (
-          i === activeIdx && (
-            <motion.div
-              key={src}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: 1,
-                boxShadow: "inset 0 0 60px rgba(255, 255, 255, 0.1)",
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-            >
-              <Image
-                src={src}
-                alt="amneh collection"
-                fill
-                className="object-cover object-center"
-                priority={i === 0}
-                sizes="100vw"
-              />
-            </motion.div>
-          )
-        ))}
+        {heroImages.map(
+          (src, i) =>
+            i === activeIdx && (
+              <motion.div
+                key={src}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  boxShadow: "inset 0 0 60px rgba(255, 255, 255, 0.1)",
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+              >
+                <Image
+                  src={src}
+                  alt="amneh collection"
+                  fill
+                  className="object-cover object-center"
+                  priority={i === 0}
+                  sizes="100vw"
+                />
+              </motion.div>
+            ),
+        )}
       </AnimatePresence>
 
       {/* Gradient overlay for text legibility */}

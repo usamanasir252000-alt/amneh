@@ -147,7 +147,8 @@ export default function SignupPage() {
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
               />
               <span>
-                i would like to receive emails with updates on products, offers, and promotions from amneh.
+                i would like to receive emails with updates on products, offers,
+                and promotions from amneh.
               </span>
             </label>
 
@@ -160,14 +161,13 @@ export default function SignupPage() {
                 className="mt-1 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
               />
               <span>
-                i agree to amneh&apos;s terms, privacy policy, and rewards program terms
+                i agree to amneh&apos;s terms, privacy policy, and rewards
+                program terms
               </span>
             </label>
           </div>
 
-          {error && (
-            <p className="text-sm text-red-500 text-center">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
           <button
             type="submit"

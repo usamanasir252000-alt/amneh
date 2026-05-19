@@ -79,12 +79,11 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-500 text-center">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
           <p className="text-xs leading-6 text-gray-500">
-            by logging in, you agree to our terms, privacy policy, and rewards program terms.
+            by logging in, you agree to our terms, privacy policy, and rewards
+            program terms.
           </p>
 
           <button
