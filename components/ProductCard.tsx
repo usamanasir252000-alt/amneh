@@ -32,7 +32,12 @@ export default function ProductCard({ product }: { product: Product }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ id: product.id, name: product.name, price: product.price, image: primaryImage });
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: primaryImage,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -44,7 +49,10 @@ export default function ProductCard({ product }: { product: Product }) {
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image — clean, no overlays */}
-      <Link href={`/products/${product.id}`} className="block relative overflow-hidden bg-white aspect-[3/4]">
+      <Link
+        href={`/products/${product.id}`}
+        className="block relative overflow-hidden bg-white aspect-[3/4]"
+      >
         <Image
           src={primaryImage}
           alt={product.name}
@@ -69,9 +77,13 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Info row */}
       <div className="mt-3 flex items-center justify-between gap-2 px-0.5">
         <div className="min-w-0">
-          <p className="text-[13px] font-medium text-gray-900 leading-tight truncate">{product.name}</p>
+          <p className="text-[13px] font-medium text-gray-900 leading-tight truncate">
+            {product.name}
+          </p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[13px] font-semibold text-gray-900">PKR {product.price}</span>
+            <span className="text-[13px] font-semibold text-gray-900">
+              PKR {product.price}
+            </span>
             <span className="text-[11px] text-gray-400">{product.type}</span>
           </div>
         </div>
@@ -87,12 +99,32 @@ export default function ProductCard({ product }: { product: Product }) {
           }`}
         >
           {added ? (
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           ) : (
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
             </svg>
           )}
         </button>

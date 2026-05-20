@@ -54,52 +54,65 @@ function SkincareProductCard({ product }: { product: Product }) {
   const hoverImage = product.images[1]?.url ?? null;
 
   const handleAddToCart = () => {
-    addItem({ id: product.id, name: product.name, price: product.price, image: primaryImage });
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: primaryImage,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   return (
     <div className="group cursor-pointer">
-      <Link href={`/products/${product.id}`} className="block"
+      <Link
+        href={`/products/${product.id}`}
+        className="block"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-    <div className="relative overflow-hidden bg-[#dff0f8] aspect-[3/4]">
-        <Image
-          src={primaryImage}
-          alt={product.name}
-          fill
-          className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
-          sizes="(max-width: 640px) 100vw, 33vw"
-        />
-        {hoverImage && (
+        <div className="relative overflow-hidden bg-[#dff0f8] aspect-[3/4]">
           <Image
-            src={hoverImage}
+            src={primaryImage}
             alt={product.name}
             fill
-            className={`object-cover object-center transition-opacity duration-500 absolute inset-0 ${hovered ? "opacity-100" : "opacity-0"}`}
+            className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
             sizes="(max-width: 640px) 100vw, 33vw"
           />
-        )}
-        <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
-          {product.badge}
-        </span>
-      </div>
+          {hoverImage && (
+            <Image
+              src={hoverImage}
+              alt={product.name}
+              fill
+              className={`object-cover object-center transition-opacity duration-500 absolute inset-0 ${hovered ? "opacity-100" : "opacity-0"}`}
+              sizes="(max-width: 640px) 100vw, 33vw"
+            />
+          )}
+          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+            {product.badge}
+          </span>
+        </div>
       </Link>
 
       <div className="mt-4 flex items-start justify-between">
         <div className="flex-1 pr-4">
           <Stars count={product.badge === "best seller" ? 5 : 4} />
-          <p className="mt-1.5 text-[15px] font-semibold text-gray-900">{product.name}</p>
+          <p className="mt-1.5 text-[15px] font-semibold text-gray-900">
+            {product.name}
+          </p>
           {product.tagline && (
             <p className="text-[13px] text-[#2b6c8a]">{product.tagline}</p>
           )}
           {product.description && (
-            <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">{product.description}</p>
+            <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
+              {product.description}
+            </p>
           )}
         </div>
-        <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">PKR {product.price}</span>
+        <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">
+          PKR {product.price}
+        </span>
       </div>
 
       <button
@@ -146,8 +159,12 @@ export default function SkincarePage() {
         </div>
         <div className="relative z-10 flex h-full items-end px-10 pb-10 lg:px-16">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 mb-2">collection</p>
-            <h1 className="text-5xl font-bold uppercase tracking-tight text-white">Skincare</h1>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/70 mb-2">
+              collection
+            </p>
+            <h1 className="text-5xl font-bold uppercase tracking-tight text-white">
+              Skincare
+            </h1>
           </div>
         </div>
       </div>
@@ -172,16 +189,25 @@ export default function SkincarePage() {
       </div>
 
       {/* Serums section */}
-      <section id="serums" className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10">
-        <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">amneh. skincare</h2>
-        <h3 className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900">Serums</h3>
+      <section
+        id="serums"
+        className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10"
+      >
+        <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">
+          amneh. skincare
+        </h2>
+        <h3 className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900">
+          Serums
+        </h3>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
             <SkincareProductCard key={p.id} product={p} />
           ))}
           {products.length === 0 && (
-            <p className="col-span-3 text-center text-gray-300 py-16 text-sm">Loading products…</p>
+            <p className="col-span-3 text-center text-gray-300 py-16 text-sm">
+              Loading products…
+            </p>
           )}
         </div>
       </section>
@@ -198,11 +224,17 @@ export default function SkincarePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
-            <h2 className="text-3xl font-bold uppercase tracking-tight" style={{ color: "#9ac9df" }}>
-              The Full<br />Routine
+            <h2
+              className="text-3xl font-bold uppercase tracking-tight"
+              style={{ color: "#9ac9df" }}
+            >
+              The Full
+              <br />
+              Routine
             </h2>
             <p className="mt-4 text-sm leading-7 text-white/80">
-              pair with our moisturizers and toners for a complete glow-boosting ritual.
+              pair with our moisturizers and toners for a complete glow-boosting
+              ritual.
             </p>
           </div>
         </div>

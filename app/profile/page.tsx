@@ -16,10 +16,25 @@ interface User {
 }
 
 const TIERS = [
-  { name: "Member",   min: 0,    color: "bg-gray-200 text-gray-700",       icon: "⭐" },
-  { name: "Silver",   min: 500,  color: "bg-slate-300 text-slate-800",      icon: "🥈" },
-  { name: "Gold",     min: 1000, color: "bg-yellow-200 text-yellow-800",    icon: "🥇" },
-  { name: "Platinum", min: 2500, color: "bg-[#dff0f8] text-[#2b6c8a]",     icon: "💎" },
+  { name: "Member", min: 0, color: "bg-gray-200 text-gray-700", icon: "⭐" },
+  {
+    name: "Silver",
+    min: 500,
+    color: "bg-slate-300 text-slate-800",
+    icon: "🥈",
+  },
+  {
+    name: "Gold",
+    min: 1000,
+    color: "bg-yellow-200 text-yellow-800",
+    icon: "🥇",
+  },
+  {
+    name: "Platinum",
+    min: 2500,
+    color: "bg-[#dff0f8] text-[#2b6c8a]",
+    icon: "💎",
+  },
 ];
 
 function getTier(points: number) {
@@ -66,17 +81,21 @@ export default function ProfilePage() {
           </div>
         ) : user ? (
           <div className="space-y-5">
-
             {/* Header card */}
             <div className="bg-gray-900 rounded-2xl p-8 text-white flex items-center gap-6">
               <div className="w-16 h-16 rounded-full bg-[#4d9ab5]/30 flex items-center justify-center text-2xl font-bold text-[#9ac9df] flex-shrink-0">
-                {user.firstName.charAt(0).toUpperCase()}{user.lastName.charAt(0).toUpperCase()}
+                {user.firstName.charAt(0).toUpperCase()}
+                {user.lastName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{user.firstName} {user.lastName}</h1>
+                <h1 className="text-2xl font-bold">
+                  {user.firstName} {user.lastName}
+                </h1>
                 <p className="text-white/50 text-sm mt-0.5">{user.email}</p>
                 {tier && (
-                  <span className={`inline-block mt-2 text-[11px] px-2.5 py-0.5 rounded-full font-medium ${tier.color}`}>
+                  <span
+                    className={`inline-block mt-2 text-[11px] px-2.5 py-0.5 rounded-full font-medium ${tier.color}`}
+                  >
                     {tier.icon} {tier.name} Member
                   </span>
                 )}
@@ -87,26 +106,42 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl shadow-sm divide-y divide-gray-50">
               <div className="px-6 py-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">First Name</p>
-                  <p className="text-sm font-medium text-gray-800">{user.firstName}</p>
+                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">
+                    First Name
+                  </p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {user.firstName}
+                  </p>
                 </div>
               </div>
               <div className="px-6 py-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">Last Name</p>
-                  <p className="text-sm font-medium text-gray-800">{user.lastName || "—"}</p>
+                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">
+                    Last Name
+                  </p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {user.lastName || "—"}
+                  </p>
                 </div>
               </div>
               <div className="px-6 py-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">Email</p>
-                  <p className="text-sm font-medium text-gray-800">{user.email}</p>
+                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">
+                    Email
+                  </p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {user.email}
+                  </p>
                 </div>
               </div>
               <div className="px-6 py-5 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">Loyalty Points</p>
-                  <p className="text-sm font-medium text-[#4d9ab5]">{user.loyaltyPoints.toLocaleString()} pts</p>
+                  <p className="text-[11px] uppercase tracking-widest text-gray-400 mb-0.5">
+                    Loyalty Points
+                  </p>
+                  <p className="text-sm font-medium text-[#4d9ab5]">
+                    {user.loyaltyPoints.toLocaleString()} pts
+                  </p>
                 </div>
                 <Link
                   href="/rewards"
@@ -124,8 +159,18 @@ export default function ProfilePage() {
                 className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition"
               >
                 <span className="text-sm text-gray-700">My Rewards</span>
-                <svg className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                <svg
+                  className="h-4 w-4 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </Link>
             </div>
@@ -138,7 +183,6 @@ export default function ProfilePage() {
                 Log out
               </button>
             </div>
-
           </div>
         ) : null}
       </div>
