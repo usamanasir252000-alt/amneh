@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#f0f8fc]">
+      <main className="min-h-screen bg-[#f1efef]">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
@@ -96,7 +96,7 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <main className="min-h-screen bg-[#f0f8fc]">
+      <main className="min-h-screen bg-[#f1efef]">
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4">
           <p className="text-gray-400 text-sm">Product not found.</p>
@@ -115,7 +115,7 @@ export default function ProductDetailPage() {
   const currentImage = images[activeImage]?.url ?? "/shot1.png";
 
   return (
-    <main className="min-h-screen bg-[#f0f8fc]">
+    <main className="min-h-screen bg-[#f1efef]">
       <Navbar />
 
       {/* Breadcrumb */}

@@ -93,7 +93,7 @@ export default function RewardsPage() {
       : 100;
 
   return (
-    <main className="bg-[#f0f8fc] min-h-screen">
+    <main className="bg-[#f1efef] min-h-screen">
       <Navbar />
 
       {/* Header */}
@@ -268,7 +268,7 @@ export default function RewardsPage() {
                   return (
                     <div
                       key={r.points}
-                      className={`rounded-xl border p-5 flex items-center justify-between gap-4 ${unlocked ? "border-[#4d9ab5] bg-[#f0f8fc]" : "border-gray-100 bg-gray-50 opacity-60"}`}
+                      className={`rounded-xl border p-5 flex items-center justify-between gap-4 ${unlocked ? "border-[#4d9ab5] bg-[#f1efef]" : "border-gray-100 bg-gray-50 opacity-60"}`}
                     >
                       <div>
                         <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
@@ -327,7 +327,7 @@ export default function RewardsPage() {
         )}
       </div>
 
-      <div style={{ background: "#9ac9df", height: "56px" }} />
+      <div style={{ background: "#f1efef", height: "56px" }} />
       <Footer />
     </main>
   );

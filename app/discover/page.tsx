@@ -5,7 +5,7 @@ import BackButton from "@/components/BackButton";
 
 export default function DiscoverPage() {
   return (
-    <main className="bg-[#f0f8fc] min-h-screen">
+    <main className="bg-[#f1efef] min-h-screen">
       <Navbar />
 
       {/* Hero */}
@@ -184,7 +184,7 @@ export default function DiscoverPage() {
         </a>
       </section>
 
-      <div style={{ background: "#9ac9df", height: "56px" }} />
+      <div style={{ background: "#f1efef", height: "56px" }} />
       <Footer />
     </main>
   );

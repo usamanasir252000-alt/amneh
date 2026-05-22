@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${inter.variable} font-sans overflow-x-hidden bg-[#f0f8fc]`}
+        className={`${inter.variable} font-sans overflow-x-hidden bg-[#f1efef]`}
       >
         <CartProvider>
           {children}

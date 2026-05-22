@@ -68,7 +68,7 @@ export default function ProfilePage() {
   const tier = user ? getTier(user.loyaltyPoints) : null;
 
   return (
-    <main className="bg-[#f0f8fc] min-h-screen">
+    <main className="bg-[#f1efef] min-h-screen">
       <Navbar />
 
       <div className="max-w-2xl mx-auto px-6 pt-28 pb-12 lg:px-10">
@@ -187,7 +187,7 @@ export default function ProfilePage() {
         ) : null}
       </div>
 
-      <div style={{ background: "#9ac9df", height: "56px" }} />
+      <div style={{ background: "#f1efef", height: "56px" }} />
       <Footer />
     </main>
   );

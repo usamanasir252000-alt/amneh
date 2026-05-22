@@ -140,7 +140,7 @@ export default function SkincarePage() {
   }, []);
 
   return (
-    <main className="bg-[#f0f8fc]">
+    <main className="bg-[#f1efef]">
       <Navbar />
 
       {/* Category hero banner */}
