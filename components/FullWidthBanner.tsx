@@ -4,7 +4,7 @@ export default function FullWidthBanner() {
   return (
     <section className="relative w-full overflow-hidden" style={{ height: "clamp(460px, 65vh, 700px)" }}>
       <Image
-        src="/background1.jpeg"
+        src="/r14.png"
         alt="The essentials collection"
         fill
         className="object-cover object-center"

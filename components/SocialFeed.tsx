@@ -1,10 +1,10 @@
 import Image from "next/image";
 
 const feedImages = [
-  { src: "/r3.jpg", alt: "amneh look 1" },
-  { src: "/r4.jpg", alt: "amneh look 2" },
+  { src: "/r8.jpg", alt: "amneh look 1" },
+  { src: "/r14.png", alt: "amneh look 2" },
   { src: "/r5.jpg", alt: "amneh look 3" },
-  { src: "/r6.png", alt: "amneh look 4" },
+  { src: "/r10.png", alt: "amneh look 4" },
 ];
 
 export default function SocialFeed() {
