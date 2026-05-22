@@ -78,7 +78,7 @@ export default function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-3">
+      <div className="relative mx-auto flex max-w-screen-xl items-center justify-between px-5 py-4">
         <div />
 
         {/* Center: logo */}
@@ -263,13 +263,13 @@ export default function Navbar() {
 
       {/* Desktop nav row */}
       <nav
-        className={`hidden border-t lg:flex items-center justify-center gap-10 py-2.5 transition-colors duration-300 ${scrolled ? "border-gray-100" : "border-white/15"}`}
+        className={`hidden border-t lg:flex items-center justify-center gap-12 py-3 transition-colors duration-300 ${scrolled ? "border-gray-100/80" : "border-white/10"}`}
       >
         {navItems.map((item) => (
           <a
             key={item.label}
             href={item.href}
-            className={`text-[13px] tracking-wide transition-all duration-300 hover:opacity-100 ${textColor} opacity-90`}
+            className={`text-[11px] uppercase tracking-[0.22em] transition-all duration-300 hover:opacity-100 ${textColor} opacity-80`}
           >
             {item.label}
           </a>
