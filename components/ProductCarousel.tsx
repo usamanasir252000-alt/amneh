@@ -36,9 +36,16 @@ export default function ProductCarousel() {
   return (
     <section
       id="products"
-      className="bg-[#f0f8fc] py-14"
+      className="py-16 bg-[#f1efef]"
       style={{ scrollMarginTop: "60px" }}
     >
+      {/* Section header */}
+      <div className="text-center mb-10 px-6">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">curated for you</p>
+        <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900">The Collection</h2>
+        <div className="mx-auto mt-4 h-px w-12 bg-gray-300" />
+      </div>
+
       {/* ── Mobile: horizontal snap scroll ── */}
       <div
         className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-3 [&::-webkit-scrollbar]:hidden lg:hidden"
