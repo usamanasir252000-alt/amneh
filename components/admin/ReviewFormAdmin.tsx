@@ -11,7 +11,6 @@ export default function AdminReviewForm({ onSuccess }: AdminReviewFormProps) {
   const [name, setName] = useState("");
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
-  const [selected, setSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +25,7 @@ export default function AdminReviewForm({ onSuccess }: AdminReviewFormProps) {
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, rating, text, selected }),
+        body: JSON.stringify({ name, rating, text }),
       });
 
       if (!response.ok) {
@@ -38,7 +37,6 @@ export default function AdminReviewForm({ onSuccess }: AdminReviewFormProps) {
       setName("");
       setRating(5);
       setText("");
-      setSelected(false);
 
       setTimeout(() => {
         setSuccess(false);
@@ -115,19 +113,6 @@ export default function AdminReviewForm({ onSuccess }: AdminReviewFormProps) {
             rows={5}
             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
           />
-        </div>
-
-        <div className="flex items-center gap-3">
-          <input
-            id="selected"
-            type="checkbox"
-            checked={selected}
-            onChange={(e) => setSelected(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-          />
-          <label htmlFor="selected" className="text-sm text-gray-700">
-            Show this review in the public review modal
-          </label>
         </div>
 
         {error && (

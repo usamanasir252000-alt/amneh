@@ -21,7 +21,7 @@ export default function Home() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch("/api/reviews?selected=true");
+        const response = await fetch("/api/reviews");
         if (response.ok) {
           const data = await response.json();
           const formattedReviews = data.map((review: any) => ({
@@ -48,7 +48,7 @@ export default function Home() {
   }, []);
 
   const handleReviewAdded = async () => {
-    const response = await fetch("/api/reviews?selected=true");
+    const response = await fetch("/api/reviews");
     if (response.ok) {
       const data = await response.json();
       const formattedReviews = data.map((review: any) => ({

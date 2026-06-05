@@ -1,13 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const selectedOnly = url.searchParams.get("selected") === "true";
-
+export async function GET() {
   try {
     const reviews = await prisma.review.findMany({
-      where: selectedOnly ? { selected: true } : undefined,
       orderBy: { createdAt: "desc" },
     });
 
@@ -23,7 +19,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { name, rating, text, selected } = await request.json();
+    const { name, rating, text } = await request.json();
 
     if (!name || !rating || !text) {
       return NextResponse.json(
@@ -44,7 +40,6 @@ export async function POST(request: Request) {
         name,
         rating,
         text,
-        selected: Boolean(selected),
       },
     });
 

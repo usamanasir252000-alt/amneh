@@ -10,18 +10,15 @@ interface Review {
   rating: number;
   text: string;
   createdAt: string;
-  selected: boolean;
 }
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updatingReviewId, setUpdatingReviewId] = useState<string | null>(null);
 
   const fetchReviews = async () => {
     try {
       const response = await fetch("/api/reviews");
-      console.log("Fetch reviews response:", response);
       if (response.ok) {
         const data = await response.json();
         setReviews(data);
@@ -36,28 +33,6 @@ export default function AdminReviewsPage() {
   useEffect(() => {
     fetchReviews();
   }, []);
-
-  const toggleReviewSelected = async (id: string, selected: boolean) => {
-    setUpdatingReviewId(id);
-
-    try {
-      const response = await fetch(`/api/reviews/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selected }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update review selection");
-      }
-
-      await fetchReviews();
-    } catch (error) {
-      console.error("Error updating review selection:", error);
-    } finally {
-      setUpdatingReviewId(null);
-    }
-  };
 
   return (
     <div className="space-y-10">
@@ -113,30 +88,9 @@ export default function AdminReviewsPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600 leading-6">
-                      {review.text}
-                    </p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <label className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600">
-                        <input
-                          type="checkbox"
-                          checked={review.selected}
-                          disabled={updatingReviewId === review.id}
-                          onChange={(e) =>
-                            toggleReviewSelected(review.id, e.target.checked)
-                          }
-                          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                        />
-                        <span>Show in reviews modal</span>
-                      </label>
-                      {review.selected && (
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                          Selected
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <p className="mt-2 text-sm text-gray-600 leading-6">
+                    {review.text}
+                  </p>
                 </div>
               ))
             ) : (
