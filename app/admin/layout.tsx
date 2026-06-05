@@ -1,7 +1,11 @@
 import Link from "next/link";
 import LogoutButton from "@/components/admin/LogoutButton";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -9,11 +13,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <img src="/logo.svg" alt="amneh." className="h-7" />
           <span className="text-xs text-gray-300">|</span>
           <nav className="flex gap-5">
-            <Link href="/admin/products" className="text-sm text-gray-600 hover:text-gray-900 transition">
+            <Link
+              href="/admin/products"
+              className="text-sm text-gray-600 hover:text-gray-900 transition"
+            >
               Products
             </Link>
-            <Link href="/admin/products/new" className="text-sm text-gray-600 hover:text-gray-900 transition">
+            <Link
+              href="/admin/products/new"
+              className="text-sm text-gray-600 hover:text-gray-900 transition"
+            >
               + New Product
+            </Link>
+            <Link
+              href="/admin/reviews"
+              className="text-sm text-gray-600 hover:text-gray-900 transition"
+            >
+              Reviews
             </Link>
           </nav>
         </div>
