@@ -15,12 +15,14 @@ export interface Review {
 interface ReviewsModalProps {
   open: boolean;
   onClose: () => void;
+  onAddReview: () => void;
   reviews: Review[];
 }
 
 export default function ReviewsModal({
   open,
   onClose,
+  onAddReview,
   reviews,
 }: ReviewsModalProps) {
   const reviewListRef = useRef<HTMLDivElement>(null);
@@ -48,23 +50,32 @@ export default function ReviewsModal({
               type="button"
               onClick={onClose}
               aria-label="Close reviews modal"
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition duration-200 hover:bg-slate-100"
+              className="absolute right-5 top-5 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition duration-200 hover:bg-slate-100"
             >
               <FaTimes className="h-4 w-4" />
             </button>
 
             <div className="px-6 py-8 lg:px-10 lg:py-10">
               <div className="space-y-6">
-                <div className="space-y-3">
-                  <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
-                    Customer feedback
-                  </p>
-                  <h2 className="text-3xl font-semibold text-slate-900">
-                    What our customers are saying
-                  </h2>
-                  <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                    Read the latest reviews from happy shoppers.
-                  </p>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3 flex-1">
+                    <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
+                      Customer feedback
+                    </p>
+                    <h2 className="text-3xl font-semibold text-slate-900">
+                      What our customers are saying
+                    </h2>
+                    <p className="max-w-2xl text-sm leading-6 text-slate-600">
+                      Read the latest reviews from happy shoppers.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onAddReview}
+                    className="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-emerald-700 whitespace-nowrap"
+                  >
+                    + Add Review
+                  </button>
                 </div>
 
                 <div
