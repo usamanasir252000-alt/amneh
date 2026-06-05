@@ -5,7 +5,7 @@ import { FaStar, FaTimes } from "react-icons/fa";
 import { useRef } from "react";
 
 export interface Review {
-  id: number;
+  id: string;
   name: string;
   rating: number;
   date: string;
