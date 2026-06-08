@@ -68,7 +68,7 @@ async function shopifyFetch<T>(
       "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
     },
     body: JSON.stringify({ query, variables }),
-    next: { revalidate: 60 },
+    cache: "no-store",
   });
 
   if (!res.ok) {
