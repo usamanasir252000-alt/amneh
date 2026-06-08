@@ -135,7 +135,7 @@ export default function SkincarePage() {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch("/api/products?category=skincare")
+    fetch("/api/products?category=serums")
       .then((r) => r.json())
       .then(setProducts)
       .catch(() => {});

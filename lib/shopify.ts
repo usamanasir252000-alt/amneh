@@ -160,7 +160,7 @@ function normalizeCart(cart: {
 export async function getProducts(category?: string): Promise<ShopifyProduct[]> {
   const queryFilter =
     category && category !== "all"
-      ? `product_type:${category}`
+      ? `tag:${category}`
       : undefined;
 
   const data = await shopifyFetch<{
