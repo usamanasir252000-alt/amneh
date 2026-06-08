@@ -16,54 +16,35 @@ export default function Home() {
   const [reviewsOpen, setReviewsOpen] = useState(false);
   const [addReviewOpen, setAddReviewOpen] = useState(false);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await fetch("/api/reviews");
-        if (response.ok) {
-          const data = await response.json();
-          const formattedReviews = data.map((review: any) => ({
-            id: review.id,
-            name: review.name,
-            rating: review.rating,
-            text: review.text,
-            date: new Date(review.createdAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }),
-          }));
-          setReviews(formattedReviews);
-        }
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReviews();
-  }, []);
-
-  const handleReviewAdded = async () => {
-    const response = await fetch("/api/reviews");
-    if (response.ok) {
-      const data = await response.json();
-      const formattedReviews = data.map((review: any) => ({
-        id: review.id,
-        name: review.name,
-        rating: review.rating,
-        text: review.text,
-        date: new Date(review.createdAt).toLocaleDateString("en-US", {
+  const loadReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews");
+      if (!res.ok) return;
+      const data = await res.json();
+      const formattedReviews = data.map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        rating: r.rating,
+        text: r.text,
+        date: new Date(r.createdAt).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
         }),
       }));
       setReviews(formattedReviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
     }
+  };
+
+  useEffect(() => {
+    loadReviews();
+  }, []);
+
+  const handleReviewAdded = () => {
+    loadReviews();
   };
 
   return (

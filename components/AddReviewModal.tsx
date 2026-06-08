@@ -16,6 +16,7 @@ export default function AddReviewModal({
   onSuccess,
 }: AddReviewModalProps) {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [rating, setRating] = useState(5);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function AddReviewModal({
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, rating, text }),
+        body: JSON.stringify({ name, email, rating, text }),
       });
 
       if (!response.ok) {
@@ -42,6 +43,7 @@ export default function AddReviewModal({
 
       setSuccess(true);
       setName("");
+      setEmail("");
       setRating(5);
       setText("");
 
@@ -110,6 +112,24 @@ export default function AddReviewModal({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g., Sarah M."
+                      required
+                      className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-semibold text-slate-700 mb-2"
+                    >
+                      Your Email
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g., sarah@example.com"
                       required
                       className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
