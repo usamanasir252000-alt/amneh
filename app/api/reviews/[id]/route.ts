@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const { selected } = await request.json();
 
     if (typeof selected !== "boolean") {
@@ -16,7 +17,7 @@ export async function PATCH(
     }
 
     const review = await prisma.review.update({
-      where: { id: params.id },
+      where: { id },
       data: { selected },
     });
 
