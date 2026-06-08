@@ -13,6 +13,8 @@ interface ProductImage {
 
 interface Product {
   id: string;
+  handle: string;
+  variantId: string;
   name: string;
   type: string;
   price: number;
@@ -33,7 +35,7 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     e.stopPropagation();
     addItem({
-      id: product.id,
+      variantId: product.variantId,
       name: product.name,
       price: product.price,
       image: primaryImage,
