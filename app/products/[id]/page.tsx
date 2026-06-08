@@ -17,6 +17,8 @@ interface ProductImage {
 
 interface Product {
   id: string;
+  handle: string;
+  variantId: string;
   name: string;
   type: string;
   price: number;
@@ -71,14 +73,12 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product) return;
     const image = product.images[0]?.url ?? "";
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image,
-      });
-    }
+    addItem({
+      variantId: product.variantId,
+      name: product.name,
+      price: product.price,
+      image,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   };
@@ -112,7 +112,6 @@ export default function ProductDetailPage() {
   }
 
   const images = product.images;
-  const currentImage = images[activeImage]?.url ?? "/shot1.png";
 
   return (
     <main className="min-h-screen bg-[#f1efef]">

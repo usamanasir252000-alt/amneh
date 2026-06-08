@@ -16,6 +16,8 @@ interface ProductImage {
 
 interface Product {
   id: string;
+  handle: string;
+  variantId: string;
   name: string;
   type: string;
   price: number;
@@ -55,7 +57,7 @@ function SkincareProductCard({ product }: { product: Product }) {
 
   const handleAddToCart = () => {
     addItem({
-      id: product.id,
+      variantId: product.variantId,
       name: product.name,
       price: product.price,
       image: primaryImage,

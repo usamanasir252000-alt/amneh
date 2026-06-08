@@ -8,6 +8,8 @@ export default function CartDrawer() {
   const {
     items,
     isOpen,
+    isLoading,
+    checkoutUrl,
     closeCart,
     removeItem,
     updateQuantity,
@@ -124,7 +126,7 @@ export default function CartDrawer() {
                     <AnimatePresence mode="popLayout">
                       {items.map((item: CartItem) => (
                         <motion.div
-                          key={`${item.id}-${item.variant}`}
+                          key={item.lineId}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
@@ -146,11 +148,6 @@ export default function CartDrawer() {
                             <h3 className="text-sm font-semibold text-gray-900">
                               {item.name}
                             </h3>
-                            {item.variant && (
-                              <p className="text-xs text-gray-500 capitalize">
-                                {item.variant}
-                              </p>
-                            )}
                             <p className="text-sm font-medium text-gray-900 mt-1">
                               PKR {(item.price * item.quantity).toFixed(2)}
                             </p>
@@ -159,11 +156,7 @@ export default function CartDrawer() {
                             <div className="flex items-center gap-2 mt-3">
                               <button
                                 onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    item.quantity - 1,
-                                    item.variant,
-                                  )
+                                  updateQuantity(item.lineId, item.quantity - 1)
                                 }
                                 className="h-7 w-7 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                               >
@@ -174,20 +167,14 @@ export default function CartDrawer() {
                               </span>
                               <button
                                 onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    item.quantity + 1,
-                                    item.variant,
-                                  )
+                                  updateQuantity(item.lineId, item.quantity + 1)
                                 }
                                 className="h-7 w-7 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                               >
                                 +
                               </button>
                               <button
-                                onClick={() =>
-                                  removeItem(item.id, item.variant)
-                                }
+                                onClick={() => removeItem(item.lineId)}
                                 className="ml-auto text-xs text-gray-400 hover:text-gray-600 transition-colors underline"
                               >
                                 remove
@@ -213,13 +200,18 @@ export default function CartDrawer() {
                   </div>
 
                   {/* Checkout Button */}
-                  <motion.button
+                  <motion.a
+                    href={checkoutUrl ?? "#"}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="mt-6 w-full bg-gray-900 text-white font-medium py-3 rounded transition-colors hover:bg-gray-800"
+                    className="mt-6 w-full bg-gray-900 text-white font-medium py-3 rounded transition-colors hover:bg-gray-800 flex items-center justify-center"
                   >
-                    checkout
-                  </motion.button>
+                    {isLoading ? (
+                      <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      "checkout"
+                    )}
+                  </motion.a>
                 </>
               )}
             </div>
