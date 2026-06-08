@@ -11,6 +11,8 @@ interface ProductImage {
 
 interface Product {
   id: string;
+  handle: string;
+  variantId: string;
   name: string;
   type: string;
   price: number;

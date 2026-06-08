@@ -47,6 +47,7 @@ model Review {
   name      String
   rating    Int
   text      String
+  selected  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
