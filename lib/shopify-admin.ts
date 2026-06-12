@@ -124,23 +124,50 @@ export async function createCustomer(payload: {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
+  tags?: string[];
 }) {
   const email = payload.email.toLowerCase();
   const m = `
     mutation CreateCustomer($input: CustomerInput!) {
       customerCreate(input: $input) {
-        customer { id email firstName lastName }
+        customer {
+          id
+          email
+          firstName
+          lastName
+          smsMarketingConsent { marketingState marketingOptInLevel consentUpdatedAt }
+          emailMarketingConsent { marketingState marketingOptInLevel consentUpdatedAt }
+          tags
+        }
         userErrors { field message }
       }
     }
   `;
 
-  const data = await shopifyAdminFetch<{ customerCreate: any }>(m, {
-    input: {
+  const input: Record<string, unknown> = {
+    email,
+    firstName: payload.firstName ?? "",
+    lastName: payload.lastName ?? "",
+    emailMarketingConsent: {
+      marketingState: "SUBSCRIBED",
+      marketingOptInLevel: "SINGLE_OPT_IN",
       email,
-      firstName: payload.firstName ?? "",
-      lastName: payload.lastName ?? "",
     },
+    tags: [...(payload.tags ?? []), "whatsapp"],
+  };
+
+  if (payload.phone) {
+    input.phone = payload.phone;
+    input.smsMarketingConsent = {
+      marketingState: "SUBSCRIBED",
+      marketingOptInLevel: "SINGLE_OPT_IN",
+      phone: payload.phone,
+    };
+  }
+
+  const data = await shopifyAdminFetch<{ customerCreate: any }>(m, {
+    input,
   });
   if (data.customerCreate.userErrors.length)
     throw new Error(

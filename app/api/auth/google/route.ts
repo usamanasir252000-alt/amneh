@@ -29,9 +29,8 @@ export async function POST(request: Request) {
       { status: 401 },
     );
 
-  const firstName = info.given_name ?? info.name?.split(" ")[0] ?? "";
-  const lastName =
-    info.family_name ?? info.name?.split(" ").slice(1).join(" ") ?? "";
+  const firstName = info.given_name ?? info.name ?? "";
+  const lastName = info.family_name ?? "";
 
   // Ensure customer exists in Shopify
   try {
