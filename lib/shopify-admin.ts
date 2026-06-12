@@ -100,9 +100,10 @@ export async function getCustomerByEmail(
     }
   `;
 
+  const sanitizedEmail = email.replace(/"/g, `\\"`);
   const data = await shopifyAdminFetch<{
     customers: { edges: { node: any }[] };
-  }>(q, { query: `email:${email}` });
+  }>(q, { query: `email:"${sanitizedEmail}"` });
 
   const node = data.customers.edges[0]?.node;
   if (!node) return null;
@@ -124,6 +125,7 @@ export async function createCustomer(payload: {
   firstName?: string;
   lastName?: string;
 }) {
+  const email = payload.email.toLowerCase();
   const m = `
     mutation CreateCustomer($input: CustomerInput!) {
       customerCreate(input: $input) {
@@ -135,7 +137,7 @@ export async function createCustomer(payload: {
 
   const data = await shopifyAdminFetch<{ customerCreate: any }>(m, {
     input: {
-      email: payload.email,
+      email,
       firstName: payload.firstName ?? "",
       lastName: payload.lastName ?? "",
     },
@@ -144,7 +146,12 @@ export async function createCustomer(payload: {
     throw new Error(
       data.customerCreate.userErrors.map((u: any) => u.message).join(", "),
     );
-  return data.customerCreate.customer as { id: string; email: string };
+  return data.customerCreate.customer as {
+    id: string;
+    email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+  };
 }
 
 export async function setCustomerPasswordHash(
@@ -203,11 +210,22 @@ export async function ensureCustomerForGoogle(payload: {
   console.log("Existing customer lookup result", { existing });
   if (existing) return existing;
 
-  await createCustomer({
+  const created = await createCustomer({
     email,
     firstName: payload.firstName,
     lastName: payload.lastName,
   });
+  console.log("Customer created", { created });
+  if (created) {
+    return {
+      id: created.id,
+      email: created.email,
+      firstName: created.firstName ?? payload.firstName ?? "",
+      lastName: created.lastName ?? payload.lastName ?? "",
+      metafields: {},
+    };
+  }
+
   const customer = await getCustomerByEmail(email);
   console.log("Customer after creation attempt", { customer });
   return customer;
