@@ -152,7 +152,6 @@ export async function createCustomer(payload: {
     emailMarketingConsent: {
       marketingState: "SUBSCRIBED",
       marketingOptInLevel: "SINGLE_OPT_IN",
-      email,
     },
     tags: [...(payload.tags ?? []), "whatsapp"],
   };
@@ -162,7 +161,6 @@ export async function createCustomer(payload: {
     input.smsMarketingConsent = {
       marketingState: "SUBSCRIBED",
       marketingOptInLevel: "SINGLE_OPT_IN",
-      phone: payload.phone,
     };
   }
 
