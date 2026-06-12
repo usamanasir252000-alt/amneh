@@ -20,6 +20,6 @@ export async function GET() {
         typeof payload.loyaltyPoints === "number" ? payload.loyaltyPoints : 0,
     });
   } catch (err) {
-    return NextResponse.json(null);
+    return NextResponse.json(err);
   }
 }
