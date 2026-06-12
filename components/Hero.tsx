@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
-const heroImages = ["/r1.jpg", "/r7.jpg", "/r5.jpg"];
+const heroImages = ["/f4.png", "/f13.png", "/f2.png"];
 
 export default function Hero() {
   const [activeIdx, setActiveIdx] = useState(0);
