@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type AuthModalMode = "signIn" | "signUp";
 
@@ -261,6 +262,10 @@ export default function AuthModal({
                         ? "sign in"
                         : "create account"}
                   </button>
+
+                  <div className="mt-4">
+                    <GoogleSignInButton />
+                  </div>
 
                   {/* Switch View Trigger */}
                   <div className="text-center text-[11px] text-gray-600 sm:text-xs">

@@ -82,15 +82,12 @@ export default function RewardsPage() {
     router.refresh();
   };
 
-  const tier = user ? getTier(user.loyaltyPoints) : TIERS[0];
-  const nextTier = user ? getNextTier(user.loyaltyPoints) : TIERS[1];
-  const progressPct =
-    user && nextTier
-      ? Math.min(
-          100,
-          ((user.loyaltyPoints - tier.min) / (nextTier.min - tier.min)) * 100,
-        )
-      : 100;
+  const points = user?.loyaltyPoints ?? 0;
+  const tier = getTier(points);
+  const nextTier = getNextTier(points);
+  const progressPct = nextTier
+    ? Math.min(100, ((points - tier.min) / (nextTier.min - tier.min)) * 100)
+    : 100;
 
   return (
     <main className="bg-[#f1efef] min-h-screen">
@@ -170,7 +167,7 @@ export default function RewardsPage() {
                   Your Points
                 </p>
                 <p className="text-5xl font-bold text-[#9ac9df]">
-                  {user.loyaltyPoints.toLocaleString()}
+                  {points.toLocaleString()}
                 </p>
               </div>
             </div>

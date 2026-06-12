@@ -1,0 +1,211 @@
+import bcrypt from "bcryptjs";
+
+const CLIENT_ID = process.env.AUTH_CLIENT_ID!;
+const CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET!;
+const SHOPIFY_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN!;
+const version = "2026-04";
+type ShopifyCustomer = {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  metafields?: Record<string, string>;
+};
+interface TokenResponse {
+  access_token: string;
+  expires_in: number;
+}
+
+let token: string | null = null;
+let tokenExpiresAt = 0;
+
+export async function getToken(): Promise<string> {
+  // Reuse token if it's still valid (with 1 minute buffer)
+  if (token && Date.now() < tokenExpiresAt - 60_000) {
+    return token;
+  }
+
+  const response = await fetch(`${SHOPIFY_DOMAIN}/admin/oauth/access_token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+    }).toString(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Token request failed: ${response.status}`);
+  }
+
+  const data: TokenResponse = await response.json();
+
+  token = data.access_token;
+  tokenExpiresAt = Date.now() + data.expires_in * 1000;
+
+  return token;
+}
+async function shopifyAdminFetch<T>(
+  query: string,
+  variables?: Record<string, unknown>,
+) {
+  const endpoint = `${SHOPIFY_DOMAIN}/admin/api/${version}/graphql.json`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Access-Token": await getToken(),
+    },
+    body: JSON.stringify({ query, variables }),
+    cache: "no-store",
+  });
+
+  const text = await res.text();
+  if (!res.ok)
+    throw new Error(`Shopify Admin API error ${res.status}: ${text}`);
+  const json = JSON.parse(text);
+  if (json.errors && json.errors.length) {
+    const message = json.errors.map((e: any) => e.message).join("; ");
+    throw new Error(`Shopify Admin API GraphQL error: ${message}`);
+  }
+  return json.data as T;
+}
+
+export async function getCustomerByEmail(
+  email: string,
+): Promise<ShopifyCustomer | null> {
+  const q = `
+    query CustomersByEmail($query: String!) {
+      customers(first: 1, query: $query) {
+        edges {
+          node {
+            id
+            email
+            firstName
+            lastName
+            metafields(namespace: "auth", first: 10) { edges { node { key value } } }
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyAdminFetch<{
+    customers: { edges: { node: any }[] };
+  }>(q, { query: `email:${email}` });
+
+  const node = data.customers.edges[0]?.node;
+  if (!node) return null;
+  const mf: Record<string, string> = {};
+  (node.metafields?.edges ?? []).forEach(
+    (e: any) => (mf[e.node.key] = e.node.value),
+  );
+  return {
+    id: node.id,
+    email: node.email,
+    firstName: node.firstName,
+    lastName: node.lastName,
+    metafields: mf,
+  };
+}
+
+export async function createCustomer(payload: {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}) {
+  const m = `
+    mutation CreateCustomer($input: CustomerInput!) {
+      customerCreate(input: $input) {
+        customer { id email firstName lastName }
+        userErrors { field message }
+      }
+    }
+  `;
+
+  const data = await shopifyAdminFetch<{ customerCreate: any }>(m, {
+    input: {
+      email: payload.email,
+      firstName: payload.firstName ?? "",
+      lastName: payload.lastName ?? "",
+    },
+  });
+  if (data.customerCreate.userErrors.length)
+    throw new Error(
+      data.customerCreate.userErrors.map((u: any) => u.message).join(", "),
+    );
+  return data.customerCreate.customer as { id: string; email: string };
+}
+
+export async function setCustomerPasswordHash(
+  customerId: string,
+  passwordHash: string,
+) {
+  const mutation = `
+    mutation SetMetafield($metafields: [MetafieldsSetInput!]!) {
+      metafieldsSet(metafields: $metafields) {
+        metafields { id key value }
+        userErrors { field message }
+      }
+    }
+  `;
+
+  const ownerId = customerId;
+  const met = [
+    {
+      ownerId,
+      namespace: "auth",
+      key: "passwordHash",
+      type: "single_line_text_field",
+      value: passwordHash,
+    },
+  ];
+  const data = await shopifyAdminFetch<{ metafieldsSet: any }>(mutation, {
+    metafields: met,
+  });
+  if (data.metafieldsSet.userErrors.length)
+    throw new Error(
+      data.metafieldsSet.userErrors.map((u: any) => u.message).join(", "),
+    );
+  return data.metafieldsSet.metafields[0];
+}
+
+export async function verifyCustomerPasswordByEmail(
+  email: string,
+  password: string,
+) {
+  const customer = await getCustomerByEmail(email.toLowerCase());
+  if (!customer) return null;
+  const hash = customer.metafields?.passwordHash;
+  if (!hash) return null;
+  const ok = await bcrypt.compare(password, hash);
+  return ok ? customer : null;
+}
+
+export async function ensureCustomerForGoogle(payload: {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}) {
+  const email = payload.email.toLowerCase();
+  const existing = await getCustomerByEmail(email);
+  if (existing) return existing;
+  await createCustomer({
+    email,
+    firstName: payload.firstName,
+    lastName: payload.lastName,
+  });
+  const customer = await getCustomerByEmail(email);
+  return customer;
+}
+
+export default {
+  getCustomerByEmail,
+  createCustomer,
+  setCustomerPasswordHash,
+  verifyCustomerPasswordByEmail,
+  ensureCustomerForGoogle,
+};

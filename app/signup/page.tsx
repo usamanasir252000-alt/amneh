@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
 import BackButton from "@/components/BackButton";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
@@ -177,7 +178,11 @@ export default function SignupPage() {
             {loading ? "creating account…" : "create account"}
           </button>
 
-          <div className="text-center text-sm text-gray-600">
+          <div className="mt-6">
+            <GoogleSignInButton />
+          </div>
+
+          <div className="mt-6 text-center text-sm text-gray-600">
             already have an account?{" "}
             <Link
               href="/login"

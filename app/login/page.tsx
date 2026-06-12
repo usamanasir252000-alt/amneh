@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
 import BackButton from "@/components/BackButton";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,6 +19,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
+      console.log("Attempting login with", { email });
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,7 +96,11 @@ export default function LoginPage() {
             {loading ? "logging in…" : "log in"}
           </button>
 
-          <div className="text-center text-sm text-gray-600">
+          <div className="mt-6">
+            <GoogleSignInButton />
+          </div>
+
+          <div className="mt-6 text-center text-sm text-gray-600">
             don&apos;t have an account yet?{" "}
             <Link
               href="/signup"

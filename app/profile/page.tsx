@@ -65,7 +65,8 @@ export default function ProfilePage() {
     router.push("/");
   };
 
-  const tier = user ? getTier(user.loyaltyPoints) : null;
+  const points = user?.loyaltyPoints ?? 0;
+  const tier = getTier(points);
 
   return (
     <main className="bg-[#f1efef] min-h-screen">
@@ -140,7 +141,7 @@ export default function ProfilePage() {
                     Loyalty Points
                   </p>
                   <p className="text-sm font-medium text-[#4d9ab5]">
-                    {user.loyaltyPoints.toLocaleString()} pts
+                    {points.toLocaleString()} pts
                   </p>
                 </div>
                 <Link

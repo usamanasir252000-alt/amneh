@@ -1,46 +1,44 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import * as shopifyAdmin from "@/lib/shopify-admin";
+import { signToken } from "@/lib/jwt";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
-const DAILY_LOGIN_POINTS = 25;
-
 export async function POST(request: Request) {
   const { email, password } = await request.json();
+  if (!email || !password)
+    return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  const normalized = email.toLowerCase();
+  const customer = await shopifyAdmin.verifyCustomerPasswordByEmail(
+    normalized,
+    password,
+  );
+  if (!customer)
+    return NextResponse.json(
+      { error: "Invalid email or password" },
+      { status: 401 },
+    );
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
-
-  // Award daily login points (once per calendar day)
-  const today = new Date().toISOString().slice(0, 10);
-  let pointsAwarded = 0;
-  if (user.lastLoginDate !== today) {
-    pointsAwarded = DAILY_LOGIN_POINTS;
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { loyaltyPoints: { increment: DAILY_LOGIN_POINTS }, lastLoginDate: today },
-    });
-  }
-
-  const updated = await prisma.user.findUnique({ where: { id: user.id } });
-
-  const response = NextResponse.json({
-    id: updated!.id,
-    email: updated!.email,
-    firstName: updated!.firstName,
-    loyaltyPoints: updated!.loyaltyPoints,
-    pointsAwarded,
+  // Issue JWT session containing Shopify customer id
+  const token = await signToken({
+    sub: customer.id,
+    email: customer.email,
+    firstName: customer.firstName,
+    lastName: customer.lastName,
   });
 
-  response.cookies.set("user-session", user.id, {
+  const response = NextResponse.json(
+    { id: customer.id, email: customer.email, firstName: customer.firstName },
+    { status: 200 },
+  );
+  response.cookies.set("session", token, {
     httpOnly: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
     sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
   });
 
   return response;
