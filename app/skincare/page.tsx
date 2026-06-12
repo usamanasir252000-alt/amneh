@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useCart } from "@/context/CartContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import BackButton from "@/components/BackButton";
 
 interface ProductImage {
@@ -53,7 +53,12 @@ function SkincareProductCard({ product }: { product: Product }) {
   const [hovered, setHovered] = useState(false);
 
   const primaryImage = product.images[0]?.url ?? "/shot1.png";
-  const hoverImage = product.images[1]?.url ?? null;
+  const images = product.images.length
+    ? product.images
+    : [{ id: "fallback", url: "/shot1.png", sortOrder: 0 }];
+  const imgCount = images.length;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const handleAddToCart = () => {
     addItem({
@@ -75,25 +80,65 @@ function SkincareProductCard({ product }: { product: Product }) {
         onMouseLeave={() => setHovered(false)}
       >
         <div className="relative overflow-hidden bg-[#dff0f8] aspect-[3/4]">
-          <Image
-            src={primaryImage}
-            alt={product.name}
-            fill
-            className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
-            sizes="(max-width: 640px) 100vw, 33vw"
-          />
-          {hoverImage && (
-            <Image
-              src={hoverImage}
-              alt={product.name}
-              fill
-              className={`object-cover object-center transition-opacity duration-500 absolute inset-0 ${hovered ? "opacity-100" : "opacity-0"}`}
-              sizes="(max-width: 640px) 100vw, 33vw"
-            />
-          )}
-          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
-            {product.badge}
-          </span>
+          <div
+            ref={wrapperRef}
+            className="relative h-full w-full"
+            tabIndex={0}
+            role="region"
+            aria-roledescription="carousel"
+            aria-label={`${product.name} images`}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight")
+                setActiveIndex((i) => (i + 1) % imgCount);
+              if (e.key === "ArrowLeft")
+                setActiveIndex((i) => (i - 1 + imgCount) % imgCount);
+            }}
+            onClick={(e) => {
+              // clicking the image advances to next
+              e.preventDefault();
+              e.stopPropagation();
+              setActiveIndex((i) => (i + 1) % imgCount);
+            }}
+          >
+            <div
+              className="flex h-full w-full transition-transform duration-400 ease-in-out"
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
+              {images.map((img) => (
+                <div key={img.id} className="relative w-full flex-shrink-0">
+                  <Image
+                    src={img.url}
+                    alt={product.name}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+              {product.badge}
+            </span>
+
+            {imgCount > 1 && (
+              <div className="absolute left-1/2 bottom-3 z-20 flex -translate-x-1/2 items-center gap-2">
+                {images.map((_, i) => (
+                  <button
+                    key={`s-dot-${i}`}
+                    onClick={(ev) => {
+                      ev.preventDefault();
+                      ev.stopPropagation();
+                      setActiveIndex(i);
+                    }}
+                    aria-label={`Show image ${i + 1} of ${imgCount}`}
+                    aria-current={i === activeIndex}
+                    className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${i === activeIndex ? "bg-gray-900 scale-110" : "bg-gray-300"}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </Link>
 

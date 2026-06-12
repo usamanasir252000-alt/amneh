@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 interface ProductImage {
@@ -35,43 +35,9 @@ export default function ProductCard({ product }: { product: Product }) {
   const imgCount = images.length;
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const autoplay = imgCount > 1;
-  const intervalMs = 4000; // 4s
-  const timerRef = useRef<number | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  // Autoplay: start interval when there are multiple images
-  useEffect(() => {
-    if (!autoplay) return;
-    const start = () => {
-      if (timerRef.current) window.clearInterval(timerRef.current as number);
-      // @ts-ignore
-      timerRef.current = window.setInterval(() => {
-        setActiveIndex((i) => (i + 1) % imgCount);
-      }, intervalMs);
-    };
-    start();
-    return () => {
-      if (timerRef.current) {
-        window.clearInterval(timerRef.current as number);
-        timerRef.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imgCount]);
-
-  // Reset timer after manual navigation so autoplay continues
-  useEffect(() => {
-    if (!autoplay) return;
-    if (timerRef.current) {
-      window.clearInterval(timerRef.current as number);
-      // @ts-ignore
-      timerRef.current = window.setInterval(() => {
-        setActiveIndex((i) => (i + 1) % imgCount);
-      }, intervalMs);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex]);
+  // Autoplay removed — manual navigation only
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -138,14 +104,6 @@ export default function ProductCard({ product }: { product: Product }) {
                     e.preventDefault();
                     e.stopPropagation();
                     setActiveIndex(i);
-                    // reset timer
-                    if (timerRef.current) {
-                      window.clearInterval(timerRef.current as number);
-                      // @ts-ignore
-                      timerRef.current = window.setInterval(() => {
-                        setActiveIndex((idx) => (idx + 1) % imgCount);
-                      }, intervalMs);
-                    }
                   }}
                   aria-label={`Show image ${i + 1} of ${imgCount}`}
                   aria-current={i === activeIndex}
