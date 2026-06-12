@@ -2,7 +2,14 @@ import bcrypt from "bcryptjs";
 
 const CLIENT_ID = process.env.AUTH_CLIENT_ID!;
 const CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET!;
-const SHOPIFY_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN!;
+const SHOPIFY_DOMAIN_RAW =
+  process.env.SHOPIFY_STORE?.replace(/^https?:\/\//, "") ??
+  process.env.SHOPIFY_STORE_DOMAIN?.replace(/^https?:\/\//, "");
+if (!SHOPIFY_DOMAIN_RAW) {
+  throw new Error("Missing SHOPIFY_STORE or SHOPIFY_STORE_DOMAIN env var");
+}
+const SHOPIFY_DOMAIN = SHOPIFY_DOMAIN_RAW.replace(/\/$/, "");
+const SHOPIFY_BASE_URL = `https://${SHOPIFY_DOMAIN}`;
 const version = "2026-04";
 type ShopifyCustomer = {
   id: string;
@@ -25,7 +32,7 @@ export async function getToken(): Promise<string> {
     return token;
   }
 
-  const response = await fetch(`${SHOPIFY_DOMAIN}/admin/oauth/access_token`, {
+  const response = await fetch(`${SHOPIFY_BASE_URL}/admin/oauth/access_token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -52,7 +59,7 @@ async function shopifyAdminFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
 ) {
-  const endpoint = `${SHOPIFY_DOMAIN}/admin/api/${version}/graphql.json`;
+  const endpoint = `${SHOPIFY_BASE_URL}/admin/api/${version}/graphql.json`;
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
