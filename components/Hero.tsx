@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
-const heroImages = ["/f4.png", "/f13.png", "/f2.png"];
+const heroImages = ["/f4.png", "/c13.png", "/f2.png"];
 
 export default function Hero() {
   const [activeIdx, setActiveIdx] = useState(0);
@@ -34,14 +34,35 @@ export default function Hero() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               >
-                <Image
-                  src={src}
-                  alt="amneh collection"
-                  fill
-                  className="object-cover object-center"
-                  priority={i === 0}
-                  sizes="100vw"
-                />
+                {src === '/f2.png' ? (
+                  <>
+                    <Image
+                      src="/c9.png"
+                      alt="amneh collection"
+                      fill
+                      className="object-cover object-center block md:hidden"
+                      priority={i === 0}
+                      sizes="100vw"
+                    />
+                    <Image
+                      src="/f2.png"
+                      alt="amneh collection"
+                      fill
+                      className="object-cover object-center hidden md:block"
+                      priority={i === 0}
+                      sizes="100vw"
+                    />
+                  </>
+                ) : (
+                  <Image
+                    src={src}
+                    alt="amneh collection"
+                    fill
+                    className="object-cover object-center"
+                    priority={i === 0}
+                    sizes="100vw"
+                  />
+                )}
               </motion.div>
             ),
         )}

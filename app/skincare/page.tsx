@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import BackButton from "@/components/BackButton";
+import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 
 interface ProductImage {
   id: string;
@@ -51,14 +52,15 @@ function SkincareProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef(0);
 
-  const primaryImage = product.images[0]?.url ?? "/shot1.png";
   const images = product.images.length
     ? product.images
     : [{ id: "fallback", url: "/shot1.png", sortOrder: 0 }];
+  const primaryImage = images[0].url;
+  const hoverImage = images[1]?.url ?? null;
   const imgCount = images.length;
-  const [activeIndex, setActiveIndex] = useState(0);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   const handleAddToCart = () => {
     addItem({
@@ -73,73 +75,82 @@ function SkincareProductCard({ product }: { product: Product }) {
 
   return (
     <div className="group cursor-pointer">
-      <Link
-        href={`/products/${product.id}`}
-        className="block"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        <div className="relative overflow-hidden bg-[#dff0f8] aspect-[3/4]">
+      <Link href={`/products/${product.id}`} className="block">
+
+        {/* ── Mobile: swipe carousel with dots ── */}
+        <div
+          className="md:hidden relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+          onTouchEnd={(e) => {
+            const delta = touchStartX.current - e.changedTouches[0].clientX;
+            if (delta > 45) setActiveIndex((i) => Math.min(i + 1, imgCount - 1));
+            if (delta < -45) setActiveIndex((i) => Math.max(i - 1, 0));
+          }}
+        >
           <div
-            ref={wrapperRef}
-            className="relative h-full w-full"
-            tabIndex={0}
-            role="region"
-            aria-roledescription="carousel"
-            aria-label={`${product.name} images`}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowRight")
-                setActiveIndex((i) => (i + 1) % imgCount);
-              if (e.key === "ArrowLeft")
-                setActiveIndex((i) => (i - 1 + imgCount) % imgCount);
-            }}
-            onClick={(e) => {
-              // clicking the image advances to next
-              e.preventDefault();
-              e.stopPropagation();
-              setActiveIndex((i) => (i + 1) % imgCount);
-            }}
+            className="flex h-full w-full transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
-            <div
-              className="flex h-full w-full transition-transform duration-400 ease-in-out"
-              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-            >
-              {images.map((img) => (
-                <div key={img.id} className="relative w-full flex-shrink-0">
-                  <Image
-                    src={img.url}
-                    alt={product.name}
-                    fill
-                    className="object-cover object-center"
-                    sizes="(max-width: 640px) 100vw, 33vw"
-                  />
-                </div>
+            {images.map((img) => (
+              <div key={img.id} className="relative w-full h-full flex-shrink-0">
+                <Image
+                  src={img.url}
+                  alt={product.name}
+                  fill
+                  className="object-cover object-center"
+                  sizes="100vw"
+                />
+              </div>
+            ))}
+          </div>
+
+          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+            {product.badge}
+          </span>
+
+          {imgCount > 1 && (
+            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex(i); }}
+                  aria-label={`Image ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === activeIndex ? "w-4 bg-gray-900" : "w-1.5 bg-white/70"
+                  }`}
+                />
               ))}
             </div>
-
-            <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
-              {product.badge}
-            </span>
-
-            {imgCount > 1 && (
-              <div className="absolute left-1/2 bottom-3 z-20 flex -translate-x-1/2 items-center gap-2">
-                {images.map((_, i) => (
-                  <button
-                    key={`s-dot-${i}`}
-                    onClick={(ev) => {
-                      ev.preventDefault();
-                      ev.stopPropagation();
-                      setActiveIndex(i);
-                    }}
-                    aria-label={`Show image ${i + 1} of ${imgCount}`}
-                    aria-current={i === activeIndex}
-                    className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${i === activeIndex ? "bg-gray-900 scale-110" : "bg-gray-300"}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </div>
+
+        {/* ── Desktop: hover image swap ── */}
+        <div
+          className="hidden md:block relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+        >
+          <Image
+            src={primaryImage}
+            alt={product.name}
+            fill
+            className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
+            sizes="33vw"
+          />
+          {hoverImage && (
+            <Image
+              src={hoverImage}
+              alt={product.name}
+              fill
+              className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
+              sizes="33vw"
+            />
+          )}
+          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+            {product.badge}
+          </span>
+        </div>
+
       </Link>
 
       <div className="mt-4 flex items-start justify-between">
@@ -193,7 +204,7 @@ export default function SkincarePage() {
       {/* Category hero banner */}
       <div className="relative mt-[88px] h-[42vh] min-h-[280px] w-full overflow-hidden">
         <Image
-          src="/r1.jpg"
+          src="/c4.png"
           alt="amneh skincare"
           fill
           className="object-cover object-center"
@@ -240,16 +251,24 @@ export default function SkincarePage() {
         id="serums"
         className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10"
       >
-        <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">
-          amneh. skincare
-        </h2>
-        <h3 className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900">
-          Serums
-        </h3>
+        <FadeUp delay={0} duration={600} distance={14}>
+          <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">
+            amneh. skincare
+          </h2>
+        </FadeUp>
+
+        <RevealText
+          lines={['Serums']}
+          tag="h3"
+          className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900"
+          delay={80}
+        />
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <SkincareProductCard key={p.id} product={p} />
+          {products.map((p, i) => (
+            <ScaleIn key={p.id} delay={i * 90} threshold={0.05}>
+              <SkincareProductCard product={p} />
+            </ScaleIn>
           ))}
           {products.length === 0 && (
             <p className="col-span-3 text-center text-gray-300 py-16 text-sm">
@@ -262,7 +281,7 @@ export default function SkincarePage() {
       {/* Banner */}
       <div className="relative h-[50vh] min-h-[340px] w-full overflow-hidden">
         <Image
-          src="/background1.jpeg"
+          src="/c3.png"
           alt="amneh serums"
           fill
           className="object-cover object-center"
@@ -271,18 +290,19 @@ export default function SkincarePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
-            <h2
-              className="text-3xl font-bold uppercase tracking-tight"
-              style={{ color: "#9ac9df" }}
-            >
-              The Full
-              <br />
-              Routine
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-white/80">
-              pair with our moisturizers and toners for a complete glow-boosting
-              ritual.
-            </p>
+            <RevealText
+              lines={['The Full', 'Routine']}
+              tag="h2"
+              className="text-3xl font-bold uppercase tracking-tight text-[#9ac9df]"
+              delay={0}
+              stagger={130}
+            />
+            <FadeUp delay={300} duration={700}>
+              <p className="mt-4 text-sm leading-7 text-white/80">
+                pair with our moisturizers and toners for a complete glow-boosting
+                ritual.
+              </p>
+            </FadeUp>
           </div>
         </div>
       </div>

@@ -1,44 +1,74 @@
+'use client';
+
 import Image from "next/image";
+import { RevealText, FadeUp } from "@/components/ui/Reveal";
+import { useInView } from "@/hooks/useInView";
 
 const feedImages = [
-  { src: "/r8.jpg", alt: "amneh look 1" },
-  { src: "/r14.png", alt: "amneh look 2" },
-  { src: "/r5.jpg", alt: "amneh look 3" },
-  { src: "/r10.png", alt: "amneh look 4" },
+  { src: "/c2.png", alt: "amneh look 1" },
+  { src: "/c3.png", alt: "amneh look 2" },
+  { src: "/c4.png", alt: "amneh look 3" },
+  { src: "/c12.png", alt: "amneh look 4" },
 ];
+
+function FeedImage({ src, alt, delay }: { src: string; alt: string; delay: number }) {
+  const { ref, inView } = useInView(0.1);
+  return (
+    <div
+      ref={ref}
+      className="relative aspect-square overflow-hidden group cursor-pointer"
+      style={{
+        opacity: inView ? 1 : 0,
+        transform: inView ? 'scale(1) translateY(0)' : 'scale(1.05) translateY(18px)',
+        transition: `opacity 800ms cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 900ms cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+      }}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover object-center transition duration-700 group-hover:scale-105"
+        sizes="25vw"
+      />
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition duration-500" />
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-500">
+        <span className="text-white text-xs tracking-[0.25em] uppercase font-medium">view</span>
+      </div>
+    </div>
+  );
+}
 
 export default function SocialFeed() {
   return (
     <section className="bg-[#f1efef]">
       {/* Editorial header */}
       <div className="text-center py-12 px-6">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">community</p>
-        <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900">#amneh</h2>
-        <div className="mx-auto mt-4 h-px w-12 bg-gray-300" />
-        <p className="mt-4 text-sm text-gray-500 tracking-wide">Real results, real people.</p>
+        <FadeUp delay={0} duration={600} distance={14}>
+          <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">community</p>
+        </FadeUp>
+
+        <RevealText
+          lines={['#amneh']}
+          tag="h2"
+          className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900"
+          delay={80}
+        />
+
+        <FadeUp delay={200} duration={600} distance={12}>
+          <div className="mx-auto mt-4 h-px w-12 bg-gray-300" />
+          <p className="mt-4 text-sm text-gray-500 tracking-wide">Real results, real people.</p>
+        </FadeUp>
       </div>
 
-      {/* Grid */}
+      {/* Grid — each image reveals with a stagger */}
       <div className="grid grid-cols-2 md:grid-cols-4">
         {feedImages.map((img, i) => (
-          <div key={i} className="relative aspect-square overflow-hidden group cursor-pointer">
-            <Image
-              src={img.src}
-              alt={img.alt}
-              fill
-              className="object-cover object-center transition duration-700 group-hover:scale-105"
-              sizes="25vw"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition duration-500" />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-500">
-              <span className="text-white text-xs tracking-[0.25em] uppercase font-medium">view</span>
-            </div>
-          </div>
+          <FeedImage key={i} src={img.src} alt={img.alt} delay={i * 100} />
         ))}
       </div>
 
       {/* Instagram CTA */}
-      <div className="py-8 flex justify-center">
+      <FadeUp delay={0} duration={700} className="py-8 flex justify-center">
         <a
           href="https://instagram.com/amnehofficial"
           target="_blank"
@@ -50,7 +80,7 @@ export default function SocialFeed() {
           </svg>
           follow @amneh
         </a>
-      </div>
+      </FadeUp>
     </section>
   );
 }

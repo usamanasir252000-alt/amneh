@@ -60,11 +60,13 @@ async function shopifyAdminFetch<T>(
   variables?: Record<string, unknown>,
 ) {
   const endpoint = `${SHOPIFY_BASE_URL}/admin/api/${version}/graphql.json`;
+  const accessToken = await getToken();
+
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Shopify-Access-Token": await getToken(),
+      "X-Shopify-Access-Token": accessToken,
     },
     body: JSON.stringify({ query, variables }),
     cache: "no-store",
@@ -256,10 +258,108 @@ export async function ensureCustomerForGoogle(payload: {
   return customer;
 }
 
+// ── Order confirmation helpers (WhatsApp COD verification) ─────────────────
+
+export async function findPendingOrderByPhone(phone: string) {
+  // Search most recent non-cancelled order for this phone — no tag dependency
+  const q = `
+    query FindOrder($query: String!) {
+      orders(first: 5, query: $query, sortKey: CREATED_AT, reverse: true) {
+        edges {
+          node {
+            id
+            name
+            cancelledAt
+            totalPriceSet { shopMoney { amount } }
+            customer { firstName }
+            shippingAddress { firstName phone }
+            billingAddress { phone }
+            phone
+          }
+        }
+      }
+    }
+  `;
+  console.log('[Shopify] searching orders with query:', `phone:${phone}`);
+  const data = await shopifyAdminFetch<{ orders: { edges: { node: any }[] } }>(q, {
+    query: `phone:${phone}`,
+  });
+  console.log('[Shopify] orders found:', data.orders.edges.length);
+  // Return the most recent open (non-cancelled) order
+  const open = data.orders.edges.find((e: any) => !e.node.cancelledAt);
+  return open?.node ?? null;
+}
+
+export async function addOrderTag(orderId: string, tag: string) {
+  const m = `
+    mutation TagsAdd($id: ID!, $tags: [String!]!) {
+      tagsAdd(id: $id, tags: $tags) {
+        node { id }
+        userErrors { field message }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ tagsAdd: any }>(m, { id: orderId, tags: [tag] });
+  if (data.tagsAdd.userErrors?.length) {
+    throw new Error(data.tagsAdd.userErrors.map((e: any) => e.message).join(', '));
+  }
+}
+
+export async function removeOrderTag(orderId: string, tag: string) {
+  const m = `
+    mutation TagsRemove($id: ID!, $tags: [String!]!) {
+      tagsRemove(id: $id, tags: $tags) {
+        node { id }
+        userErrors { field message }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ tagsRemove: any }>(m, { id: orderId, tags: [tag] });
+  if (data.tagsRemove.userErrors?.length) {
+    throw new Error(data.tagsRemove.userErrors.map((e: any) => e.message).join(', '));
+  }
+}
+
+export async function cancelShopifyOrder(shopifyId: string) {
+  const gid = shopifyId.startsWith('gid://')
+    ? shopifyId
+    : `gid://shopify/Order/${shopifyId}`;
+
+  const mutation = `
+    mutation CancelOrder($orderId: ID!) {
+      orderCancel(
+        orderId: $orderId
+        reason: CUSTOMER
+        notifyCustomer: false
+        refund: false
+        restock: true
+      ) {
+        job { id }
+        orderCancelUserErrors { code field message }
+      }
+    }
+  `;
+
+  const data = await shopifyAdminFetch<{ orderCancel: any }>(mutation, { orderId: gid });
+
+  if (data.orderCancel.orderCancelUserErrors?.length) {
+    const msg = data.orderCancel.orderCancelUserErrors
+      .map((e: any) => e.message)
+      .join(', ');
+    throw new Error(`Order cancel failed: ${msg}`);
+  }
+
+  return data.orderCancel;
+}
+
 export default {
   getCustomerByEmail,
   createCustomer,
   setCustomerPasswordHash,
   verifyCustomerPasswordByEmail,
   ensureCustomerForGoogle,
+  cancelShopifyOrder,
+  findPendingOrderByPhone,
+  addOrderTag,
+  removeOrderTag,
 };

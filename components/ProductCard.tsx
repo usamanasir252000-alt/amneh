@@ -27,17 +27,15 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef(0);
 
   const images = product.images.length
     ? product.images
     : [{ id: "fallback", url: "/shot1.png", sortOrder: 0 }];
   const primaryImage = images[0].url;
+  const hoverImage = images[1]?.url ?? null;
   const imgCount = images.length;
-
-  const [activeIndex, setActiveIndex] = useState(0);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-  // Autoplay removed — manual navigation only
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,66 +51,84 @@ export default function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div
-      className="group w-full"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Image carousel */}
+    <div className="group w-full">
+
+      {/* ── Mobile: swipe carousel with dots ── */}
       <Link
         href={`/products/${product.id}`}
-        className="block relative overflow-hidden bg-white aspect-[3/4]"
+        className="md:hidden block relative overflow-hidden bg-white aspect-[3/4]"
         aria-label={`${product.name} product link`}
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          const delta = touchStartX.current - e.changedTouches[0].clientX;
+          if (delta > 45) setActiveIndex((i) => Math.min(i + 1, imgCount - 1));
+          if (delta < -45) setActiveIndex((i) => Math.max(i - 1, 0));
+        }}
       >
         <div
-          ref={wrapperRef}
-          className="relative h-full w-full"
-          tabIndex={0}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label={`${product.name} images`}
+          className="flex h-full w-full transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateX(-${activeIndex * 100}%)` }}
         >
-          <div
-            className="flex h-full w-full transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-          >
-            {images.map((img) => (
-              <div key={img.id} className="relative w-full flex-shrink-0">
-                <Image
-                  src={img.url}
-                  alt={product.name}
-                  fill
-                  className="object-contain object-center"
-                  sizes="(max-width: 1024px) 72vw, 25vw"
-                />
-              </div>
+          {images.map((img) => (
+            <div key={img.id} className="relative w-full h-full flex-shrink-0">
+              <Image
+                src={img.url}
+                alt={product.name}
+                fill
+                className="object-cover object-center"
+                sizes="100vw"
+              />
+            </div>
+          ))}
+        </div>
+
+        <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+          {product.badge}
+        </span>
+
+        {imgCount > 1 && (
+          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex(i); }}
+                aria-label={`Image ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === activeIndex ? "w-4 bg-gray-900" : "w-1.5 bg-gray-300"
+                }`}
+              />
             ))}
           </div>
+        )}
+      </Link>
 
-          {/* Badge */}
-          <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700">
-            {product.badge}
-          </span>
-
-          {/* Dots */}
-          {imgCount > 1 && (
-            <div className="absolute left-1/2 bottom-3 z-20 flex -translate-x-1/2 items-center gap-2">
-              {images.map((_, i) => (
-                <button
-                  key={`dot-${i}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setActiveIndex(i);
-                  }}
-                  aria-label={`Show image ${i + 1} of ${imgCount}`}
-                  aria-current={i === activeIndex}
-                  className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${i === activeIndex ? "bg-gray-900 scale-110" : "bg-gray-300"}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      {/* ── Desktop: hover image swap ── */}
+      <Link
+        href={`/products/${product.id}`}
+        className="hidden md:block relative overflow-hidden bg-white aspect-[3/4]"
+        aria-label={`${product.name} product link`}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <Image
+          src={primaryImage}
+          alt={product.name}
+          fill
+          className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
+          sizes="25vw"
+        />
+        {hoverImage && (
+          <Image
+            src={hoverImage}
+            alt={product.name}
+            fill
+            className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
+            sizes="25vw"
+          />
+        )}
+        <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+          {product.badge}
+        </span>
       </Link>
 
       {/* Info row */}
@@ -129,7 +145,6 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* Cart button */}
         <button
           onClick={handleAddToCart}
           aria-label="Add to bag"
@@ -140,32 +155,12 @@ export default function ProductCard({ product }: { product: Product }) {
           }`}
         >
           {added ? (
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           ) : (
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-              />
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           )}
         </button>

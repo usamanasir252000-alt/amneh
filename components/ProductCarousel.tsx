@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
+import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 
 interface ProductImage {
   id: string;
@@ -43,9 +44,18 @@ export default function ProductCarousel() {
     >
       {/* Section header */}
       <div className="text-center mb-10 px-6">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">curated for you</p>
-        <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900">The Collection</h2>
-        <div className="mx-auto mt-4 h-px w-12 bg-gray-300" />
+        <FadeUp delay={0} duration={600} distance={14}>
+          <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">curated for you</p>
+        </FadeUp>
+        <RevealText
+          lines={['The Collection']}
+          tag="h2"
+          className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900"
+          delay={80}
+        />
+        <FadeUp delay={200} duration={500} distance={10}>
+          <div className="mx-auto mt-4 h-px w-12 bg-gray-300" />
+        </FadeUp>
       </div>
 
       {/* ── Mobile: horizontal snap scroll ── */}
@@ -98,8 +108,10 @@ export default function ProductCarousel() {
             gridTemplateColumns: `repeat(${Math.min(visible.length || 1, 4)}, minmax(0, 280px))`,
           }}
         >
-          {visible.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {visible.map((p, i) => (
+            <ScaleIn key={p.id} delay={i * 80}>
+              <ProductCard product={p} />
+            </ScaleIn>
           ))}
           {visible.length === 0 && (
             <div className="py-16 text-center text-gray-300 text-sm">
@@ -141,14 +153,14 @@ export default function ProductCarousel() {
         </div>
       )}
 
-      <div className="mt-10 flex justify-center px-6">
+      <FadeUp delay={0} duration={600} className="mt-10 flex justify-center px-6">
         <a
           href="/skincare#serums"
           className="border border-gray-900 px-10 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
         >
           shop now
         </a>
-      </div>
+      </FadeUp>
     </section>
   );
 }
