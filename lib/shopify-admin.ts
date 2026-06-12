@@ -197,15 +197,19 @@ export async function ensureCustomerForGoogle(payload: {
   firstName?: string;
   lastName?: string;
 }) {
+  console.log("Ensuring customer for Google auth", { email: payload.email });
   const email = payload.email.toLowerCase();
   const existing = await getCustomerByEmail(email);
+  console.log("Existing customer lookup result", { existing });
   if (existing) return existing;
+
   await createCustomer({
     email,
     firstName: payload.firstName,
     lastName: payload.lastName,
   });
   const customer = await getCustomerByEmail(email);
+  console.log("Customer after creation attempt", { customer });
   return customer;
 }
 

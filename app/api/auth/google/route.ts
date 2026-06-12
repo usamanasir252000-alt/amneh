@@ -35,6 +35,11 @@ export async function POST(request: Request) {
 
   // Ensure customer exists in Shopify
   try {
+    console.log(
+      "Google auth successful, syncing with Shopify",
+      { email },
+      { firstName, lastName },
+    );
     const customer = await shopifyAdmin.ensureCustomerForGoogle({
       email: email.toLowerCase(),
       firstName,
