@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 interface ProductImage {
@@ -28,8 +28,50 @@ export default function ProductCard({ product }: { product: Product }) {
   const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const primaryImage = product.images[0]?.url ?? "/shot1.png";
-  const hoverImage = product.images[1]?.url ?? null;
+  const images = product.images.length
+    ? product.images
+    : [{ id: "fallback", url: "/shot1.png", sortOrder: 0 }];
+  const primaryImage = images[0].url;
+  const imgCount = images.length;
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const autoplay = imgCount > 1;
+  const intervalMs = 4000; // 4s
+  const timerRef = useRef<number | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  // Autoplay: start interval when there are multiple images
+  useEffect(() => {
+    if (!autoplay) return;
+    const start = () => {
+      if (timerRef.current) window.clearInterval(timerRef.current as number);
+      // @ts-ignore
+      timerRef.current = window.setInterval(() => {
+        setActiveIndex((i) => (i + 1) % imgCount);
+      }, intervalMs);
+    };
+    start();
+    return () => {
+      if (timerRef.current) {
+        window.clearInterval(timerRef.current as number);
+        timerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imgCount]);
+
+  // Reset timer after manual navigation so autoplay continues
+  useEffect(() => {
+    if (!autoplay) return;
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current as number);
+      // @ts-ignore
+      timerRef.current = window.setInterval(() => {
+        setActiveIndex((i) => (i + 1) % imgCount);
+      }, intervalMs);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,30 +92,69 @@ export default function ProductCard({ product }: { product: Product }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Image — clean, no overlays */}
+      {/* Image carousel */}
       <Link
         href={`/products/${product.id}`}
         className="block relative overflow-hidden bg-white aspect-[3/4]"
+        aria-label={`${product.name} product link`}
       >
-        <Image
-          src={primaryImage}
-          alt={product.name}
-          fill
-          className={`object-contain object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
-          sizes="(max-width: 1024px) 72vw, 25vw"
-        />
-        {hoverImage && (
-          <Image
-            src={hoverImage}
-            alt={product.name}
-            fill
-            className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
-            sizes="(max-width: 1024px) 72vw, 25vw"
-          />
-        )}
-        <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700">
-          {product.badge}
-        </span>
+        <div
+          ref={wrapperRef}
+          className="relative h-full w-full"
+          tabIndex={0}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={`${product.name} images`}
+        >
+          <div
+            className="flex h-full w-full transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+          >
+            {images.map((img) => (
+              <div key={img.id} className="relative w-full flex-shrink-0">
+                <Image
+                  src={img.url}
+                  alt={product.name}
+                  fill
+                  className="object-contain object-center"
+                  sizes="(max-width: 1024px) 72vw, 25vw"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Badge */}
+          <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700">
+            {product.badge}
+          </span>
+
+          {/* Dots */}
+          {imgCount > 1 && (
+            <div className="absolute left-1/2 bottom-3 z-20 flex -translate-x-1/2 items-center gap-2">
+              {images.map((_, i) => (
+                <button
+                  key={`dot-${i}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveIndex(i);
+                    // reset timer
+                    if (timerRef.current) {
+                      window.clearInterval(timerRef.current as number);
+                      // @ts-ignore
+                      timerRef.current = window.setInterval(() => {
+                        setActiveIndex((idx) => (idx + 1) % imgCount);
+                      }, intervalMs);
+                    }
+                  }}
+                  aria-label={`Show image ${i + 1} of ${imgCount}`}
+                  aria-current={i === activeIndex}
+                  className={`h-2.5 w-2.5 rounded-full transition-all duration-200 ${i === activeIndex ? "bg-gray-900 scale-110" : "bg-gray-300"}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </Link>
 
       {/* Info row */}
