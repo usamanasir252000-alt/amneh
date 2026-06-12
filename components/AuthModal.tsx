@@ -264,7 +264,7 @@ export default function AuthModal({
                   </button>
 
                   <div className="mt-4">
-                    <GoogleSignInButton />
+                    <GoogleSignInButton onClose={onClose} />
                   </div>
 
                   {/* Switch View Trigger */}

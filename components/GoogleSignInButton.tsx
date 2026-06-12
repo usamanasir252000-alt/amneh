@@ -11,7 +11,13 @@ declare global {
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-export default function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  onClose?: () => void;
+}
+
+export default function GoogleSignInButton({
+  onClose,
+}: GoogleSignInButtonProps) {
   const router = useRouter();
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const [error, setError] = useState("");
@@ -42,6 +48,7 @@ export default function GoogleSignInButton() {
             return;
           }
 
+          if (onClose) onClose();
           router.push("/");
         },
       });
