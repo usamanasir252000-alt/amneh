@@ -23,16 +23,16 @@ export default function ReviewSideButtons({
         <button
           type="button"
           onClick={onViewReviews}
-          className="flex h-14 w-40 items-center justify-start rounded-l-full border border-slate-200 bg-slate-50 px-4 text-left text-sm font-semibold text-slate-900 shadow-sm transition duration-200 hover:bg-slate-100 hover:text-slate-950"
+          className="flex h-14 w-40 items-center justify-start rounded-l-full border border-Deep_blue/20 bg-Deep_blue/5 px-4 text-left text-sm font-semibold text-Deep_blue shadow-sm transition duration-200 hover:bg-Deep_blue/10 hover:text-Deep_blue"
         >
-          <FaRegComments className="mr-3 h-4 w-4 text-emerald-600" />
+          <FaRegComments className="mr-3 h-4 w-4 text-Deep_blue" />
           View Reviews
         </button>
 
         <button
           type="button"
           onClick={onAddReview}
-          className="flex h-14 w-40 items-center justify-start rounded-l-full border border-emerald-400 bg-emerald-600 px-4 text-left text-sm font-semibold text-white shadow-xl shadow-emerald-500/20 transition duration-200 hover:bg-emerald-700"
+          className="flex h-14 w-40 items-center justify-start rounded-l-full border border-Deep_blue bg-Deep_blue px-4 text-left text-sm font-semibold text-white shadow-xl shadow-Deep_blue/30 transition duration-200 hover:bg-Deep_blue/90"
         >
           <FaPlus className="mr-3 h-4 w-4" />
           Add Review

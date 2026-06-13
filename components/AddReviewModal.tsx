@@ -63,7 +63,7 @@ export default function AddReviewModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -71,7 +71,7 @@ export default function AddReviewModal({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_35px_90px_rgba(15,23,42,0.2)]"
+            className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-Deep_blue/20 bg-white/95 shadow-soft"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -82,7 +82,7 @@ export default function AddReviewModal({
               type="button"
               onClick={onClose}
               aria-label="Close add review modal"
-              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition duration-200 hover:bg-slate-100"
+              className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-Deep_blue/20 bg-light_blue text-Deep_blue shadow-sm transition duration-200 hover:bg-soft_blue"
             >
               <FaTimes className="h-4 w-4" />
             </button>
@@ -90,10 +90,10 @@ export default function AddReviewModal({
             <div className="px-6 py-8 lg:px-8 lg:py-10">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
+                  <p className="text-sm uppercase tracking-[0.3em] text-Deep_blue">
                     Share your experience
                   </p>
-                  <h2 className="text-2xl font-semibold text-slate-900">
+                  <h2 className="text-2xl font-semibold text-Deep_blue">
                     Add Your Review
                   </h2>
                 </div>
@@ -102,7 +102,7 @@ export default function AddReviewModal({
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-semibold text-slate-700 mb-2"
+                      className="block text-sm font-semibold text-Deep_blue mb-2"
                     >
                       Your Name
                     </label>
@@ -113,14 +113,14 @@ export default function AddReviewModal({
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g., Sarah M."
                       required
-                      className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-lg border border-Deep_blue/20 bg-light_blue px-4 py-2 text-sm text-Deep_blue focus:border-Deep_blue focus:outline-none focus:ring-1 focus:ring-Deep_blue/20"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-semibold text-slate-700 mb-2"
+                      className="block text-sm font-semibold text-Deep_blue mb-2"
                     >
                       Your Email
                     </label>
@@ -131,12 +131,12 @@ export default function AddReviewModal({
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g., sarah@example.com"
                       required
-                      className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-full rounded-lg border border-Deep_blue/20 bg-light_blue px-4 py-2 text-sm text-Deep_blue focus:border-Deep_blue focus:outline-none focus:ring-1 focus:ring-Deep_blue/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <label className="block text-sm font-semibold text-Deep_blue mb-3">
                       Your Rating
                     </label>
                     <div className="flex items-center gap-3">
@@ -150,13 +150,13 @@ export default function AddReviewModal({
                           <FaStar
                             className={
                               star <= rating
-                                ? "h-6 w-6 text-amber-400"
-                                : "h-6 w-6 text-slate-300"
+                                ? "h-6 w-6 text-Deep_blue"
+                                : "h-6 w-6 text-Deep_blue/30"
                             }
                           />
                         </button>
                       ))}
-                      <span className="ml-2 text-sm font-medium text-slate-600">
+                      <span className="ml-2 text-sm font-medium text-Deep_blue/70">
                         {rating}/5
                       </span>
                     </div>
@@ -176,7 +176,7 @@ export default function AddReviewModal({
                       placeholder="Tell us what you think about this product..."
                       required
                       rows={5}
-                      className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                      className="w-full rounded-lg border border-Deep_blue/20 bg-light_blue px-4 py-2 text-sm text-Deep_blue focus:border-Deep_blue focus:outline-none focus:ring-1 focus:ring-Deep_blue/20 resize-none"
                     />
                   </div>
 
@@ -197,7 +197,7 @@ export default function AddReviewModal({
                   <button
                     type="submit"
                     disabled={loading || success}
-                    className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-lg bg-Deep_blue px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-Deep_blue/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? "Submitting..." : "Submit Review"}
                   </button>

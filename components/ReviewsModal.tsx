@@ -31,7 +31,7 @@ export default function ReviewsModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -39,7 +39,7 @@ export default function ReviewsModal({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_35px_90px_rgba(15,23,42,0.2)]"
+            className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-Deep_blue/20 bg-white/95 shadow-soft"
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -50,32 +50,34 @@ export default function ReviewsModal({
               type="button"
               onClick={onClose}
               aria-label="Close reviews modal"
-              className="absolute right-5 top-5 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition duration-200 hover:bg-slate-100"
+              className="absolute right-5 top-5 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-Deep_blue/20 bg-light_blue text-Deep_blue shadow-sm transition duration-200 hover:bg-soft_blue"
             >
               <FaTimes className="h-4 w-4" />
             </button>
 
             <div className="px-6 py-8 lg:px-10 lg:py-10">
               <div className="space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-3 flex-1">
-                    <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-3 flex-2">
+                    <p className="text-xs uppercase tracking-[0.3em] text-Deep_blue sm:text-sm">
                       Customer feedback
                     </p>
-                    <h2 className="text-3xl font-semibold text-slate-900">
-                      What our customers are saying
+                    <h2 className="text-2xl font-semibold text-Deep_blue sm:text-3xl">
+                      What shoppers are saying about Amneh
                     </h2>
-                    <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                      Read the latest reviews from happy shoppers.
+                    <p className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                      Read honest ratings and buyer stories from our community.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={onAddReview}
-                    className="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-emerald-700 whitespace-nowrap"
-                  >
-                    + Add Review
-                  </button>
+                  <div className="flex flex-1 items-end">
+                    <button
+                      type="button"
+                      onClick={onAddReview}
+                      className="inline-flex items-center justify-center rounded-lg bg-Deep_blue px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-Deep_blue/90 whitespace-nowrap"
+                    >
+                      Add Review
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -86,38 +88,38 @@ export default function ReviewsModal({
                     reviews.map((review) => (
                       <div
                         key={review.id}
-                        className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-5 shadow-sm"
+                        className="rounded-[1.6rem] border border-Deep_blue/10 bg-light_blue p-5 shadow-sm"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="font-semibold text-slate-900">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-lg font-semibold text-Deep_blue">
                               {review.name}
                             </p>
-                            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                            <p className="text-xs uppercase tracking-[0.24em] text-Deep_blue/70">
                               {review.date}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1 text-amber-500">
+                          <div className="flex items-center gap-1 text-Deep_blue">
                             {Array.from({ length: 5 }, (_, index) => (
                               <FaStar
                                 key={index}
                                 className={
                                   index < review.rating
                                     ? "h-3.5 w-3.5"
-                                    : "h-3.5 w-3.5 text-slate-300"
+                                    : "h-3.5 w-3.5 text-Deep_blue/30"
                                 }
                               />
                             ))}
                           </div>
                         </div>
-                        <p className="mt-4 leading-7 text-slate-600">
+                        <p className="mt-4 leading-7 text-slate-700 sm:text-base">
                           {review.text}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <div className="flex h-40 items-center justify-center rounded-lg bg-slate-50">
-                      <p className="text-slate-500">No reviews yet.</p>
+                    <div className="flex h-40 items-center justify-center rounded-lg bg-light_blue">
+                      <p className="text-Deep_blue/70">No reviews yet.</p>
                     </div>
                   )}
                 </div>
