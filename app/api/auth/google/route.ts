@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { registerCustomer } from "@/lib/shopify-storefront-auth";
+import { tagCustomer } from "@/lib/shopify-admin";
 import { signToken } from "@/lib/jwt";
 import crypto from "crypto";
 
@@ -40,6 +41,11 @@ export async function POST(request: Request) {
       lastName,
     });
     shopifyId = customer.id;
+    try {
+      await tagCustomer(customer.id, ["website-signup"]);
+    } catch (err) {
+      console.error("Failed to tag Google customer as website-signup", err);
+    }
   } catch {
     // Customer already exists — Google token is verified, proceed without Shopify ID
   }

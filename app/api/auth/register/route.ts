@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { registerCustomer } from "@/lib/shopify-storefront-auth";
+import { tagCustomer } from "@/lib/shopify-admin";
 import { signToken } from "@/lib/jwt";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,14 @@ export async function POST(request: Request) {
       firstName,
       lastName,
     });
+
+    // Tag as a website account so it's distinguishable from guest-checkout
+    // customers in the Shopify admin (regardless of order count).
+    try {
+      await tagCustomer(customer.id, ["website-signup"]);
+    } catch (err) {
+      console.error("Failed to tag customer as website-signup", err);
+    }
 
     const token = await signToken({
       sub: customer.id,

@@ -320,6 +320,24 @@ export async function removeOrderTag(orderId: string, tag: string) {
   }
 }
 
+export async function tagCustomer(customerId: string, tags: string[]) {
+  const id = customerId.startsWith("gid://")
+    ? customerId
+    : `gid://shopify/Customer/${customerId}`;
+  const m = `
+    mutation TagsAdd($id: ID!, $tags: [String!]!) {
+      tagsAdd(id: $id, tags: $tags) {
+        node { id }
+        userErrors { field message }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ tagsAdd: any }>(m, { id, tags });
+  if (data.tagsAdd.userErrors?.length) {
+    throw new Error(data.tagsAdd.userErrors.map((e: any) => e.message).join(", "));
+  }
+}
+
 export async function cancelShopifyOrder(shopifyId: string) {
   const gid = shopifyId.startsWith('gid://')
     ? shopifyId
@@ -358,6 +376,7 @@ export default {
   setCustomerPasswordHash,
   verifyCustomerPasswordByEmail,
   ensureCustomerForGoogle,
+  tagCustomer,
   cancelShopifyOrder,
   findPendingOrderByPhone,
   addOrderTag,
