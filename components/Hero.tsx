@@ -36,47 +36,37 @@ export default function Hero() {
                 : { duration: 0, delay: 1.1 }
             }
           >
-            <motion.div
-              className="absolute inset-0"
-              initial={false}
-              animate={{ scale: isActive ? 1.07 : 1 }}
-              transition={
-                isActive
-                  ? { duration: 4.2, ease: "linear" }
-                  : { duration: 0, delay: 1.1 }
-              }
-            >
-              {src === "/f2.png" ? (
-                <>
-                  <Image
-                    src="/c9.png"
-                    alt="amneh collection"
-                    fill
-                    className="object-cover object-top block md:hidden"
-                    quality={100}
-                    sizes="(max-width: 768px) 200vw, 100vw"
-                  />
-                  <Image
-                    src="/f2.png"
-                    alt="amneh collection"
-                    fill
-                    className="object-cover object-center hidden md:block"
-                    quality={90}
-                    sizes="100vw"
-                  />
-                </>
-              ) : (
+            {src === "/f2.png" ? (
+              <>
                 <Image
-                  src={src}
+                  src="/c9.png"
                   alt="amneh collection"
                   fill
-                  className="object-cover object-top md:object-center"
+                  className="object-cover object-top block md:hidden"
+                  quality={75}
+                  sizes="100vw"
                   priority={i === 0}
-                  quality={100}
-                  sizes="(max-width: 768px) 200vw, 100vw"
                 />
-              )}
-            </motion.div>
+                <Image
+                  src="/f2.png"
+                  alt="amneh collection"
+                  fill
+                  className="object-cover object-center hidden md:block"
+                  quality={75}
+                  sizes="100vw"
+                />
+              </>
+            ) : (
+              <Image
+                src={src}
+                alt="amneh collection"
+                fill
+                className="object-cover object-top md:object-center"
+                priority={i === 0}
+                quality={75}
+                sizes="100vw"
+              />
+            )}
           </motion.div>
         );
       })}
