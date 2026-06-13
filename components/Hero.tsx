@@ -43,7 +43,7 @@ export default function Hero() {
                   alt="amneh collection"
                   fill
                   className="object-cover object-top block md:hidden"
-                  quality={75}
+                  quality={100}
                   sizes="100vw"
                   priority={i === 0}
                 />
@@ -52,7 +52,7 @@ export default function Hero() {
                   alt="amneh collection"
                   fill
                   className="object-cover object-center hidden md:block"
-                  quality={75}
+                  quality={100}
                   sizes="100vw"
                 />
               </>
@@ -63,7 +63,7 @@ export default function Hero() {
                 fill
                 className="object-cover object-top md:object-center"
                 priority={i === 0}
-                quality={75}
+                quality={100}
                 sizes="100vw"
               />
             )}
