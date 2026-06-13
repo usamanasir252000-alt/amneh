@@ -57,6 +57,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <Link
         href={`/products/${product.id}`}
         className="md:hidden block relative overflow-hidden bg-white aspect-[3/4]"
+        style={{ touchAction: "pan-y" }}
         aria-label={`${product.name} product link`}
         onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
         onTouchEnd={(e) => {

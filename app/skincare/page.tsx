@@ -80,6 +80,7 @@ function SkincareProductCard({ product }: { product: Product }) {
         {/* ── Mobile: swipe carousel with dots ── */}
         <div
           className="md:hidden relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
+          style={{ touchAction: "pan-y" }}
           onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
           onTouchEnd={(e) => {
             const delta = touchStartX.current - e.changedTouches[0].clientX;
