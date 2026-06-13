@@ -69,7 +69,7 @@ export default function ReviewsModal({
                       Read honest ratings and buyer stories from our community.
                     </p>
                   </div>
-                  <div className="flex flex-1 items-end">
+                  <div className="flex-1 flex m-9 justify-end">
                     <button
                       type="button"
                       onClick={onAddReview}
