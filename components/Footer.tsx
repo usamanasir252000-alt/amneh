@@ -4,9 +4,7 @@ import Link from "next/link";
 
 const footerLinks: { label: string; href?: string }[] = [
   { label: "contact us", href: "/contact" },
-  { label: "faq" },
   { label: "shipping", href: "/shipping" },
-  { label: "order tracking" },
   { label: "rewards", href: "/rewards" },
   { label: "returns", href: "/returns" },
 ];

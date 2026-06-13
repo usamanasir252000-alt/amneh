@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BackButton from "@/components/BackButton";
 
 export const metadata = {
   title: "Shipping Policy — amneh.",
@@ -12,6 +13,9 @@ export default function ShippingPage() {
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-28 pb-20">
         <div className="max-w-2xl mx-auto px-6">
+          <div className="mb-6">
+            <BackButton />
+          </div>
           <p className="text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-3">
             policies
           </p>
