@@ -44,7 +44,7 @@ export default function Hero() {
                   fill
                   className="object-cover object-top block md:hidden"
                   quality={100}
-                  sizes="100vw"
+                  sizes="(max-width: 768px) 300vw, 100vw"
                   priority={i === 0}
                 />
                 <Image
@@ -64,7 +64,7 @@ export default function Hero() {
                 className="object-cover object-top md:object-center"
                 priority={i === 0}
                 quality={100}
-                sizes="100vw"
+                sizes="(max-width: 768px) 300vw, 100vw"
               />
             )}
           </motion.div>
