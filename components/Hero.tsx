@@ -72,10 +72,10 @@ export default function Hero() {
       </AnimatePresence>
 
       {/* Gradient overlay for text legibility */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-black/10 to-transparent md:bg-gradient-to-r md:from-black/50 md:via-black/20 md:to-transparent" />
 
       {/* Text content — bottom-left on desktop, centered on mobile */}
-      <div className="relative z-20 flex h-full items-end justify-center px-6 pb-20 text-center md:justify-start md:px-16 lg:px-24">
+      <div className="relative z-20 flex h-full items-end justify-start px-6 pb-10 text-left md:justify-start md:px-16 md:pb-20 lg:px-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ export default function Hero() {
             <br />
             Collection
           </h1>
-          <p className="text-sm leading-7 text-white/80 mb-8 max-w-xs">
+          <p className="hidden md:block text-sm leading-7 text-white/80 mb-8 max-w-xs">
             meet our new juicy, long-lasting <strong>hydrating serum</strong>{" "}
             and nourishing, glow-rich <strong></strong>
           </p>
