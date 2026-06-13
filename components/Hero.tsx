@@ -40,9 +40,10 @@ export default function Hero() {
                       src="/c9.png"
                       alt="amneh collection"
                       fill
-                      className="object-cover object-center block md:hidden"
+                      className="object-cover object-top block md:hidden"
                       priority={i === 0}
-                      sizes="100vw"
+                      quality={100}
+                      sizes="(max-width: 768px) 200vw, 100vw"
                     />
                     <Image
                       src="/f2.png"
@@ -50,6 +51,7 @@ export default function Hero() {
                       fill
                       className="object-cover object-center hidden md:block"
                       priority={i === 0}
+                      quality={90}
                       sizes="100vw"
                     />
                   </>
@@ -58,9 +60,10 @@ export default function Hero() {
                     src={src}
                     alt="amneh collection"
                     fill
-                    className="object-cover object-center"
+                    className="object-cover object-top md:object-center"
                     priority={i === 0}
-                    sizes="100vw"
+                    quality={100}
+                    sizes="(max-width: 768px) 200vw, 100vw"
                   />
                 )}
               </motion.div>
