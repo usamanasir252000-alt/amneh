@@ -10,10 +10,10 @@ module.exports = {
         blush: "#f6d1d8",
         petal: "#f8e4e7",
         pearl: "#ffffff",
-
+        // rose: "#b0517f",
         light_blue: "#EAF6FC", // Very light blue
         soft_blue: "#83CEF4", // Bright soft blue
-        Deep_blue: "#2F80B7", // Deep blue accent
+        Deep_blue: "#2f81b7da", // Deep blue accent
       },
     },
   },
