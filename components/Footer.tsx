@@ -4,16 +4,14 @@ import Link from "next/link";
 
 const footerLinks: { label: string; href?: string }[] = [
   { label: "contact us", href: "/contact" },
-  { label: "shipping", href: "/shipping" },
+  { label: "shipping policy", href: "/shipping" },
   { label: "rewards", href: "/rewards" },
-  { label: "returns", href: "/returns" },
+  { label: "return policy", href: "/returns" },
 ];
 
 const legalLinks: { label: string; href?: string }[] = [
   { label: "privacy policy", href: "/privacy" },
   { label: "terms", href: "/terms" },
-  { label: "accessibility" },
-  { label: "cookie policy" },
 ];
 
 export default function Footer() {
