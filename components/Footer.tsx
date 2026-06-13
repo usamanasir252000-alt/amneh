@@ -3,19 +3,19 @@
 import Link from "next/link";
 
 const footerLinks: { label: string; href?: string }[] = [
-  { label: "contact us" },
+  { label: "contact us", href: "/contact" },
   { label: "faq" },
-  { label: "shipping" },
+  { label: "shipping", href: "/shipping" },
   { label: "order tracking" },
   { label: "rewards", href: "/rewards" },
-  { label: "gift card balance" },
+  { label: "returns", href: "/returns" },
 ];
 
-const legalLinks = [
-  "privacy policy",
-  "terms",
-  "accessibility",
-  "cookie policy",
+const legalLinks: { label: string; href?: string }[] = [
+  { label: "privacy policy", href: "/privacy" },
+  { label: "terms", href: "/terms" },
+  { label: "accessibility" },
+  { label: "cookie policy" },
 ];
 
 export default function Footer() {
@@ -64,11 +64,17 @@ export default function Footer() {
       {/* Legal */}
       <div className="border-t border-gray-200/60 py-6 px-6">
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-1.5 mb-4">
-          {legalLinks.map((link) => (
-            <span key={link} className="text-[11px] text-gray-400 uppercase tracking-[0.1em]">
-              {link}
-            </span>
-          ))}
+          {legalLinks.map(({ label, href }) =>
+            href ? (
+              <Link key={label} href={href} className="text-[11px] text-gray-400 uppercase tracking-[0.1em] hover:text-gray-700 transition duration-200">
+                {label}
+              </Link>
+            ) : (
+              <span key={label} className="text-[11px] text-gray-400 uppercase tracking-[0.1em]">
+                {label}
+              </span>
+            )
+          )}
         </div>
         <p className="text-center text-[11px] text-gray-400 tracking-widest uppercase">© 2026 amneh. all rights reserved.</p>
       </div>
