@@ -55,7 +55,7 @@ export default function ReviewsModal({
               <FaTimes className="h-4 w-4" />
             </button>
 
-            <div className="px-6 py-8 lg:px-10 lg:py-10">
+            <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
               <div className="space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-3 flex-2">
@@ -69,11 +69,11 @@ export default function ReviewsModal({
                       Read honest ratings and buyer stories from our community.
                     </p>
                   </div>
-                  <div className="flex-1 flex m-9 justify-end">
+                  <div className="flex w-full justify-center sm:w-auto sm:justify-end">
                     <button
                       type="button"
                       onClick={onAddReview}
-                      className="inline-flex items-center justify-center rounded-lg bg-Deep_blue px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-Deep_blue/90 whitespace-nowrap"
+                      className="inline-flex w-full justify-center rounded-lg bg-Deep_blue px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition duration-200 hover:bg-Deep_blue/90 sm:w-auto"
                     >
                       Add Review
                     </button>
