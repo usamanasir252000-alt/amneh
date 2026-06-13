@@ -46,14 +46,14 @@ export default function ReviewsModal({
             transition={{ duration: 0.25, ease: "easeOut" }}
             onClick={(event) => event.stopPropagation()}
           >
-            <button
+            {/* <button
               type="button"
               onClick={onClose}
               aria-label="Close reviews modal"
               className="absolute right-5 top-5 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-Deep_blue/20 bg-light_blue text-Deep_blue shadow-sm transition duration-200 hover:bg-soft_blue"
             >
               <FaTimes className="h-4 w-4" />
-            </button>
+            </button> */}
 
             <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
               <div className="space-y-6">
