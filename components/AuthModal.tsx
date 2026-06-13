@@ -91,14 +91,14 @@ export default function AuthModal({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 backdrop-blur-sm sm:p-4 md:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 md:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleOverlayClick}
         >
           <motion.div
-            className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-[2rem] bg-white/95 p-5 shadow-2xl ring-1 ring-gray-200 backdrop-blur-xl transition-all [max-height:92vh] sm:p-6 md:p-8 lg:max-w-4xl lg:p-10 xl:[max-height:85vh]"
+            className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-[2rem] bg-white p-5 shadow-2xl ring-1 ring-gray-200 [max-height:92vh] sm:p-6 md:p-8 lg:max-w-4xl lg:p-10 xl:[max-height:85vh]"
             initial={{ y: 24, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 24, opacity: 0, scale: 0.98 }}

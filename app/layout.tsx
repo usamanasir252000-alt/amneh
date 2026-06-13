@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -26,6 +27,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans overflow-x-hidden bg-[#f1efef]`}
       >
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+        />
         <CartProvider>
           {children}
           <CartDrawer />
