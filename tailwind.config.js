@@ -11,9 +11,9 @@ module.exports = {
         petal: "#f8e4e7",
         pearl: "#ffffff",
         // rose: "#b0517f",
-        light_blue: "#EAF6FC", // Very light blue
-        soft_blue: "#83CEF4", // Bright soft blue
-        Deep_blue: "#2f81b7da", // Deep blue accent
+        light_blue: "#FFF9F2", // Very light blue
+        soft_blue: "#EBD9B4", // Bright soft blue
+        Deep_blue: "#C8A97E", // Deep blue accent
       },
     },
   },

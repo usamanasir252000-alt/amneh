@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,46 +8,46 @@ import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 
 const ingredients = [
   {
-    name: "Rosehip Extract",
-    origin: "Chile & South Africa",
+    name: "Apple Extract",
+    origin: "Orchard-Grown Apples",
     benefit:
-      "Rich in vitamins A and C, rosehip oil deeply repairs the skin barrier, fades dark spots, and delivers lasting hydration.",
-    emoji: "🌹",
-  },
-  {
-    name: "Pomegranate Seed Oil",
-    origin: "Mediterranean",
-    benefit:
-      "Packed with antioxidants and punicic acid, it shields skin from environmental stress and promotes cell renewal.",
+      "Rich in antioxidants and natural fruit acids that help refresh the skin, support hydration, and promote a healthy-looking glow.",
     emoji: "🍎",
   },
   {
-    name: "Papaya Enzyme",
-    origin: "Tropical Regions",
+    name: "Pineapple Ceramide",
+    origin: "Tropical Pineapple",
     benefit:
-      "Papain gently exfoliates dead skin cells, evens tone, and reveals a smoother, more luminous complexion.",
-    emoji: "🍈",
+      "Helps strengthen the skin barrier, lock in moisture, and improve skin softness for long-lasting hydration.",
+    emoji: "🍍",
   },
   {
-    name: "Sea Buckthorn Berry",
-    origin: "Himalayas & Europe",
+    name: "Strawberry Extract",
+    origin: "Premium Strawberry Farms",
     benefit:
-      "One of nature's most nutrient-dense berries — packed with omegas 3, 6, 7, and 9 for intensive skin repair.",
-    emoji: "🫐",
+      "Packed with antioxidants that help brighten dull skin, soothe irritation, and support a radiant complexion.",
+    emoji: "🍓",
   },
   {
-    name: "Green Tea Extract",
-    origin: "East Asia",
+    name: "Niacinamide",
+    origin: "Vitamin B3 Complex",
     benefit:
-      "A powerful antioxidant that calms inflammation, minimises pores, and protects against UV-induced damage.",
-    emoji: "🍵",
+      "Supports a stronger skin barrier, improves skin tone appearance, and helps maintain balanced-looking skin.",
+    emoji: "✨",
   },
   {
-    name: "Hyaluronic Acid (Plant-Derived)",
-    origin: "Fermented Botanical",
+    name: "Hyaluronic Acid",
+    origin: "Plant-Derived Fermentation",
     benefit:
-      "Draws moisture from the environment into the skin, delivering 24-hour hydration at multiple skin layers.",
+      "Attracts and retains moisture to deliver deep hydration and a plump, smooth skin appearance.",
     emoji: "💧",
+  },
+  {
+    name: "Vitamin B5 (Panthenol)",
+    origin: "Pro-Vitamin Complex",
+    benefit:
+      "Provides soothing hydration while helping support skin comfort and barrier recovery.",
+    emoji: "🌿",
   },
 ];
 
@@ -58,14 +58,26 @@ export default function DiscoverPage() {
 
       {/* Hero */}
       <div className="relative h-[55vh] min-h-[360px] overflow-hidden mt-0">
-        <Image
-          src="/r1.jpg"
-          alt="amneh discover"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
-        />
+        <div className="absolute inset-0 block sm:hidden">
+          <Image
+            src="/r9.png"
+            alt="amneh discover mobile"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+        </div>
+        <div className="absolute inset-0 hidden sm:block">
+          <Image
+            src="/f3.png"
+            alt="amneh discover"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
         <div className="absolute top-24 left-6 z-20">
           <BackButton light />
@@ -77,7 +89,7 @@ export default function DiscoverPage() {
             </p>
           </FadeUp>
           <RevealText
-            lines={['Discover Amneh']}
+            lines={["Discover Amneh"]}
             tag="h1"
             className="text-5xl sm:text-6xl font-bold uppercase tracking-tight text-white"
             delay={350}
@@ -94,7 +106,7 @@ export default function DiscoverPage() {
         </FadeUp>
 
         <RevealText
-          lines={['Honest. Gentle.', 'Intentional.']}
+          lines={["Honest. Gentle.", "Intentional."]}
           tag="h2"
           className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-10 leading-snug"
           delay={80}
@@ -106,26 +118,26 @@ export default function DiscoverPage() {
             <p>
               Amneh was created from a simple belief — that skincare should feel
               honest, gentle, and intentional. In a world full of complicated
-              routines and overwhelming choices, we wanted to bring things back to
-              simplicity. Products that respect your skin, your time, and your
-              natural beauty.
+              routines and overwhelming choices, we wanted to bring things back
+              to simplicity. Products that respect your skin, your time, and
+              your natural beauty.
             </p>
           </FadeUp>
           <FadeUp delay={80} duration={700}>
             <p>
-              The name <strong className="text-gray-800">Amneh</strong> represents
-              trust, purity, and care — values that sit at the heart of everything
-              we create. Each formula is thoughtfully developed to nourish and
-              support your skin, without unnecessary additives or noise. We don't
-              believe in covering up imperfections. We believe in enhancing what's
-              already yours.
+              The name <strong className="text-gray-800">Amneh</strong>{" "}
+              represents trust, purity, and care — values that sit at the heart
+              of everything we create. Each formula is thoughtfully developed to
+              nourish and support your skin, without unnecessary additives or
+              noise. We don't believe in covering up imperfections. We believe
+              in enhancing what's already yours.
             </p>
           </FadeUp>
           <FadeUp delay={160} duration={700}>
             <p>
               Amneh is more than skincare. It's a quiet ritual of self-respect,
-              designed to help you feel comfortable in your own skin, every single
-              day.
+              designed to help you feel comfortable in your own skin, every
+              single day.
             </p>
           </FadeUp>
         </div>
@@ -143,7 +155,7 @@ export default function DiscoverPage() {
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative z-10 flex h-full items-center justify-center">
           <RevealText
-            lines={['Nature Meets Science']}
+            lines={["Nature Meets Science"]}
             tag="p"
             className="text-white text-2xl font-bold uppercase tracking-[0.25em]"
             delay={0}
@@ -160,13 +172,18 @@ export default function DiscoverPage() {
         </FadeUp>
 
         <RevealText
-          lines={['Powered by Nature']}
+          lines={["Powered by Nature"]}
           tag="h2"
           className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-4 text-center"
           delay={80}
         />
 
-        <FadeUp delay={200} duration={700} distance={16} className="text-center mb-14">
+        <FadeUp
+          delay={200}
+          duration={700}
+          distance={16}
+          className="text-center mb-14"
+        >
           <p className="text-gray-500 text-sm leading-7 max-w-xl mx-auto">
             Every amneh. formula is built around plant-derived, fruit-based
             extracts chosen for their proven ability to nourish, brighten, and
@@ -203,7 +220,7 @@ export default function DiscoverPage() {
         </FadeUp>
 
         <RevealText
-          lines={['Join the Community']}
+          lines={["Join the Community"]}
           tag="h2"
           className="text-3xl font-bold uppercase tracking-tight text-gray-900 mb-4"
           delay={80}

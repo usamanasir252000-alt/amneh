@@ -91,14 +91,14 @@ export default function AuthModal({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 md:p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 md:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleOverlayClick}
         >
           <motion.div
-            className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-[2rem] bg-white p-5 shadow-2xl ring-1 ring-gray-200 [max-height:92vh] sm:p-6 md:p-8 lg:max-w-4xl lg:p-10 xl:[max-height:85vh]"
+            className="relative flex w-full max-w-lg flex-col overflow-hidden rounded-[2rem] bg-white/95 p-5 shadow-soft ring-1 ring-Deep_blue/20 [max-height:92vh] sm:p-6 md:p-8 lg:max-w-4xl lg:p-10 xl:[max-height:85vh]"
             initial={{ y: 24, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 24, opacity: 0, scale: 0.98 }}
@@ -108,7 +108,7 @@ export default function AuthModal({
               type="button"
               onClick={onClose}
               aria-label="Close auth modal"
-              className="absolute right-4 top-4 z-10 rounded-full border border-gray-200 bg-white/90 p-1.5 text-gray-600 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 sm:p-2"
+              className="absolute right-4 top-4 z-10 rounded-full border border-Deep_blue/20 bg-light_blue p-1.5 text-Deep_blue transition hover:bg-soft_blue focus:outline-none focus:ring-2 focus:ring-Deep_blue/30 sm:p-2"
             >
               <svg
                 className="h-3.5 w-3.5 sm:h-4 sm:w-4"
@@ -139,10 +139,10 @@ export default function AuthModal({
                 </div>
 
                 <div className="mt-4 text-center">
-                  <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.3em] text-[#9f7c89] sm:text-xs">
+                  <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.3em] text-Deep_blue/70 sm:text-xs">
                     {mode === "signIn" ? "welcome back" : "new here?"}
                   </p>
-                  <h2 className="mt-1 text-lg font-bold uppercase tracking-[0.12em] text-[#8c5e6c] sm:text-xl md:text-2xl lg:text-3xl">
+                  <h2 className="mt-1 text-lg font-bold uppercase tracking-[0.12em] text-Deep_blue sm:text-xl md:text-2xl lg:text-3xl">
                     {mode === "signIn" ? "sign in" : "create an account"}
                   </h2>
                 </div>
@@ -155,7 +155,7 @@ export default function AuthModal({
                   {mode === "signUp" && (
                     <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
                       <label className="block">
-                        <span className="mb-0.5 block text-[10px] font-semibold text-gray-600 sm:text-xs">
+                        <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
                           first name
                         </span>
                         <input
@@ -164,11 +164,11 @@ export default function AuthModal({
                           onChange={(event) => setFirstName(event.target.value)}
                           placeholder="first name"
                           required
-                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+                          className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
                         />
                       </label>
                       <label className="block">
-                        <span className="mb-0.5 block text-[10px] font-semibold text-gray-600 sm:text-xs">
+                        <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
                           last name
                         </span>
                         <input
@@ -176,14 +176,14 @@ export default function AuthModal({
                           value={lastName}
                           onChange={(event) => setLastName(event.target.value)}
                           placeholder="last name"
-                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-3 py-1.5 text-xs text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100 sm:px-4 sm:py-2.5 sm:text-sm"
+                          className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-3 py-1.5 text-xs text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20 sm:px-4 sm:py-2.5 sm:text-sm"
                         />
                       </label>
                     </div>
                   )}
 
                   <label className="block">
-                    <span className="mb-0.5 block text-[10px] font-semibold text-gray-600 sm:text-xs">
+                    <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
                       email
                     </span>
                     <input
@@ -192,12 +192,12 @@ export default function AuthModal({
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="email"
                       required
-                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+                      className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
                     />
                   </label>
 
                   <label className="block">
-                    <span className="mb-0.5 block text-[10px] font-semibold text-gray-600 sm:text-xs">
+                    <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
                       password
                     </span>
                     <input
@@ -206,14 +206,14 @@ export default function AuthModal({
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="password"
                       required
-                      className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+                      className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
                     />
                   </label>
 
                   {mode === "signUp" && (
                     <>
                       <label className="block">
-                        <span className="mb-1 block text-xs font-semibold text-gray-600">
+                        <span className="mb-1 block text-xs font-semibold text-Deep_blue/70">
                           re-enter password
                         </span>
                         <input
@@ -224,7 +224,7 @@ export default function AuthModal({
                           }
                           placeholder="re-enter password"
                           required
-                          className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2.5 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
+                          className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
                         />
                       </label>
                       <label className="flex items-start gap-3 text-xs text-gray-700">
@@ -235,7 +235,7 @@ export default function AuthModal({
                             setAgreeTerms(event.target.checked)
                           }
                           required
-                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#8c5e6c] focus:ring-[#8c5e6c]"
+                          className="mt-0.5 h-4 w-4 rounded border-Deep_blue/20 text-Deep_blue focus:ring-Deep_blue"
                         />
                         <span>
                           i agree to amneh&apos;s terms and privacy policy.
@@ -252,7 +252,7 @@ export default function AuthModal({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full rounded-2xl border border-Deep_blue bg-Deep_blue px-5 py-3 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-Deep_blue/90 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {loading
                       ? mode === "signIn"
@@ -278,7 +278,7 @@ export default function AuthModal({
                             setMode("signUp");
                             setError("");
                           }}
-                          className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
+                          className="font-semibold text-Deep_blue underline hover:text-soft_blue"
                         >
                           sign up
                         </button>
@@ -292,7 +292,7 @@ export default function AuthModal({
                             setMode("signIn");
                             setError("");
                           }}
-                          className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]"
+                          className="font-semibold text-Deep_blue underline hover:text-soft_blue"
                         >
                           sign in
                         </button>
@@ -303,15 +303,15 @@ export default function AuthModal({
               </div>
 
               {/* Right Column: Newsletter */}
-              <div className="lg:col-span-5 flex flex-col justify-center h-full border-t border-gray-100 pt-6 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
-                <div className="hidden lg:flex items-center gap-3 text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-6 w-full">
-                  <span className="h-px flex-1 bg-gray-200" />
+              <div className="lg:col-span-5 flex flex-col justify-center h-full border-t border-Deep_blue/10 pt-6 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
+                <div className="hidden lg:flex items-center gap-3 text-[10px] uppercase tracking-[0.35em] text-Deep_blue/40 mb-6 w-full">
+                  <span className="h-px flex-1 bg-Deep_blue/10" />
                   <span>Stay Connected</span>
-                  <span className="h-px flex-1 bg-gray-200" />
+                  <span className="h-px flex-1 bg-Deep_blue/10" />
                 </div>
 
-                <div className="w-full rounded-3xl border border-gray-100 bg-[#f0f8fc] p-5 text-center">
-                  <p className="mb-4 text-xs font-medium text-gray-700 tracking-wide">
+                <div className="w-full rounded-3xl border border-Deep_blue/10 bg-light_blue p-5 text-center">
+                  <p className="mb-4 text-xs font-medium text-Deep_blue tracking-wide">
                     sign up for updates:
                   </p>
                   <form
@@ -326,16 +326,16 @@ export default function AuthModal({
                       value={newsletterEmail}
                       onChange={(e) => setNewsletterEmail(e.target.value)}
                       placeholder="email address"
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700 placeholder-gray-400 outline-none focus:border-gray-400 sm:rounded-xl sm:px-4 sm:py-2"
+                      className="w-full rounded-xl border border-Deep_blue/20 bg-white px-3 py-1.5 text-xs text-Deep_blue placeholder-Deep_blue/40 outline-none focus:border-Deep_blue focus:ring-Deep_blue/20 sm:px-4 sm:py-2"
                     />
                     <button
                       type="submit"
-                      className="w-full rounded-lg border border-gray-800 bg-white py-1.5 text-[10px] uppercase tracking-[0.15em] text-gray-900 hover:bg-gray-900 hover:text-white transition sm:rounded-xl sm:py-2 sm:text-xs"
+                      className="w-full rounded-xl bg-Deep_blue py-2 text-[10px] uppercase tracking-[0.15em] text-white transition hover:bg-Deep_blue/90 sm:text-xs"
                     >
                       submit
                     </button>
                   </form>
-                  <p className="mt-3 text-[10px] text-gray-400 leading-relaxed">
+                  <p className="mt-3 text-[10px] text-Deep_blue/50 leading-relaxed">
                     by signing up you agree to our terms.
                   </p>
                 </div>
