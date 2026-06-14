@@ -289,13 +289,24 @@ export default function SkincarePage() {
 
       {/* Banner */}
       <div className="relative h-[50vh] min-h-[340px] w-full overflow-hidden">
-        <Image
-          src="/c3.png"
-          alt="amneh serums"
-          fill
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+        <div className="absolute inset-0 block sm:hidden">
+          <Image
+            src="/r10.png"
+            alt="amneh serums mobile"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+        </div>
+        <div className="absolute inset-0 hidden sm:block">
+          <Image
+            src="/f3.png"
+            alt="amneh serums"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
@@ -308,8 +319,8 @@ export default function SkincarePage() {
             />
             <FadeUp delay={300} duration={700}>
               <p className="mt-4 text-sm leading-7 text-white/80">
-                pair with our moisturizers and toners for a complete
-                glow-boosting ritual.
+                Discover our powerful serums, expertly formulated to hydrate,
+                brighten, and reveal your skin’s natural glow
               </p>
             </FadeUp>
           </div>
