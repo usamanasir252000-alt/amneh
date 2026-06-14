@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import {
-  findPendingOrderByPhone,
+  findOrderByPhone,
   addOrderTag,
   removeOrderTag,
   cancelShopifyOrder,
@@ -20,7 +20,6 @@ function twiml(message: string) {
 export async function POST(req: NextRequest) {
   const form = await req.formData();
 
-  // Twilio sends the sender number as "whatsapp:+923XXXXXXXXX"
   const from = String(form.get('From') ?? '');
   const body = String(form.get('Body') ?? '').trim().toUpperCase();
   const phone = from.replace('whatsapp:', '').trim();
@@ -31,8 +30,7 @@ export async function POST(req: NextRequest) {
 
   console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body);
 
-  // Find the most recent order tagged wa-pending for this phone number
-  const order = await findPendingOrderByPhone(phone).catch((err) => {
+  const order = await findOrderByPhone(phone).catch((err) => {
     console.error('[WhatsApp Reply] Shopify lookup failed:', err);
     return null;
   });
@@ -41,45 +39,76 @@ export async function POST(req: NextRequest) {
 
   if (!order) {
     return twiml(
-      "We couldn't find a pending order linked to your number. " +
-      'Please contact amneh. support or visit amneh.com for help.'
+      "We couldn't find any recent order linked to your number. " +
+      'Contact us at amnehofficial.com if you need help.'
     );
   }
 
-  const orderName = order.name; // e.g. "#1001"
+  const orderName = order.name;
+  const tags = order.tags;
+  const isPending   = tags.includes('wa-pending');
+  const isConfirmed = tags.includes('wa-confirmed');
+  const isCancelled = tags.includes('wa-cancelled');
 
   // ── CONFIRM ────────────────────────────────────────────────────────────────
   if (body.includes('CONFIRM')) {
-    try {
-      await removeOrderTag(order.id, 'wa-pending');
-      await addOrderTag(order.id, 'wa-confirmed');
-    } catch (err) {
-      console.error('[Shopify] Tag update failed on confirm:', err);
+    if (isConfirmed) {
+      return twiml(
+        `✅ Your amneh. order ${orderName} is already confirmed!\n\n` +
+        `We are already processing it and will notify you once it is on its way.`
+      );
     }
-
-    return twiml(
-      `✅ Your amneh. order ${orderName} is confirmed!\n\n` +
-      `We'll start processing it right away and notify you once it's on its way. ` +
-      `Thank you for choosing amneh. 🌿`
-    );
+    if (isCancelled) {
+      // Case 4 — cannot confirm a cancelled order
+      return twiml(
+        `❌ Your amneh. order ${orderName} was already cancelled and cannot be confirmed.\n\n` +
+        `Visit amnehofficial.com to place a new order.`
+      );
+    }
+    if (isPending) {
+      try {
+        await removeOrderTag(order.id, 'wa-pending');
+        await addOrderTag(order.id, 'wa-confirmed');
+      } catch (err) {
+        console.error('[Shopify] Tag update failed on confirm:', err);
+      }
+      return twiml(
+        `✅ Your amneh. order ${orderName} is confirmed!\n\n` +
+        `We'll start processing it right away and notify you once it's on its way. ` +
+        `Thank you for choosing amneh. 🌿`
+      );
+    }
   }
 
   // ── CANCEL ─────────────────────────────────────────────────────────────────
   if (body.includes('CANCEL')) {
-    try {
-      await removeOrderTag(order.id, 'wa-pending');
-      await addOrderTag(order.id, 'wa-cancelled');
-      await cancelShopifyOrder(order.id);
-    } catch (err) {
-      console.error('[Shopify] Cancel failed:', err);
-      // Respond to customer anyway — admin can handle manually if needed
+    if (isCancelled) {
+      return twiml(
+        `❌ Your amneh. order ${orderName} is already cancelled.\n\n` +
+        `Visit amnehofficial.com to place a new order.`
+      );
     }
-
-    return twiml(
-      `❌ Your amneh. order ${orderName} has been cancelled.\n\n` +
-      `If this was a mistake, please visit amneh.com to place a new order. ` +
-      `We hope to see you again soon! 💙`
-    );
+    if (isConfirmed) {
+      // Case 3 — cannot cancel a confirmed order
+      return twiml(
+        `✅ Your amneh. order ${orderName} has already been confirmed and cannot be cancelled.\n\n` +
+        `If you still need to cancel, please contact us directly at amnehofficial.com.`
+      );
+    }
+    if (isPending) {
+      try {
+        await removeOrderTag(order.id, 'wa-pending');
+        await addOrderTag(order.id, 'wa-cancelled');
+        await cancelShopifyOrder(order.id);
+      } catch (err) {
+        console.error('[Shopify] Cancel failed:', err);
+      }
+      return twiml(
+        `❌ Your amneh. order ${orderName} has been cancelled.\n\n` +
+        `If this was a mistake, please visit amnehofficial.com to place a new order. ` +
+        `We hope to see you again soon! 💙`
+      );
+    }
   }
 
   // ── Unrecognised reply ─────────────────────────────────────────────────────

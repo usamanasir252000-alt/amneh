@@ -260,8 +260,12 @@ export async function ensureCustomerForGoogle(payload: {
 
 // ── Order confirmation helpers (WhatsApp COD verification) ─────────────────
 
-export async function findPendingOrderByPhone(phone: string) {
-  // Search most recent non-cancelled order for this phone — no tag dependency
+// Returns the most recent order for a phone with its wa- tags included
+export async function findOrderByPhone(phone: string): Promise<{
+  id: string;
+  name: string;
+  tags: string[];
+} | null> {
   const q = `
     query FindOrder($query: String!) {
       orders(first: 5, query: $query, sortKey: CREATED_AT, reverse: true) {
@@ -270,24 +274,19 @@ export async function findPendingOrderByPhone(phone: string) {
             id
             name
             cancelledAt
-            totalPriceSet { shopMoney { amount } }
-            customer { firstName }
-            shippingAddress { firstName phone }
-            billingAddress { phone }
-            phone
+            tags
           }
         }
       }
     }
   `;
-  console.log('[Shopify] searching orders with query:', `phone:${phone}`);
+  console.log('[Shopify] searching orders for phone:', phone);
   const data = await shopifyAdminFetch<{ orders: { edges: { node: any }[] } }>(q, {
     query: `phone:${phone}`,
   });
-  console.log('[Shopify] orders found:', data.orders.edges.length);
-  // Return the most recent open (non-cancelled) order
   const open = data.orders.edges.find((e: any) => !e.node.cancelledAt);
-  return open?.node ?? null;
+  if (!open) return null;
+  return { id: open.node.id, name: open.node.name, tags: open.node.tags ?? [] };
 }
 
 export async function addOrderTag(orderId: string, tag: string) {
