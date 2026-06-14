@@ -14,7 +14,27 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "amneh. — Luxury Beauty",
-  description: "Premium beauty products crafted for elegance and confidence.",
+  description:
+    "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+  icons: {
+    icon: "/amneh.png",
+    apple: "/amneh.png",
+    shortcut: "/amneh.png",
+  },
+  openGraph: {
+    title: "Amneh — Luxury Beauty",
+    description:
+      "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+    type: "website",
+    images: ["/amneh.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Amneh — Luxury Beauty",
+    description:
+      "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+    images: ["/amneh.png"],
+  },
 };
 
 export default function RootLayout({
