@@ -377,7 +377,7 @@ export default {
   ensureCustomerForGoogle,
   tagCustomer,
   cancelShopifyOrder,
-  findPendingOrderByPhone,
+  findOrderByPhone,
   addOrderTag,
   removeOrderTag,
 };
