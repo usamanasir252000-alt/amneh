@@ -1,7 +1,8 @@
-const ACCOUNT_SID  = process.env.TWILIO_ACCOUNT_SID!;
-const AUTH_TOKEN   = process.env.TWILIO_AUTH_TOKEN!;
-const FROM         = process.env.TWILIO_WHATSAPP_FROM!; // e.g. "whatsapp:+14155238886"
-const CONTENT_SID  = process.env.TWILIO_CONTENT_SID;   // set after running create-whatsapp-template.mjs
+const ACCOUNT_SID          = process.env.TWILIO_ACCOUNT_SID!;
+const AUTH_TOKEN           = process.env.TWILIO_AUTH_TOKEN!;
+const FROM                 = process.env.TWILIO_WHATSAPP_FROM!; // e.g. "whatsapp:+923334274492"
+const CONTENT_SID          = process.env.TWILIO_CONTENT_SID;          // amneh_order_confirmation (3 vars)
+const CONTENT_SID_DETAILED = process.env.TWILIO_CONTENT_SID_DETAILED; // amneh_order_details (4 vars, with items)
 
 // Normalize Pakistani (and general) phone numbers to E.164 format
 export function formatPhone(raw: string): string {
@@ -34,12 +35,31 @@ export async function sendWhatsApp(to: string, body: string) {
   return twilioPost({ From: FROM, To: `whatsapp:${to}`, Body: body });
 }
 
-// Sends interactive quick-reply buttons if TWILIO_CONTENT_SID is configured,
+// Sends interactive quick-reply buttons if a Content SID is configured,
 // otherwise falls back to plain text.
+// Prefers CONTENT_SID_DETAILED (includes line items) over CONTENT_SID.
 export async function sendOrderConfirmation(
   to: string,
-  params: { name: string; orderNumber: string; amount: string }
+  params: { name: string; orderNumber: string; amount: string; items?: string[] }
 ) {
+  const itemsList = params.items?.length
+    ? params.items.map((i) => `• ${i}`).join('\n')
+    : '';
+
+  if (CONTENT_SID_DETAILED && itemsList) {
+    return twilioPost({
+      From: FROM,
+      To: `whatsapp:${to}`,
+      ContentSid: CONTENT_SID_DETAILED,
+      ContentVariables: JSON.stringify({
+        '1': params.name,
+        '2': params.orderNumber,
+        '3': itemsList,
+        '4': params.amount,
+      }),
+    });
+  }
+
   if (CONTENT_SID) {
     return twilioPost({
       From: FROM,
@@ -52,18 +72,24 @@ export async function sendOrderConfirmation(
       }),
     });
   }
-  return sendWhatsApp(to, buildOrderMessage(params));
+
+  return sendWhatsApp(to, buildOrderMessage({ ...params, itemsList }));
 }
 
 export function buildOrderMessage(params: {
   name: string;
   orderNumber: string;
   amount: string;
+  itemsList?: string;
 }): string {
+  const itemsSection = params.itemsList
+    ? `🛍️ *Items ordered:*\n${params.itemsList}\n\n`
+    : '';
   return (
     `Hi ${params.name}! 👋\n\n` +
     `Your *amneh.* order *#${params.orderNumber}* has been placed.\n\n` +
-    `🛍️ *Total:* PKR ${params.amount}\n\n` +
+    itemsSection +
+    `💰 *Total:* PKR ${params.amount}\n\n` +
     `Please confirm your order:\n` +
     `✅ Reply *CONFIRM* to confirm\n` +
     `❌ Reply *CANCEL* to cancel\n\n` +

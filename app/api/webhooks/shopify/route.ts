@@ -61,6 +61,11 @@ export async function POST(req: NextRequest) {
     'there';
   const amount = order.total_price;
 
+  // Format line items as "Product Name × qty"
+  const items: string[] = (order.line_items ?? []).map(
+    (item: any) => `${item.title} × ${item.quantity}`
+  );
+
   // Tag the order in Shopify so we can look it up when the customer replies
   try {
     await addOrderTag(shopifyGid, 'wa-pending');
@@ -70,7 +75,7 @@ export async function POST(req: NextRequest) {
 
   // Send WhatsApp confirmation request to customer (buttons if template SID is set)
   try {
-    await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount });
+    await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount, items });
   } catch (err) {
     console.error('[WhatsApp] Failed to send message:', err);
   }
