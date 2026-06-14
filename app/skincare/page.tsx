@@ -29,7 +29,7 @@ interface Product {
   images: ProductImage[];
 }
 
-const categories = ["new", "serums", "moisturizers", "toners", "best sellers"];
+const categories = ["serums"];
 
 function Stars({ count = 4 }: { count?: number }) {
   return (
@@ -76,15 +76,17 @@ function SkincareProductCard({ product }: { product: Product }) {
   return (
     <div className="group cursor-pointer">
       <Link href={`/products/${product.id}`} className="block">
-
         {/* ── Mobile: swipe carousel with dots ── */}
         <div
           className="md:hidden relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
           style={{ touchAction: "pan-y" }}
-          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+          onTouchStart={(e) => {
+            touchStartX.current = e.touches[0].clientX;
+          }}
           onTouchEnd={(e) => {
             const delta = touchStartX.current - e.changedTouches[0].clientX;
-            if (delta > 45) setActiveIndex((i) => Math.min(i + 1, imgCount - 1));
+            if (delta > 45)
+              setActiveIndex((i) => Math.min(i + 1, imgCount - 1));
             if (delta < -45) setActiveIndex((i) => Math.max(i - 1, 0));
           }}
         >
@@ -93,7 +95,10 @@ function SkincareProductCard({ product }: { product: Product }) {
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {images.map((img) => (
-              <div key={img.id} className="relative w-full h-full flex-shrink-0">
+              <div
+                key={img.id}
+                className="relative w-full h-full flex-shrink-0"
+              >
                 <Image
                   src={img.url}
                   alt={product.name}
@@ -114,7 +119,11 @@ function SkincareProductCard({ product }: { product: Product }) {
               {images.map((_, i) => (
                 <button
                   key={i}
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setActiveIndex(i); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveIndex(i);
+                  }}
                   aria-label={`Image ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === activeIndex ? "w-4 bg-gray-900" : "w-1.5 bg-white/70"
@@ -151,7 +160,6 @@ function SkincareProductCard({ product }: { product: Product }) {
             {product.badge}
           </span>
         </div>
-
       </Link>
 
       <div className="mt-4 flex items-start justify-between">
@@ -259,7 +267,7 @@ export default function SkincarePage() {
         </FadeUp>
 
         <RevealText
-          lines={['Serums']}
+          lines={["Serums"]}
           tag="h3"
           className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900"
           delay={80}
@@ -292,7 +300,7 @@ export default function SkincarePage() {
         <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
           <div className="max-w-xs text-white">
             <RevealText
-              lines={['The Full', 'Routine']}
+              lines={["The Full", "Routine"]}
               tag="h2"
               className="text-3xl font-bold uppercase tracking-tight text-[#9ac9df]"
               delay={0}
@@ -300,15 +308,13 @@ export default function SkincarePage() {
             />
             <FadeUp delay={300} duration={700}>
               <p className="mt-4 text-sm leading-7 text-white/80">
-                pair with our moisturizers and toners for a complete glow-boosting
-                ritual.
+                pair with our moisturizers and toners for a complete
+                glow-boosting ritual.
               </p>
             </FadeUp>
           </div>
         </div>
       </div>
-
-      <div className="h-[6px]" style={{ background: "#b8dff0" }} />
       <Footer />
     </main>
   );
