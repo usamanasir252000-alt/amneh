@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     shortcut: "/amneh.png",
   },
   openGraph: {
-    title: "Amneh — Luxury Beauty",
+    title: "amneh. — Luxury Beauty",
     description:
       "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Amneh — Luxury Beauty",
+    title: "amneh. — Luxury Beauty",
     description:
       "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
     images: ["/amneh.png"],
