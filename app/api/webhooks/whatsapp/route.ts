@@ -17,6 +17,13 @@ function twiml(message: string) {
   );
 }
 
+function emptyTwiml() {
+  return new Response(
+    `<?xml version="1.0" encoding="UTF-8"?><Response></Response>`,
+    { headers: { 'Content-Type': 'text/xml' } }
+  );
+}
+
 export async function POST(req: NextRequest) {
   const form = await req.formData();
 
@@ -24,9 +31,7 @@ export async function POST(req: NextRequest) {
   const body = String(form.get('Body') ?? '').trim().toUpperCase();
   const phone = from.replace('whatsapp:', '').trim();
 
-  if (!phone) {
-    return twiml('Unable to process your request. Please contact amneh. support.');
-  }
+  if (!phone) return emptyTwiml();
 
   console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body);
 
@@ -111,8 +116,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Unrecognised reply ─────────────────────────────────────────────────────
-  return twiml(
-    `Please reply CONFIRM to confirm or CANCEL to cancel your amneh. order ${orderName}.`
-  );
+  // ── Unrecognised reply — ignore silently ───────────────────────────────────
+  return emptyTwiml();
 }

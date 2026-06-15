@@ -201,7 +201,7 @@ export default function CartDrawer() {
 
                   {/* Checkout Button */}
                   <motion.a
-                    href={checkoutUrl ?? "#"}
+                    href={checkoutUrl ? `${checkoutUrl}?return_url=${encodeURIComponent("https://amnehofficial.com")}` : "#"}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="mt-6 w-full bg-gray-900 text-white font-medium py-3 rounded transition-colors hover:bg-gray-800 flex items-center justify-center"
