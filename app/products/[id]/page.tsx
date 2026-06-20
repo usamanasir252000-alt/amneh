@@ -369,11 +369,7 @@ export default function ProductDetailPage() {
 
             <div className="w-full h-px bg-gray-200 mb-5" />
 
-            {product.tagline && <p className="text-sm font-medium text-gray-700 mb-3">{product.tagline}</p>}
-            {product.description
-              ? <p className="text-sm leading-7 text-gray-500 mb-6 line-clamp-3">{product.description}</p>
-              : <p className="text-sm leading-7 text-gray-500 mb-6">A luxurious formula crafted for radiant, healthy-looking skin. Part of the amneh. signature collection.</p>
-            }
+            {product.tagline && <p className="text-sm font-medium text-gray-700 mb-6">{product.tagline}</p>}
 
             {/* Qty */}
             <div className="flex items-center gap-4 mb-5">
@@ -403,36 +399,21 @@ export default function ProductDetailPage() {
               }
             </button>
 
-            <div className="w-full h-px bg-gray-200 mt-6 mb-5" />
-
-            {/* Trust badges */}
-            <div className="space-y-3">
-              {[
-                { icon:"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", label:"Easy returns within 7 days" },
-                { icon:"M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label:"Dermatologist tested & approved" },
-              ].map(f => (
-                <div key={f.label} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#d6ecf7] flex items-center justify-center flex-shrink-0">
-                    <svg className="h-3.5 w-3.5 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={f.icon}/>
-                    </svg>
-                  </div>
-                  <span className="text-[12px] text-gray-500">{f.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Description ─────────────────────────────────────────────────────── */}
-      <section className="max-w-screen-xl mx-auto px-6 lg:px-10 py-14 border-t border-gray-200">
-        <SectionHeading
-          title="Description"
-          icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>}
-        />
-        <div className="max-w-2xl">
-          <FormattedText text={product.description ?? "A luxurious formula crafted for radiant, healthy-looking skin. Part of the amneh. signature collection."} />
+      {/* ── Ingredients ─────────────────────────────────────────────────────── */}
+      <section className="bg-white py-14 border-t border-gray-200">
+        <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
+          <SectionHeading
+            title="Ingredients"
+            icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>}
+          />
+          {product.ingredients
+            ? <IngredientsCloud text={product.ingredients} />
+            : <p className="text-sm text-gray-400 italic">Ingredients list coming soon.</p>
+          }
         </div>
       </section>
 
@@ -444,20 +425,6 @@ export default function ProductDetailPage() {
             icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>}
           />
           <HowToUseSteps text={product.howToUse} />
-        </div>
-      </section>
-
-      {/* ── Ingredients ─────────────────────────────────────────────────────── */}
-      <section className="bg-white py-14">
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
-          <SectionHeading
-            title="Ingredients"
-            icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>}
-          />
-          {product.ingredients
-            ? <IngredientsCloud text={product.ingredients} />
-            : <p className="text-sm text-gray-400 italic">Ingredients list coming soon.</p>
-          }
         </div>
       </section>
 
