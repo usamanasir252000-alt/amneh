@@ -73,7 +73,6 @@ export default function ShippingPage() {
               <ul className="space-y-2 list-none">
                 {[
                   "Standard shipping: PKR 200 flat rate.",
-                  "Free shipping on orders above PKR 3,000.",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />

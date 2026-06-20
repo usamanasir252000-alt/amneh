@@ -17,7 +17,6 @@ export default function CartDrawer() {
   } = useCart();
 
   const totalPrice = getTotalPrice();
-  const hasQualifiedForFreeShipping = totalPrice >= 50;
 
   return (
     <AnimatePresence>
@@ -88,39 +87,6 @@ export default function CartDrawer() {
                 </div>
               ) : (
                 <>
-                  {/* Free Shipping Banner */}
-                  {hasQualifiedForFreeShipping && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-6 rounded-lg bg-rose-50 p-4 border border-rose-100"
-                    >
-                      <p className="text-center text-sm font-medium text-gray-900">
-                        ✓ your order qualifies for free shipping
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {/* Free Shipping Upsell */}
-                  {!hasQualifiedForFreeShipping && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-6 rounded-lg bg-rose-50 p-4 border border-rose-100"
-                    >
-                      <p className="text-sm font-medium text-gray-900 mb-2">
-                        free glass water bottle! 🎁
-                      </p>
-                      <p className="text-xs text-gray-600 mb-3">
-                        online exclusive and limited time only.
-                      </p>
-                      <p className="text-xs text-gray-700">
-                        spend another PKR {(50 - totalPrice).toFixed(2)} and select
-                        1 free gift(s)
-                      </p>
-                    </motion.div>
-                  )}
-
                   {/* Items List */}
                   <div className="space-y-4 mb-6">
                     <AnimatePresence mode="popLayout">

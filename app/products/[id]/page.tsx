@@ -408,7 +408,6 @@ export default function ProductDetailPage() {
             {/* Trust badges */}
             <div className="space-y-3">
               {[
-                { icon:"M5 13l4 4L19 7", label:"Free shipping on orders over PKR 3,000" },
                 { icon:"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", label:"Easy returns within 7 days" },
                 { icon:"M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", label:"Dermatologist tested & approved" },
               ].map(f => (
