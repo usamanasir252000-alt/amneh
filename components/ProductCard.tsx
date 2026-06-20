@@ -18,6 +18,7 @@ interface Product {
   name: string;
   type: string;
   price: number;
+  compareAtPrice?: number | null;
   shades: string;
   badge: string;
   images: ProductImage[];
@@ -138,11 +139,23 @@ export default function ProductCard({ product }: { product: Product }) {
           <p className="text-[13px] font-medium text-gray-900 leading-tight truncate">
             {product.name}
           </p>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="text-[13px] font-semibold text-gray-900">
               PKR {product.price}
             </span>
-            <span className="text-[11px] text-gray-400">{product.type}</span>
+            {product.compareAtPrice != null && product.compareAtPrice > product.price && (
+              <span className="text-[12px] text-gray-400 line-through">
+                PKR {product.compareAtPrice}
+              </span>
+            )}
+            {product.compareAtPrice != null && product.compareAtPrice > product.price && (
+              <span className="text-[10px] font-semibold text-white bg-rose-400 px-1.5 py-0.5 rounded">
+                {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
+              </span>
+            )}
+            {(product.compareAtPrice == null || product.compareAtPrice <= product.price) && (
+              <span className="text-[11px] text-gray-400">{product.type}</span>
+            )}
           </div>
         </div>
 

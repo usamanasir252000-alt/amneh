@@ -258,6 +258,38 @@ export async function ensureCustomerForGoogle(payload: {
   return customer;
 }
 
+// ── Product metafields (bypasses Storefront API access restriction) ────────
+
+export async function getProductMetafields(handle: string): Promise<{
+  ingredients: string | null;
+  howToUse: string | null;
+  benefits: string | null;
+}> {
+  const q = `
+    query ProductMeta($query: String!) {
+      products(first: 1, query: $query) {
+        nodes {
+          ingredients: metafield(namespace: "custom", key: "ingredients") { value }
+          howToUse:    metafield(namespace: "custom", key: "how_to_use")  { value }
+          benefits:    metafield(namespace: "custom", key: "benefits")    { value }
+        }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ products: { nodes: any[] } }>(q, {
+    query: `handle:${handle}`,
+  });
+  console.log('[getProductMetafields] raw nodes:', JSON.stringify(data.products?.nodes ?? []));
+  const node = data.products.nodes[0] ?? {};
+  const result = {
+    ingredients: node.ingredients?.value ?? null,
+    howToUse:    node.howToUse?.value    ?? null,
+    benefits:    node.benefits?.value    ?? null,
+  };
+  console.log('[getProductMetafields] result:', JSON.stringify(result));
+  return result;
+}
+
 // ── Order confirmation helpers (WhatsApp COD verification) ─────────────────
 
 // Returns the most recent order for a phone with its wa- tags included

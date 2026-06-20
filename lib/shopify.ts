@@ -33,12 +33,16 @@ export interface ShopifyProduct {
   name: string;
   type: string;
   price: number;
+  compareAtPrice: number | null;
   shades: string;
   badge: string;
   tagline: string | null;
   description: string | null;
   category: string;
   images: { id: string; url: string; sortOrder: number }[];
+  ingredients: string | null;
+  howToUse: string | null;
+  benefits: string | null;
 }
 
 export interface ShopifyCartLine {
@@ -87,8 +91,12 @@ function normalizeProduct(node: {
   productType: string;
   tags: string[];
   priceRange: { minVariantPrice: { amount: string } };
+  compareAtPriceRange?: { maxVariantPrice: { amount: string } } | null;
   images: { edges: { node: { id: string; url: string } }[] };
   variants: { edges: { node: { id: string } }[] };
+  ingredients?: { value: string } | null;
+  howToUse?: { value: string } | null;
+  benefits?: { value: string } | null;
 }): ShopifyProduct {
   const tags = node.tags ?? [];
   const badgeTags = ["best seller", "bestseller", "new", "limited", "sale"];
@@ -104,6 +112,10 @@ function normalizeProduct(node: {
     name: node.title,
     type: node.productType || "product",
     price: parseFloat(node.priceRange.minVariantPrice.amount),
+    compareAtPrice: (() => {
+      const amt = parseFloat(node.compareAtPriceRange?.maxVariantPrice?.amount ?? "0");
+      return amt > 0 ? amt : null;
+    })(),
     shades: tags
       .filter((t) => t.startsWith("shades:"))
       .map((t) => t.slice(7))
@@ -117,6 +129,9 @@ function normalizeProduct(node: {
       url: e.node.url,
       sortOrder: i,
     })),
+    ingredients: node.ingredients?.value ?? null,
+    howToUse: node.howToUse?.value ?? null,
+    benefits: node.benefits?.value ?? null,
   };
 }
 
@@ -178,6 +193,7 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
             productType
             tags
             priceRange { minVariantPrice { amount } }
+            compareAtPriceRange { maxVariantPrice { amount } }
             images(first: 5) { edges { node { id url } } }
             variants(first: 1) { edges { node { id } } }
           }
@@ -207,8 +223,12 @@ export async function getProductByHandle(
         productType
         tags
         priceRange { minVariantPrice { amount } }
+        compareAtPriceRange { maxVariantPrice { amount } }
         images(first: 10) { edges { node { id url } } }
         variants(first: 1) { edges { node { id } } }
+        ingredients: metafield(namespace: "custom", key: "ingredients") { value }
+        howToUse: metafield(namespace: "custom", key: "how_to_use") { value }
+        benefits: metafield(namespace: "custom", key: "benefits") { value }
       }
     }
   `,

@@ -11,10 +11,17 @@ export async function GET(
 
   try {
     const product = await getProductByHandle(id);
+
+    console.log('[ProductAPI] handle:', id);
+    console.log('[ProductAPI] description:', product?.description ?? 'NULL');
+    console.log('[ProductAPI] ingredients:', product?.ingredients ?? 'NULL');
+    console.log('[ProductAPI] howToUse:', product?.howToUse ?? 'NULL');
+
     if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     return NextResponse.json(product);
   } catch (error) {
-    console.error("Shopify product fetch error:", error);
+    console.error('[ProductAPI] error:', error);
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 }

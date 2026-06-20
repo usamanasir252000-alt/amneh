@@ -22,6 +22,7 @@ interface Product {
   name: string;
   type: string;
   price: number;
+  compareAtPrice: number | null;
   shades: string;
   badge: string;
   tagline: string | null;
@@ -162,24 +163,28 @@ function SkincareProductCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      <div className="mt-4 flex items-start justify-between">
-        <div className="flex-1 pr-4">
-          <Stars count={product.badge === "best seller" ? 5 : 4} />
-          <p className="mt-1.5 text-[15px] font-semibold text-gray-900">
-            {product.name}
+      <div className="mt-4">
+        <Stars count={product.badge === "best seller" ? 5 : 4} />
+        <p className="mt-1.5 text-[15px] font-semibold text-gray-900">{product.name}</p>
+        {product.tagline && (
+          <p className="text-[13px] text-[#2b6c8a]">{product.tagline}</p>
+        )}
+        {product.description && (
+          <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
+            {product.description}
           </p>
-          {product.tagline && (
-            <p className="text-[13px] text-[#2b6c8a]">{product.tagline}</p>
-          )}
-          {product.description && (
-            <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
-              {product.description}
-            </p>
+        )}
+        <div className="mt-2 flex items-center gap-2 flex-wrap">
+          <span className="text-[15px] font-medium text-gray-900">PKR {product.price}</span>
+          {product.compareAtPrice != null && product.compareAtPrice > product.price && (
+            <>
+              <span className="text-[13px] text-gray-400 line-through">PKR {product.compareAtPrice}</span>
+              <span className="text-[10px] font-bold text-white bg-rose-400 px-1.5 py-0.5 rounded">
+                {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
+              </span>
+            </>
           )}
         </div>
-        <span className="mt-1 shrink-0 text-[15px] font-medium text-gray-900">
-          PKR {product.price}
-        </span>
       </div>
 
       <button
