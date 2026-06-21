@@ -181,6 +181,30 @@ export async function createCustomer(payload: {
   };
 }
 
+// Sends Shopify's "Customer account invite" email (contains the account
+// activation link). Works on customers created without a password, i.e. in
+// the unactivated/disabled state.
+export async function sendCustomerInvite(customerId: string) {
+  const numericId = customerId.replace(/^gid:\/\/shopify\/Customer\//, "");
+  const accessToken = await getToken();
+  const res = await fetch(
+    `${SHOPIFY_BASE_URL}/admin/api/${version}/customers/${numericId}/send_invite.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": accessToken,
+      },
+      body: JSON.stringify({ customer_invite: {} }),
+    }
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`send_invite failed ${res.status}: ${text}`);
+  }
+  return res.json();
+}
+
 export async function setCustomerPasswordHash(
   customerId: string,
   passwordHash: string,
@@ -404,6 +428,7 @@ export async function cancelShopifyOrder(shopifyId: string) {
 export default {
   getCustomerByEmail,
   createCustomer,
+  sendCustomerInvite,
   setCustomerPasswordHash,
   verifyCustomerPasswordByEmail,
   ensureCustomerForGoogle,

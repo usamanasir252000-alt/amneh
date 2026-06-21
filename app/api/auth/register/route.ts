@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { registerCustomer, loginCustomer } from "@/lib/shopify-storefront-auth";
-import { tagCustomer } from "@/lib/shopify-admin";
-import { signToken } from "@/lib/jwt";
+import {
+  createCustomer,
+  sendCustomerInvite,
+  getCustomerByEmail,
+} from "@/lib/shopify-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -18,58 +20,43 @@ export async function POST(request: Request) {
     );
   }
 
+  const normalized = email.toLowerCase();
+
   try {
-    const customer = await registerCustomer({
-      email: email.toLowerCase(),
-      password,
+    // Reject duplicates up-front so we show a clear message.
+    const existing = await getCustomerByEmail(normalized);
+    if (existing) {
+      return NextResponse.json(
+        {
+          error:
+            "An account with this email already exists. Please log in instead.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // Create the customer WITHOUT a password → account is unactivated. This is
+    // what forces email verification: the user can't log in until they click
+    // the activation link, where their password (kept in localStorage) is set.
+    const customer = await createCustomer({
+      email: normalized,
       firstName,
       lastName,
+      tags: ["website-signup"],
     });
 
-    // Tag as a website account so it's distinguishable from guest-checkout
-    // customers in the Shopify admin (regardless of order count).
-    try {
-      await tagCustomer(customer.id, ["website-signup"]);
-    } catch (err) {
-      console.error("Failed to tag customer as website-signup", err);
-    }
+    // Send Shopify's account-invite/activation email.
+    await sendCustomerInvite(customer.id);
 
-    let shopifyAccessToken: string | null = null;
-    try {
-      const { token: st } = await loginCustomer(email.toLowerCase(), password);
-      shopifyAccessToken = st.accessToken;
-    } catch {
-      // non-fatal — cart will fall back to email-only buyer identity
-    }
-
-    const token = await signToken({
-      sub: customer.id,
-      email: customer.email,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      ...(shopifyAccessToken ? { shopifyToken: shopifyAccessToken } : {}),
-    });
-
-    const response = NextResponse.json(
-      { id: customer.id, email: customer.email, firstName: customer.firstName },
-      { status: 201 }
-    );
-    response.cookies.set("session", token, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-    return response;
+    return NextResponse.json({ emailSent: true }, { status: 200 });
   } catch (err: any) {
     const msg: string = err?.message ?? "Registration failed";
-    if (msg.toLowerCase().includes("sent an email") || msg.toLowerCase().includes("verify your email")) {
-      return NextResponse.json({ emailSent: true }, { status: 200 });
-    }
     if (msg.toLowerCase().includes("taken")) {
       return NextResponse.json(
-        { error: "An account with this email already exists. Please log in instead." },
+        {
+          error:
+            "An account with this email already exists. Please log in instead.",
+        },
         { status: 409 }
       );
     }

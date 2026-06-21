@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { activateCustomerByUrl } from "@/lib/shopify-storefront-auth";
-import { signToken } from "@/lib/jwt";
 
 export const dynamic = "force-dynamic";
 
@@ -18,32 +17,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { token: shopifyToken, customer } = await activateCustomerByUrl(
-      activationUrl,
-      password
-    );
+    // Activates (verifies) the account. We don't issue a session here — the
+    // user is sent to the login page to sign in with their password.
+    const { customer } = await activateCustomerByUrl(activationUrl, password);
 
-    const token = await signToken({
-      sub: customer.id,
-      email: customer.email,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-      shopifyToken: shopifyToken.accessToken,
-    });
-
-    const response = NextResponse.json({
+    return NextResponse.json({
       id: customer.id,
       email: customer.email,
       firstName: customer.firstName,
     });
-    response.cookies.set("session", token, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 60 * 60 * 24 * 30,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-    return response;
   } catch (err: any) {
     const msg: string = err?.message ?? "Activation failed";
     // Shopify returns this when the link is stale or already used

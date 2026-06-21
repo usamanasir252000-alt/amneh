@@ -72,11 +72,11 @@ function ActivateForm() {
     });
   }, [activationUrl, activate]);
 
-  // Countdown + redirect once activated.
+  // Countdown + redirect to login once verified.
   useEffect(() => {
     if (status !== "done") return;
     if (countdown <= 0) {
-      router.push("/");
+      router.push("/login");
       return;
     }
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -125,13 +125,15 @@ function ActivateForm() {
           </svg>
         </div>
         <h1 className="mb-2 text-2xl font-bold text-[#8c5e6c]">
-          Account successfully activated
+          Your email has been verified
         </h1>
         <p className="text-sm text-gray-500">
-          Redirecting you in {countdown}s…{" "}
-          <Link href="/" className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]">
-            go now
+          Automatically redirecting to the login page in {countdown} second
+          {countdown === 1 ? "" : "s"}, or{" "}
+          <Link href="/login" className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]">
+            click here
           </Link>
+          .
         </p>
       </div>
     );
