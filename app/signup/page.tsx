@@ -40,6 +40,13 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (res.ok) {
+        // Stash the password so the activation page can auto-activate without
+        // asking the user to set it again.
+        try {
+          localStorage.setItem(`amneh_pw_${email.toLowerCase()}`, password);
+        } catch {
+          /* localStorage unavailable — activation page will ask for password */
+        }
         setToast(true);
         setTimeout(() => router.push("/"), 4000);
       } else {

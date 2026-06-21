@@ -78,7 +78,16 @@ export default function AuthModal({
       if (!res.ok) {
         setError(data.error || "Something went wrong");
       } else if (data.emailSent) {
-        // Verification email sent — show confirmation popup instead of logging in
+        // Verification email sent — stash the password so the activation page
+        // can auto-activate without asking the user to set it again.
+        try {
+          localStorage.setItem(
+            `amneh_pw_${email.toLowerCase()}`,
+            password
+          );
+        } catch {
+          /* localStorage unavailable — activation page will ask for password */
+        }
         onClose();
         setVerifySentTo(email);
       } else {

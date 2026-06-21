@@ -1,28 +1,93 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthPageShell from "@/components/AuthPageShell";
+
+type Status = "checking" | "activating" | "done" | "needPassword";
 
 function ActivateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activationUrl = searchParams.get("url") ?? "";
+  const email = (searchParams.get("email") ?? "").toLowerCase();
 
+  const [status, setStatus] = useState<Status>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const autoTried = useRef(false);
+
+  const activate = useCallback(
+    async (pw: string): Promise<boolean> => {
+      const res = await fetch("/api/auth/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ activationUrl, password: pw }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (email) {
+          try {
+            localStorage.removeItem(`amneh_pw_${email}`);
+          } catch {
+            /* ignore */
+          }
+        }
+        return true;
+      }
+      setError(data.error || "Something went wrong");
+      return false;
+    },
+    [activationUrl, email]
+  );
+
+  // Try to auto-activate using the password stashed at signup.
+  useEffect(() => {
+    if (autoTried.current) return;
+    autoTried.current = true;
+
+    if (!activationUrl) {
+      setError("Missing activation link. Please use the link from your email.");
+      setStatus("needPassword");
+      return;
+    }
+
+    let stored: string | null = null;
+    try {
+      stored = email ? localStorage.getItem(`amneh_pw_${email}`) : null;
+    } catch {
+      stored = null;
+    }
+
+    if (!stored) {
+      setStatus("needPassword");
+      return;
+    }
+
+    setStatus("activating");
+    activate(stored).then((ok) => {
+      setStatus(ok ? "done" : "needPassword");
+    });
+  }, [activationUrl, email, activate]);
+
+  // Countdown + redirect once activated.
+  useEffect(() => {
+    if (status !== "done") return;
+    if (countdown <= 0) {
+      router.push("/");
+      return;
+    }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [status, countdown, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!activationUrl) {
-      setError("Missing activation link. Please use the link from your email.");
-      return;
-    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -33,18 +98,8 @@ function ActivateForm() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/activate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ activationUrl, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setDone(true);
-        setTimeout(() => router.push("/"), 2000);
-      } else {
-        setError(data.error || "Something went wrong");
-      }
+      const ok = await activate(password);
+      if (ok) setStatus("done");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -52,7 +107,18 @@ function ActivateForm() {
     }
   };
 
-  if (done) {
+  // ── Activating / checking spinner ──────────────────────────────────────────
+  if (status === "checking" || status === "activating") {
+    return (
+      <div className="rounded-3xl bg-white/20 p-8 text-center shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-white/40 backdrop-blur-xl sm:p-10">
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#e9d1d8] border-t-[#8c5e6c]" />
+        <p className="text-sm text-gray-500">Activating your account…</p>
+      </div>
+    );
+  }
+
+  // ── Success ─────────────────────────────────────────────────────────────────
+  if (status === "done") {
     return (
       <div className="rounded-3xl bg-white/20 p-8 text-center shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-white/40 backdrop-blur-xl sm:p-10">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4fa]">
@@ -60,12 +126,20 @@ function ActivateForm() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="mb-2 text-2xl font-bold text-[#8c5e6c]">Account activated</h1>
-        <p className="text-sm text-gray-500">Welcome to amneh. Taking you home…</p>
+        <h1 className="mb-2 text-2xl font-bold text-[#8c5e6c]">
+          Account successfully activated
+        </h1>
+        <p className="text-sm text-gray-500">
+          Redirecting you in {countdown}s…{" "}
+          <Link href="/" className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]">
+            go now
+          </Link>
+        </p>
       </div>
     );
   }
 
+  // ── Fallback: ask for a password (different device / no stored password) ────
   return (
     <div className="rounded-3xl bg-white/20 p-8 shadow-[0_24px_80px_rgba(63,22,34,0.12)] ring-1 ring-white/40 backdrop-blur-xl sm:p-10">
       <div className="text-center">
@@ -74,7 +148,7 @@ function ActivateForm() {
           activate your account
         </h1>
         <p className="mt-4 text-sm text-gray-500">
-          Set a password to finish activating your account.
+          Confirm your password to finish activating your account.
         </p>
       </div>
 
