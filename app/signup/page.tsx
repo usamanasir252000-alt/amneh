@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,10 +39,11 @@ export default function SignupPage() {
         body: JSON.stringify({ email, password, firstName, lastName }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Something went wrong");
+      if (res.ok) {
+        setToast(true);
+        setTimeout(() => router.push("/"), 4000);
       } else {
-        router.push("/");
+        setError(data.error || "Something went wrong");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -51,7 +53,26 @@ export default function SignupPage() {
   };
 
   return (
-    <AuthPageShell>
+    <>
+      {/* Verification toast — outside AuthPageShell so fixed positioning works */}
+      {toast && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f4fa]">
+              <svg className="h-7 w-7 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-bold text-gray-900">Check your inbox</h3>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              We&apos;ve sent a verification link to <span className="font-semibold text-gray-700">{email}</span>. Click the link to activate your account.
+            </p>
+            <p className="mt-4 text-xs text-gray-400">Redirecting you shortly…</p>
+          </div>
+        </div>
+      )}
+      <AuthPageShell>
       <div className="mb-4">
         <BackButton light />
       </div>
@@ -194,5 +215,6 @@ export default function SignupPage() {
         </form>
       </div>
     </AuthPageShell>
+    </>
   );
 }

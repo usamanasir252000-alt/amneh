@@ -64,7 +64,15 @@ export async function POST(request: Request) {
     return response;
   } catch (err: any) {
     const msg: string = err?.message ?? "Registration failed";
-    const status = msg.toLowerCase().includes("taken") ? 409 : 400;
-    return NextResponse.json({ error: msg }, { status });
+    if (msg.toLowerCase().includes("sent an email") || msg.toLowerCase().includes("verify your email")) {
+      return NextResponse.json({ emailSent: true }, { status: 200 });
+    }
+    if (msg.toLowerCase().includes("taken")) {
+      return NextResponse.json(
+        { error: "An account with this email already exists. Please log in instead." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

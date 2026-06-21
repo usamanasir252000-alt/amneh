@@ -29,6 +29,7 @@ export default function AuthModal({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [verifySentTo, setVerifySentTo] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -76,6 +77,10 @@ export default function AuthModal({
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Something went wrong");
+      } else if (data.emailSent) {
+        // Verification email sent — show confirmation popup instead of logging in
+        onClose();
+        setVerifySentTo(email);
       } else {
         onClose();
         router.push("/");
@@ -88,6 +93,60 @@ export default function AuthModal({
   };
 
   return (
+    <>
+    {/* Verification email sent — confirmation popup */}
+    <AnimatePresence>
+      {verifySentTo ? (
+        <motion.div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setVerifySentTo("");
+          }}
+        >
+          <motion.div
+            className="relative w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-soft ring-1 ring-Deep_blue/20"
+            initial={{ y: 24, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 24, opacity: 0, scale: 0.98 }}
+          >
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-light_blue">
+              <svg
+                className="h-7 w-7 text-Deep_blue"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-bold text-Deep_blue">
+              Check your inbox
+            </h3>
+            <p className="text-sm leading-relaxed text-gray-500">
+              We&apos;ve sent a verification link to{" "}
+              <span className="font-semibold text-gray-700">{verifySentTo}</span>.
+              Click the link to activate your account.
+            </p>
+            <button
+              type="button"
+              onClick={() => setVerifySentTo("")}
+              className="mt-6 w-full rounded-2xl border border-Deep_blue bg-Deep_blue px-5 py-3 text-sm uppercase tracking-[0.2em] text-white transition hover:bg-Deep_blue/90"
+            >
+              got it
+            </button>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+
     <AnimatePresence>
       {open ? (
         <motion.div
@@ -345,5 +404,6 @@ export default function AuthModal({
         </motion.div>
       ) : null}
     </AnimatePresence>
+    </>
   );
 }

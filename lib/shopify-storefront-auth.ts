@@ -69,6 +69,38 @@ export async function registerCustomer(payload: {
   return data.customerCreate.customer!;
 }
 
+export async function activateCustomerByUrl(
+  activationUrl: string,
+  password: string
+): Promise<{ token: ShopifyCustomerToken; customer: ShopifyCustomerProfile }> {
+  const data = await storefrontFetch<{
+    customerActivateByUrl: {
+      customer: ShopifyCustomerProfile | null;
+      customerAccessToken: ShopifyCustomerToken | null;
+      customerUserErrors: { code: string; message: string }[];
+    };
+  }>(
+    `
+    mutation CustomerActivateByUrl($activationUrl: URL!, $password: String!) {
+      customerActivateByUrl(activationUrl: $activationUrl, password: $password) {
+        customer { id email firstName lastName }
+        customerAccessToken { accessToken expiresAt }
+        customerUserErrors { code message }
+      }
+    }
+  `,
+    { activationUrl, password }
+  );
+
+  if (data.customerActivateByUrl.customerUserErrors.length) {
+    throw new Error(data.customerActivateByUrl.customerUserErrors[0].message);
+  }
+  const customer = data.customerActivateByUrl.customer;
+  const token = data.customerActivateByUrl.customerAccessToken;
+  if (!customer || !token) throw new Error("Activation failed");
+  return { token, customer };
+}
+
 export async function loginCustomer(
   email: string,
   password: string
