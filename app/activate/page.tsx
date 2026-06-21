@@ -11,7 +11,6 @@ function ActivateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activationUrl = searchParams.get("url") ?? "";
-  const email = (searchParams.get("email") ?? "").toLowerCase();
 
   const [status, setStatus] = useState<Status>("checking");
   const [password, setPassword] = useState("");
@@ -30,19 +29,17 @@ function ActivateForm() {
       });
       const data = await res.json();
       if (res.ok) {
-        if (email) {
-          try {
-            localStorage.removeItem(`amneh_pw_${email}`);
-          } catch {
-            /* ignore */
-          }
+        try {
+          localStorage.removeItem("amneh_pending_activation");
+        } catch {
+          /* ignore */
         }
         return true;
       }
       setError(data.error || "Something went wrong");
       return false;
     },
-    [activationUrl, email]
+    [activationUrl]
   );
 
   // Try to auto-activate using the password stashed at signup.
@@ -56,23 +53,24 @@ function ActivateForm() {
       return;
     }
 
-    let stored: string | null = null;
+    let storedPassword: string | null = null;
     try {
-      stored = email ? localStorage.getItem(`amneh_pw_${email}`) : null;
+      const raw = localStorage.getItem("amneh_pending_activation");
+      if (raw) storedPassword = JSON.parse(raw).password ?? null;
     } catch {
-      stored = null;
+      storedPassword = null;
     }
 
-    if (!stored) {
+    if (!storedPassword) {
       setStatus("needPassword");
       return;
     }
 
     setStatus("activating");
-    activate(stored).then((ok) => {
+    activate(storedPassword).then((ok) => {
       setStatus(ok ? "done" : "needPassword");
     });
-  }, [activationUrl, email, activate]);
+  }, [activationUrl, activate]);
 
   // Countdown + redirect once activated.
   useEffect(() => {

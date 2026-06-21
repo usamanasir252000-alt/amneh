@@ -82,8 +82,8 @@ export default function AuthModal({
         // can auto-activate without asking the user to set it again.
         try {
           localStorage.setItem(
-            `amneh_pw_${email.toLowerCase()}`,
-            password
+            "amneh_pending_activation",
+            JSON.stringify({ email: email.toLowerCase(), password })
           );
         } catch {
           /* localStorage unavailable — activation page will ask for password */
