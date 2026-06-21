@@ -39,7 +39,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((u) => setUser(u || null))
       .catch(() => setUser(null));
@@ -59,11 +59,13 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
     setUser(null);
     setDropdownOpen(false);
     setIsOpen(false);
-    router.push("/");
+    // Full reload guarantees the cleared cookie is re-read and no stale
+    // client/auth state survives.
+    window.location.assign("/");
   };
   const isSkincarePage = pathname === "/skincare";
   const useDarkNav = scrolled || isSkincarePage;

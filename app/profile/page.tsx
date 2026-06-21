@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((u) => {
         if (!u || !u.id) {
@@ -61,8 +61,8 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
+    await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
+    window.location.assign("/");
   };
 
   const points = user?.loyaltyPoints ?? 0;

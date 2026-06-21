@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import BackButton from "@/components/BackButton";
 
 interface User {
@@ -64,10 +63,9 @@ function getNextTier(points: number) {
 export default function RewardsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((u) => {
         setUser(u);
@@ -77,9 +75,9 @@ export default function RewardsPage() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", cache: "no-store" });
     setUser(null);
-    router.refresh();
+    window.location.assign("/");
   };
 
   const points = user?.loyaltyPoints ?? 0;
