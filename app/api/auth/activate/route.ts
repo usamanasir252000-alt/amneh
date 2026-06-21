@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { activateCustomerByUrl } from "@/lib/shopify-storefront-auth";
 import { signToken } from "@/lib/jwt";
+import { getCustomerLoyalty, setCustomerLoyalty } from "@/lib/shopify-admin";
+import { WELCOME_BONUS } from "@/lib/loyalty";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,19 @@ export async function POST(request: Request) {
       activationUrl,
       password
     );
+
+    // One-time welcome bonus.
+    try {
+      const loyalty = await getCustomerLoyalty(customer.id);
+      if (!loyalty.welcomeGiven) {
+        await setCustomerLoyalty(customer.id, {
+          points: loyalty.points + WELCOME_BONUS,
+          welcomeGiven: true,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to grant welcome bonus", err);
+    }
 
     const token = await signToken({
       sub: customer.id,

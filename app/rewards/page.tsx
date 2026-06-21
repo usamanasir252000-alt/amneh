@@ -5,70 +5,55 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
+import {
+  TIERS,
+  getTier,
+  getNextTier,
+  POINTS_PER_ORDER,
+  MIN_ORDER_VALUE,
+  WELCOME_BONUS,
+} from "@/lib/loyalty";
 
-interface User {
+interface NavUser {
   id: string;
   email: string;
   firstName: string;
-  lastName: string;
-  loyaltyPoints: number;
 }
 
-const TIERS = [
-  {
-    name: "Member",
-    min: 0,
-    max: 499,
-    color: "bg-gray-200 text-gray-700",
-    icon: "⭐",
-  },
-  {
-    name: "Silver",
-    min: 500,
-    max: 999,
-    color: "bg-slate-300 text-slate-800",
-    icon: "🥈",
-  },
-  {
-    name: "Gold",
-    min: 1000,
-    max: 2499,
-    color: "bg-yellow-200 text-yellow-800",
-    icon: "🥇",
-  },
-  {
-    name: "Platinum",
-    min: 2500,
-    max: Infinity,
-    color: "bg-[#dff0f8] text-[#2b6c8a]",
-    icon: "💎",
-  },
-];
-
-const REWARDS = [
-  { points: 500, label: "5% off your next order", discount: "5%" },
-  { points: 1000, label: "10% off your next order", discount: "10%" },
-  { points: 2000, label: "15% off your next order", discount: "15%" },
-  { points: 3000, label: "20% off your next order", discount: "20%" },
-];
-
-function getTier(points: number) {
-  return [...TIERS].reverse().find((t) => points >= t.min) ?? TIERS[0];
+interface RewardRow {
+  points: number;
+  discountPct: number;
+  label: string;
+  unlocked: boolean;
+  code: string | null;
+  expiresAt: string | null;
 }
 
-function getNextTier(points: number) {
-  return TIERS.find((t) => t.min > points) ?? null;
+interface Loyalty {
+  points: number;
+  rewards: RewardRow[];
 }
+
+const TIER_UI: Record<string, { color: string; icon: string }> = {
+  Member: { color: "bg-gray-200 text-gray-700", icon: "⭐" },
+  Silver: { color: "bg-slate-300 text-slate-800", icon: "🥈" },
+  Gold: { color: "bg-yellow-200 text-yellow-800", icon: "🥇" },
+  Platinum: { color: "bg-[#dff0f8] text-[#2b6c8a]", icon: "💎" },
+};
 
 export default function RewardsPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<NavUser | null>(null);
+  const [loyalty, setLoyalty] = useState<Loyalty | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/auth/me", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((u) => {
-        setUser(u);
+    Promise.all([
+      fetch("/api/auth/me", { cache: "no-store" }).then((r) => r.json()),
+      fetch("/api/loyalty", { cache: "no-store" }).then((r) => r.json()),
+    ])
+      .then(([u, l]) => {
+        setUser(u || null);
+        setLoyalty(l || null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -80,12 +65,13 @@ export default function RewardsPage() {
     window.location.assign("/");
   };
 
-  const points = user?.loyaltyPoints ?? 0;
+  const points = loyalty?.points ?? 0;
   const tier = getTier(points);
   const nextTier = getNextTier(points);
   const progressPct = nextTier
     ? Math.min(100, ((points - tier.min) / (nextTier.min - tier.min)) * 100)
     : 100;
+  const tierUi = TIER_UI[tier.name] ?? TIER_UI.Member;
 
   return (
     <main className="bg-[#f1efef] min-h-screen">
@@ -104,8 +90,8 @@ export default function RewardsPage() {
             Amneh Rewards
           </h1>
           <p className="mt-4 text-white/60 text-sm max-w-md mx-auto leading-7">
-            Earn points every time you log in. Redeem for exclusive discounts on
-            your favourite products.
+            Earn points on every order. Reach a milestone and we&apos;ll send
+            you an exclusive discount code for your next purchase.
           </p>
         </div>
       </div>
@@ -123,9 +109,10 @@ export default function RewardsPage() {
               Join Amneh Rewards
             </h2>
             <p className="text-gray-500 text-sm leading-7 max-w-sm mx-auto mb-8">
-              Create an account or log in to start earning points. Get{" "}
-              <strong>100 welcome points</strong> just for signing up, and{" "}
-              <strong>25 points</strong> every time you log in.
+              Create an account to start earning. Get{" "}
+              <strong>{WELCOME_BONUS} welcome points</strong> when you join, then{" "}
+              <strong>{POINTS_PER_ORDER} points</strong> for every order you
+              place.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link
@@ -154,9 +141,9 @@ export default function RewardsPage() {
                 <h2 className="text-2xl font-bold">{user.firstName}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   <span
-                    className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tier.color}`}
+                    className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tierUi.color}`}
                   >
-                    {tier.icon} {tier.name}
+                    {tierUi.icon} {tier.name}
                   </span>
                 </div>
               </div>
@@ -175,11 +162,11 @@ export default function RewardsPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="flex justify-between text-sm mb-3">
                   <span className="font-medium text-gray-700">
-                    {tier.icon} {tier.name}
+                    {tierUi.icon} {tier.name}
                   </span>
                   <span className="text-gray-400">
-                    {nextTier.icon} {nextTier.name} at{" "}
-                    {nextTier.min.toLocaleString()} pts
+                    {(TIER_UI[nextTier.name] ?? TIER_UI.Member).icon}{" "}
+                    {nextTier.name} at {nextTier.min.toLocaleString()} pts
                   </span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2.5">
@@ -189,16 +176,16 @@ export default function RewardsPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  {(nextTier.min - user.loyaltyPoints).toLocaleString()} points
-                  to {nextTier.name}
+                  {(nextTier.min - points).toLocaleString()} points to{" "}
+                  {nextTier.name}
                 </p>
               </div>
             )}
 
-            {/* How to earn */}
+            {/* How it works — rules spelled out */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-widest mb-5">
-                How to Earn
+                How It Works
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
@@ -210,61 +197,61 @@ export default function RewardsPage() {
                       Welcome Bonus
                     </p>
                     <p className="text-xs text-gray-400">
-                      100 points when you create your account
+                      {WELCOME_BONUS} points when you create your account
                     </p>
                   </div>
                   <span className="ml-auto text-sm font-semibold text-[#4d9ab5]">
-                    +100 pts
+                    +{WELCOME_BONUS} pts
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#dff0f8] flex items-center justify-center text-lg flex-shrink-0">
-                    📅
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Daily Login
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      25 points each day you log in (once per day)
-                    </p>
-                  </div>
-                  <span className="ml-auto text-sm font-semibold text-[#4d9ab5]">
-                    +25 pts
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 opacity-50">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
                     🛍️
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      Purchase Rewards
+                      Earn On Every Order
                     </p>
                     <p className="text-xs text-gray-400">
-                      Coming soon — earn points on every order
+                      {POINTS_PER_ORDER} points per order over PKR{" "}
+                      {MIN_ORDER_VALUE.toLocaleString()}
                     </p>
                   </div>
-                  <span className="ml-auto text-xs text-gray-400 uppercase tracking-wide">
-                    Soon
+                  <span className="ml-auto text-sm font-semibold text-[#4d9ab5]">
+                    +{POINTS_PER_ORDER} pts
                   </span>
                 </div>
               </div>
+
+              <div className="mt-5 border-t border-gray-100 pt-4">
+                <p className="text-xs text-gray-500 leading-6">
+                  When your points reach a reward milestone, we automatically
+                  generate a personal discount code for your next order. Each
+                  code is single-use, tied to your account, and valid for 30
+                  days. Points keep adding up — reaching a reward doesn&apos;t
+                  reset your balance. Orders under PKR{" "}
+                  {MIN_ORDER_VALUE.toLocaleString()}, cancelled orders, and
+                  refunds don&apos;t earn points.
+                </p>
+              </div>
             </div>
 
-            {/* Redeem rewards */}
+            {/* Rewards / unlocked codes */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-widest mb-5">
-                Redeem Rewards
+                Rewards
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {REWARDS.map((r) => {
-                  const unlocked = user.loyaltyPoints >= r.points;
-                  return (
-                    <div
-                      key={r.points}
-                      className={`rounded-xl border p-5 flex items-center justify-between gap-4 ${unlocked ? "border-[#4d9ab5] bg-[#f1efef]" : "border-gray-100 bg-gray-50 opacity-60"}`}
-                    >
+                {(loyalty?.rewards ?? []).map((r) => (
+                  <div
+                    key={r.points}
+                    className={`rounded-xl border p-5 ${
+                      r.unlocked
+                        ? "border-[#4d9ab5] bg-[#f1efef]"
+                        : "border-gray-100 bg-gray-50 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">
                           {r.points.toLocaleString()} pts
@@ -274,16 +261,50 @@ export default function RewardsPage() {
                         </p>
                       </div>
                       <div
-                        className={`text-2xl font-bold ${unlocked ? "text-[#4d9ab5]" : "text-gray-300"}`}
+                        className={`text-2xl font-bold ${
+                          r.unlocked ? "text-[#4d9ab5]" : "text-gray-300"
+                        }`}
                       >
-                        {r.discount}
+                        {r.discountPct}%
                       </div>
                     </div>
-                  );
-                })}
+
+                    {r.unlocked && r.code ? (
+                      <div className="mt-4 rounded-lg bg-white border border-dashed border-[#4d9ab5] px-3 py-2.5 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400">
+                          Your code
+                        </p>
+                        <p className="text-base font-bold tracking-widest text-gray-900">
+                          {r.code}
+                        </p>
+                        {r.expiresAt && (
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            Expires{" "}
+                            {new Date(r.expiresAt).toLocaleDateString(undefined, {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    ) : r.unlocked ? (
+                      <p className="mt-4 text-xs text-gray-400">
+                        Your code will appear here shortly after your qualifying
+                        order.
+                      </p>
+                    ) : (
+                      <p className="mt-4 text-xs text-gray-400">
+                        {(r.points - points).toLocaleString()} more points to
+                        unlock
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-gray-400 mt-4">
-                Purchase rewards redemption coming soon via Shopify integration.
+                Apply your code at checkout. Codes can&apos;t be combined with
+                other discounts.
               </p>
             </div>
 
@@ -293,20 +314,25 @@ export default function RewardsPage() {
                 Membership Tiers
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {TIERS.map((t) => (
-                  <div
-                    key={t.name}
-                    className={`rounded-xl p-4 text-center ${t.min <= user.loyaltyPoints ? t.color : "bg-gray-50 text-gray-300"}`}
-                  >
-                    <div className="text-2xl mb-2">{t.icon}</div>
-                    <p className="text-xs font-semibold uppercase tracking-wide">
-                      {t.name}
-                    </p>
-                    <p className="text-[11px] mt-1 opacity-70">
-                      {t.min === 0 ? "0+" : `${t.min.toLocaleString()}+`} pts
-                    </p>
-                  </div>
-                ))}
+                {TIERS.map((t) => {
+                  const ui = TIER_UI[t.name] ?? TIER_UI.Member;
+                  return (
+                    <div
+                      key={t.name}
+                      className={`rounded-xl p-4 text-center ${
+                        t.min <= points ? ui.color : "bg-gray-50 text-gray-300"
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{ui.icon}</div>
+                      <p className="text-xs font-semibold uppercase tracking-wide">
+                        {t.name}
+                      </p>
+                      <p className="text-[11px] mt-1 opacity-70">
+                        {t.min === 0 ? "0+" : `${t.min.toLocaleString()}+`} pts
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const CLIENT_ID = process.env.AUTH_CLIENT_ID!;
 const CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET!;
@@ -393,6 +394,148 @@ export async function tagCustomer(customerId: string, tags: string[]) {
   }
 }
 
+// ── Loyalty (Amneh Rewards) ────────────────────────────────────────────────
+
+function toCustomerGid(id: string) {
+  return id.startsWith("gid://") ? id : `gid://shopify/Customer/${id}`;
+}
+
+export interface LoyaltyRewardCode {
+  threshold: number;
+  discountPct: number;
+  code: string;
+  expiresAt: string;
+}
+
+export interface CustomerLoyalty {
+  points: number;
+  claimedRewards: number[];
+  welcomeGiven: boolean;
+  processedOrders: string[];
+  rewardCodes: LoyaltyRewardCode[];
+}
+
+export async function getCustomerLoyalty(
+  customerId: string,
+): Promise<CustomerLoyalty> {
+  const id = toCustomerGid(customerId);
+  const q = `
+    query Loyalty($id: ID!) {
+      customer(id: $id) {
+        points: metafield(namespace: "loyalty", key: "points") { value }
+        claimed: metafield(namespace: "loyalty", key: "claimed_rewards") { value }
+        welcome: metafield(namespace: "loyalty", key: "welcome_given") { value }
+        processed: metafield(namespace: "loyalty", key: "processed_orders") { value }
+        codes: metafield(namespace: "loyalty", key: "reward_codes") { value }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ customer: any }>(q, { id });
+  const c = data.customer ?? {};
+  const parseArray = (v: any) => {
+    try {
+      return v?.value ? JSON.parse(v.value) : [];
+    } catch {
+      return [];
+    }
+  };
+  return {
+    points: parseInt(c.points?.value ?? "0", 10) || 0,
+    claimedRewards: parseArray(c.claimed),
+    welcomeGiven: c.welcome?.value === "true",
+    processedOrders: parseArray(c.processed),
+    rewardCodes: parseArray(c.codes),
+  };
+}
+
+export async function setCustomerLoyalty(
+  customerId: string,
+  fields: Partial<CustomerLoyalty>,
+) {
+  const ownerId = toCustomerGid(customerId);
+  const metafields: Record<string, unknown>[] = [];
+  const push = (key: string, type: string, value: string) =>
+    metafields.push({ ownerId, namespace: "loyalty", key, type, value });
+
+  if (fields.points !== undefined)
+    push("points", "number_integer", String(fields.points));
+  if (fields.claimedRewards !== undefined)
+    push("claimed_rewards", "json", JSON.stringify(fields.claimedRewards));
+  if (fields.welcomeGiven !== undefined)
+    push("welcome_given", "boolean", fields.welcomeGiven ? "true" : "false");
+  if (fields.processedOrders !== undefined)
+    push("processed_orders", "json", JSON.stringify(fields.processedOrders));
+  if (fields.rewardCodes !== undefined)
+    push("reward_codes", "json", JSON.stringify(fields.rewardCodes));
+
+  if (!metafields.length) return;
+
+  const mutation = `
+    mutation SetLoyalty($metafields: [MetafieldsSetInput!]!) {
+      metafieldsSet(metafields: $metafields) {
+        userErrors { field message }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ metafieldsSet: any }>(mutation, {
+    metafields,
+  });
+  if (data.metafieldsSet.userErrors.length)
+    throw new Error(
+      data.metafieldsSet.userErrors.map((u: any) => u.message).join(", "),
+    );
+}
+
+/** Creates a single-use, customer-locked, 30-day percentage discount code. */
+export async function createLoyaltyDiscountCode(
+  customerId: string,
+  discountPct: number,
+): Promise<LoyaltyRewardCode & { threshold: number }> {
+  const ownerId = toCustomerGid(customerId);
+  const suffix = crypto.randomBytes(3).toString("hex").toUpperCase();
+  const code = `AMNEH${discountPct}-${suffix}`;
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const mutation = `
+    mutation CreateLoyaltyCode($basicCodeDiscount: DiscountCodeBasicInput!) {
+      discountCodeBasicCreate(basicCodeDiscount: $basicCodeDiscount) {
+        codeDiscountNode { id }
+        userErrors { field message }
+      }
+    }
+  `;
+  const basicCodeDiscount = {
+    title: `Amneh Rewards ${discountPct}% – ${code}`,
+    code,
+    startsAt: now.toISOString(),
+    endsAt: endsAt.toISOString(),
+    customerSelection: { customers: { add: [ownerId] } },
+    customerGets: {
+      value: { percentage: discountPct / 100 },
+      items: { all: true },
+    },
+    appliesOncePerCustomer: true,
+    usageLimit: 1,
+    // Do not stack with the store-wide automatic discount.
+    combinesWith: {
+      orderDiscounts: false,
+      productDiscounts: false,
+      shippingDiscounts: false,
+    },
+  };
+
+  const data = await shopifyAdminFetch<{ discountCodeBasicCreate: any }>(
+    mutation,
+    { basicCodeDiscount },
+  );
+  const errs = data.discountCodeBasicCreate.userErrors;
+  if (errs?.length)
+    throw new Error(errs.map((e: any) => e.message).join(", "));
+
+  return { threshold: 0, discountPct, code, expiresAt: endsAt.toISOString() };
+}
+
 export async function cancelShopifyOrder(shopifyId: string) {
   const gid = shopifyId.startsWith('gid://')
     ? shopifyId
@@ -429,6 +572,9 @@ export default {
   getCustomerByEmail,
   createCustomer,
   sendCustomerInvite,
+  getCustomerLoyalty,
+  setCustomerLoyalty,
+  createLoyaltyDiscountCode,
   setCustomerPasswordHash,
   verifyCustomerPasswordByEmail,
   ensureCustomerForGoogle,

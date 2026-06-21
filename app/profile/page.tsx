@@ -43,6 +43,7 @@ function getTier(points: number) {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -55,6 +56,10 @@ export default function ProfilePage() {
         } else {
           setUser(u);
           setLoading(false);
+          fetch("/api/loyalty", { cache: "no-store" })
+            .then((r) => r.json())
+            .then((l) => setLoyaltyPoints(l?.points ?? 0))
+            .catch(() => {});
         }
       })
       .catch(() => router.replace("/login"));
@@ -65,7 +70,7 @@ export default function ProfilePage() {
     window.location.assign("/");
   };
 
-  const points = user?.loyaltyPoints ?? 0;
+  const points = loyaltyPoints;
   const tier = getTier(points);
 
   return (
