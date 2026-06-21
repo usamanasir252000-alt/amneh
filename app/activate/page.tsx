@@ -1,14 +1,13 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthPageShell from "@/components/AuthPageShell";
 
 type Status = "form" | "submitting" | "done";
 
 function ActivateForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const activationUrl = searchParams.get("url") ?? "";
 
@@ -18,16 +17,17 @@ function ActivateForm() {
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(5);
 
-  // Countdown + redirect to login once activated.
+  // Countdown + redirect home once activated (the user is already logged in).
   useEffect(() => {
     if (status !== "done") return;
     if (countdown <= 0) {
-      router.push("/login");
+      // Full navigation so the navbar re-reads the new session cookie.
+      window.location.assign("/");
       return;
     }
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(t);
-  }, [status, countdown, router]);
+  }, [status, countdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,12 +84,12 @@ function ActivateForm() {
           </svg>
         </div>
         <h1 className="mb-2 text-2xl font-bold text-[#8c5e6c]">
-          Your email has been verified
+          Your account is all set
         </h1>
         <p className="text-sm text-gray-500">
-          Automatically redirecting to the login page in {countdown} second
+          You&apos;re signed in. Taking you to the store in {countdown} second
           {countdown === 1 ? "" : "s"}, or{" "}
-          <Link href="/login" className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]">
+          <Link href="/" className="font-semibold text-[#5f3d4e] underline hover:text-[#8c5e6c]">
             click here
           </Link>
           .

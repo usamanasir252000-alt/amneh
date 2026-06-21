@@ -2,12 +2,18 @@
 
 import { useRouter } from "next/navigation";
 
-export default function BackButton({ light = false }: { light?: boolean }) {
+export default function BackButton({
+  light = false,
+  href = "/",
+}: {
+  light?: boolean;
+  href?: string;
+}) {
   const router = useRouter();
   return (
     <button
       type="button"
-      onClick={() => router.back()}
+      onClick={() => router.push(href)}
       className={`flex items-center gap-1.5 text-xs uppercase tracking-widest transition hover:opacity-60 ${
         light ? "text-white/70" : "text-gray-500"
       }`}

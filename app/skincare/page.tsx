@@ -226,7 +226,7 @@ export default function SkincarePage() {
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
-        <div className="absolute top-6 left-10 z-20 lg:left-16">
+        <div className="absolute top-24 left-10 z-[60] lg:left-16">
           <BackButton light />
         </div>
         <div className="relative z-10 flex h-full items-end px-10 pb-10 lg:px-16">

@@ -67,8 +67,11 @@ export default function Navbar() {
     // client/auth state survives.
     window.location.assign("/");
   };
-  const isSkincarePage = pathname === "/skincare";
-  const useDarkNav = scrolled || isSkincarePage;
+  // Pages whose top section is a dark hero image can use a transparent nav with
+  // white text. Every other page has a light top, so it needs the solid white
+  // nav with dark text — otherwise white-on-white is invisible.
+  const darkHeroPages = ["/", "/discover", "/rewards"];
+  const useDarkNav = scrolled || !darkHeroPages.includes(pathname);
   const textColor = useDarkNav ? "text-gray-600" : "text-white/85";
   const iconColor = useDarkNav ? "text-gray-700" : "text-white";
 

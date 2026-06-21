@@ -93,7 +93,7 @@ export default function RewardsPage() {
 
       {/* Header */}
       <div className="relative overflow-hidden bg-gray-900 pt-32 pb-16 text-center px-6">
-        <div className="absolute top-20 left-6 z-20">
+        <div className="absolute top-24 left-6 z-[60]">
           <BackButton light />
         </div>
         <div className="relative z-10">
