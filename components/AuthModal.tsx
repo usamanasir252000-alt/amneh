@@ -24,7 +24,6 @@ export default function AuthModal({
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,17 +48,6 @@ export default function AuthModal({
     event.preventDefault();
     setError("");
 
-    if (mode === "signUp") {
-      if (password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-      if (password.length < 6) {
-        setError("Password must be at least 6 characters");
-        return;
-      }
-    }
-
     setLoading(true);
     try {
       const endpoint =
@@ -67,7 +55,7 @@ export default function AuthModal({
       const body =
         mode === "signIn"
           ? { email, password }
-          : { email, password, firstName, lastName };
+          : { email, firstName, lastName };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -78,16 +66,8 @@ export default function AuthModal({
       if (!res.ok) {
         setError(data.error || "Something went wrong");
       } else if (data.emailSent) {
-        // Verification email sent — stash the password so the activation page
-        // can auto-activate without asking the user to set it again.
-        try {
-          localStorage.setItem(
-            "amneh_pending_activation",
-            JSON.stringify({ email: email.toLowerCase(), password })
-          );
-        } catch {
-          /* localStorage unavailable — activation page will ask for password */
-        }
+        // Verification email sent — user will set their password from the
+        // activation link.
         onClose();
         setVerifySentTo(email);
       } else {
@@ -264,37 +244,24 @@ export default function AuthModal({
                     />
                   </label>
 
-                  <label className="block">
-                    <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
-                      password
-                    </span>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="password"
-                      required
-                      className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
-                    />
-                  </label>
+                  {mode === "signIn" && (
+                    <label className="block">
+                      <span className="mb-0.5 block text-[10px] font-semibold text-Deep_blue/70 sm:text-xs">
+                        password
+                      </span>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        placeholder="password"
+                        required
+                        className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
+                      />
+                    </label>
+                  )}
 
                   {mode === "signUp" && (
                     <>
-                      <label className="block">
-                        <span className="mb-1 block text-xs font-semibold text-Deep_blue/70">
-                          re-enter password
-                        </span>
-                        <input
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(event) =>
-                            setConfirmPassword(event.target.value)
-                          }
-                          placeholder="re-enter password"
-                          required
-                          className="w-full rounded-xl border border-Deep_blue/20 bg-light_blue px-4 py-2.5 text-sm text-Deep_blue outline-none transition focus:border-Deep_blue focus:ring-2 focus:ring-Deep_blue/20"
-                        />
-                      </label>
                       <label className="flex items-start gap-3 text-xs text-gray-700">
                         <input
                           type="checkbox"

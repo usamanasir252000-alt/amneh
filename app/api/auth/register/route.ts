@@ -8,16 +8,10 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const { email, password, firstName, lastName } = await request.json();
+  const { email, firstName, lastName } = await request.json();
 
-  if (!email || !password || !firstName) {
+  if (!email || !firstName) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
-  if (password.length < 6) {
-    return NextResponse.json(
-      { error: "Password must be at least 6 characters" },
-      { status: 400 }
-    );
   }
 
   const normalized = email.toLowerCase();

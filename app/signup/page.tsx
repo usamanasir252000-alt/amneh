@@ -11,8 +11,6 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToEmails, setAgreeToEmails] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
@@ -23,33 +21,15 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, firstName, lastName }),
+        body: JSON.stringify({ email, firstName, lastName }),
       });
       const data = await res.json();
       if (res.ok) {
-        // Stash the password so the activation page can auto-activate without
-        // asking the user to set it again.
-        try {
-          localStorage.setItem(
-            "amneh_pending_activation",
-            JSON.stringify({ email: email.toLowerCase(), password })
-          );
-        } catch {
-          /* localStorage unavailable — activation page will ask for password */
-        }
         setToast(true);
         setTimeout(() => router.push("/"), 4000);
       } else {
@@ -139,36 +119,10 @@ export default function SignupPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">
-              password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="password"
-              required
-              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              must be at least 6 characters long
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-600 mb-2">
-              re-enter password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="re-enter password"
-              required
-              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-3 text-sm text-gray-700 outline-none transition focus:border-gray-600 focus:ring-2 focus:ring-gray-100"
-            />
-          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            We&apos;ll email you a link to verify your account and set your
+            password.
+          </p>
 
           <div className="space-y-4">
             <label className="flex items-start gap-3 text-sm text-gray-700">
