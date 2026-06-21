@@ -34,6 +34,7 @@ interface CartContextType {
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
   openCart: () => void;
   closeCart: () => void;
+  goToCheckout: () => Promise<void>;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -179,6 +180,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
+  // Link the cart to the logged-in customer (if any) right before redirecting,
+  // so checkout is pre-filled even when the cart was built while logged out.
+  const goToCheckout = useCallback(async () => {
+    if (!checkoutUrl) return;
+    try {
+      if (cartId) await cartAPI({ action: "link", cartId });
+    } catch {
+      // non-fatal — proceed to checkout regardless
+    }
+    window.location.href = checkoutUrl;
+  }, [cartId, checkoutUrl]);
+
   return (
     <CartContext.Provider
       value={{
@@ -192,6 +205,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         openCart,
         closeCart,
+        goToCheckout,
         getTotalItems,
         getTotalPrice,
       }}

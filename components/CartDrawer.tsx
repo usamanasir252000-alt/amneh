@@ -13,6 +13,7 @@ export default function CartDrawer() {
     closeCart,
     removeItem,
     updateQuantity,
+    goToCheckout,
     getTotalPrice,
   } = useCart();
 
@@ -166,18 +167,20 @@ export default function CartDrawer() {
                   </div>
 
                   {/* Checkout Button */}
-                  <motion.a
-                    href={checkoutUrl ?? "#"}
+                  <motion.button
+                    type="button"
+                    onClick={() => goToCheckout()}
+                    disabled={!checkoutUrl || isLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="mt-6 w-full bg-gray-900 text-white font-medium py-3 rounded transition-colors hover:bg-gray-800 flex items-center justify-center"
+                    className="mt-6 w-full bg-gray-900 text-white font-medium py-3 rounded transition-colors hover:bg-gray-800 flex items-center justify-center disabled:opacity-60"
                   >
                     {isLoading ? (
                       <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
                       "checkout"
                     )}
-                  </motion.a>
+                  </motion.button>
                 </>
               )}
             </div>

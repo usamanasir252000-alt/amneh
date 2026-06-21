@@ -32,35 +32,53 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const body = await request.json();
   const { action, cartId, variantId, lineId, quantity } = body as {
-    action: "create" | "add" | "update" | "remove";
+    action: "create" | "add" | "update" | "remove" | "link";
     cartId?: string;
     variantId?: string;
     lineId?: string;
     quantity?: number;
   };
 
+  // Associate the cart with the logged-in customer so Shopify checkout shows
+  // them as signed in and pre-fills their details. Uses the customer access
+  // token when available (full sign-in), otherwise falls back to email.
+  async function linkCurrentCustomer(id: string) {
+    try {
+      const cookieStore = await cookies();
+      const sessionToken = cookieStore.get("session")?.value;
+      if (!sessionToken) {
+        console.log("[cart link] no session cookie — user not logged in");
+        return;
+      }
+      const payload = await verifyToken(sessionToken);
+      console.log("[cart link] session:", {
+        email: payload.email,
+        hasShopifyToken: !!payload.shopifyToken,
+      });
+      const buyerIdentity = payload.shopifyToken
+        ? { customerAccessToken: payload.shopifyToken as string }
+        : payload.email
+        ? { email: payload.email as string }
+        : null;
+      if (buyerIdentity) await linkCartToCustomer(id, buyerIdentity);
+    } catch {
+      // non-fatal — cart still works without linking
+    }
+  }
+
   try {
     switch (action) {
       case "create": {
         if (!variantId) throw new Error("variantId required");
         const cart = await createCart(variantId, quantity ?? 1);
-        // Link cart to logged-in customer so checkout is pre-filled
-        try {
-          const cookieStore = await cookies();
-          const sessionToken = cookieStore.get("session")?.value;
-          if (sessionToken) {
-            const payload = await verifyToken(sessionToken);
-            const buyerIdentity = payload.shopifyToken
-              ? { customerAccessToken: payload.shopifyToken as string }
-              : payload.email
-              ? { email: payload.email as string }
-              : null;
-            if (buyerIdentity) await linkCartToCustomer(cart.id, buyerIdentity);
-          }
-        } catch {
-          // non-fatal — cart still works without linking
-        }
+        await linkCurrentCustomer(cart.id);
         return NextResponse.json(cart);
+      }
+
+      case "link": {
+        if (!cartId) throw new Error("cartId required");
+        await linkCurrentCustomer(cartId);
+        return NextResponse.json({ ok: true });
       }
 
       case "add":

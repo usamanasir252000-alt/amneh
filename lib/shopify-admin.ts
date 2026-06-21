@@ -546,7 +546,7 @@ export async function cancelShopifyOrder(shopifyId: string) {
       orderCancel(
         orderId: $orderId
         reason: CUSTOMER
-        notifyCustomer: false
+        notifyCustomer: true
         refund: false
         restock: true
       ) {

@@ -355,16 +355,36 @@ export async function linkCartToCustomer(
   cartId: string,
   buyerIdentity: { customerAccessToken?: string; email?: string }
 ): Promise<void> {
-  await shopifyFetch(
+  const data = await shopifyFetch<{
+    cartBuyerIdentityUpdate: {
+      cart: { id: string; buyerIdentity: { email: string | null; customer: { id: string } | null } } | null;
+      userErrors: { field: string[]; message: string }[];
+    };
+  }>(
     `
     mutation CartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
       cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        cart {
+          id
+          buyerIdentity { email customer { id } }
+        }
         userErrors { field message }
       }
     }
   `,
     { cartId, buyerIdentity }
   );
+
+  const result = data.cartBuyerIdentityUpdate;
+  console.log("[linkCartToCustomer] input:", {
+    cartId,
+    hasToken: !!buyerIdentity.customerAccessToken,
+    hasEmail: !!buyerIdentity.email,
+  });
+  console.log("[linkCartToCustomer] result buyerIdentity:", JSON.stringify(result.cart?.buyerIdentity));
+  if (result.userErrors?.length) {
+    console.error("[linkCartToCustomer] userErrors:", JSON.stringify(result.userErrors));
+  }
 }
 
 export async function fetchCart(cartId: string): Promise<ShopifyCart | null> {
