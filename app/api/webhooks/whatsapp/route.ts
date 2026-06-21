@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import {
-  findOrderByPhone,
+  getRecentOrdersByPhone,
   addOrderTag,
   removeOrderTag,
   cancelShopifyOrder,
@@ -35,19 +35,29 @@ export async function POST(req: NextRequest) {
 
   console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body);
 
-  const order = await findOrderByPhone(phone).catch((err) => {
+  const orders = await getRecentOrdersByPhone(phone).catch((err) => {
     console.error('[WhatsApp Reply] Shopify lookup failed:', err);
-    return null;
+    return [];
   });
 
-  console.log('[WhatsApp Reply] order found:', order ? order.name : 'NONE');
-
-  if (!order) {
+  if (!orders.length) {
     return twiml(
       "We couldn't find any recent order linked to your number. " +
       'Contact us at amnehofficial.com if you need help.'
     );
   }
+
+  // The buttons belong to the order still awaiting a response. Act on that one.
+  // If none is pending, this is a stale/duplicate tap — fall back to the newest
+  // order purely to report its status (no action is taken on it).
+  const pending = orders.find((o) => o.tags.includes('wa-pending'));
+  const order = pending ?? orders[0];
+
+  console.log(
+    '[WhatsApp Reply] resolved order:',
+    order.name,
+    pending ? '(pending)' : '(no pending — status only)'
+  );
 
   const orderName = order.name;
   const tags = order.tags;
