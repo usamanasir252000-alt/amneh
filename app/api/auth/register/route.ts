@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { registerCustomer } from "@/lib/shopify-storefront-auth";
+import { registerCustomer, loginCustomer } from "@/lib/shopify-storefront-auth";
 import { tagCustomer } from "@/lib/shopify-admin";
 import { signToken } from "@/lib/jwt";
 
@@ -34,11 +34,20 @@ export async function POST(request: Request) {
       console.error("Failed to tag customer as website-signup", err);
     }
 
+    let shopifyAccessToken: string | null = null;
+    try {
+      const { token: st } = await loginCustomer(email.toLowerCase(), password);
+      shopifyAccessToken = st.accessToken;
+    } catch {
+      // non-fatal — cart will fall back to email-only buyer identity
+    }
+
     const token = await signToken({
       sub: customer.id,
       email: customer.email,
       firstName: customer.firstName,
       lastName: customer.lastName,
+      ...(shopifyAccessToken ? { shopifyToken: shopifyAccessToken } : {}),
     });
 
     const response = NextResponse.json(

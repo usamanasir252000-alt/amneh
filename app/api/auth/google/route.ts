@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { registerCustomer } from "@/lib/shopify-storefront-auth";
+import { registerCustomer, loginCustomer } from "@/lib/shopify-storefront-auth";
 import { tagCustomer } from "@/lib/shopify-admin";
 import { signToken } from "@/lib/jwt";
 import crypto from "crypto";
@@ -33,10 +33,12 @@ export async function POST(request: Request) {
   // Try to create a Shopify customer. If email is already taken that's fine —
   // we trust the verified Google token and issue a session regardless.
   let shopifyId: string | null = null;
+  let shopifyAccessToken: string | null = null;
   try {
+    const randomPassword = crypto.randomBytes(24).toString("base64");
     const customer = await registerCustomer({
       email: normalized,
-      password: crypto.randomBytes(24).toString("base64"),
+      password: randomPassword,
       firstName,
       lastName,
     });
@@ -45,6 +47,13 @@ export async function POST(request: Request) {
       await tagCustomer(customer.id, ["website-signup"]);
     } catch (err) {
       console.error("Failed to tag Google customer as website-signup", err);
+    }
+    // Get Shopify access token for the new customer
+    try {
+      const { token: st } = await loginCustomer(normalized, randomPassword);
+      shopifyAccessToken = st.accessToken;
+    } catch {
+      // non-fatal
     }
   } catch {
     // Customer already exists — Google token is verified, proceed without Shopify ID
@@ -55,6 +64,7 @@ export async function POST(request: Request) {
     email: normalized,
     firstName,
     lastName,
+    ...(shopifyAccessToken ? { shopifyToken: shopifyAccessToken } : {}),
   });
 
   const response = NextResponse.json({

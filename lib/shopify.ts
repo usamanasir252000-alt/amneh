@@ -351,6 +351,22 @@ export async function removeCartLine(
   return normalizeCart(data.cartLinesRemove.cart);
 }
 
+export async function linkCartToCustomer(
+  cartId: string,
+  buyerIdentity: { customerAccessToken?: string; email?: string }
+): Promise<void> {
+  await shopifyFetch(
+    `
+    mutation CartBuyerIdentityUpdate($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+      cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+        userErrors { field message }
+      }
+    }
+  `,
+    { cartId, buyerIdentity }
+  );
+}
+
 export async function fetchCart(cartId: string): Promise<ShopifyCart | null> {
   const data = await shopifyFetch<{
     cart: Parameters<typeof normalizeCart>[0] | null;

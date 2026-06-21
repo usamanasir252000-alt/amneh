@@ -11,13 +11,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { customer } = await loginCustomer(email.toLowerCase(), password);
+    const { token: shopifyToken, customer } = await loginCustomer(email.toLowerCase(), password);
 
     const token = await signToken({
       sub: customer.id,
       email: customer.email,
       firstName: customer.firstName,
       lastName: customer.lastName,
+      shopifyToken: shopifyToken.accessToken,
     });
 
     const response = NextResponse.json({

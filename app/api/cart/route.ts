@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/jwt";
 import {
   createCart,
   addCartLine,
   updateCartLine,
   removeCartLine,
   fetchCart,
+  linkCartToCustomer,
 } from "@/lib/shopify";
 
 export const dynamic = "force-dynamic";
@@ -38,9 +41,27 @@ export async function POST(request: Request) {
 
   try {
     switch (action) {
-      case "create":
+      case "create": {
         if (!variantId) throw new Error("variantId required");
-        return NextResponse.json(await createCart(variantId, quantity ?? 1));
+        const cart = await createCart(variantId, quantity ?? 1);
+        // Link cart to logged-in customer so checkout is pre-filled
+        try {
+          const cookieStore = await cookies();
+          const sessionToken = cookieStore.get("session")?.value;
+          if (sessionToken) {
+            const payload = await verifyToken(sessionToken);
+            const buyerIdentity = payload.shopifyToken
+              ? { customerAccessToken: payload.shopifyToken as string }
+              : payload.email
+              ? { email: payload.email as string }
+              : null;
+            if (buyerIdentity) await linkCartToCustomer(cart.id, buyerIdentity);
+          }
+        } catch {
+          // non-fatal — cart still works without linking
+        }
+        return NextResponse.json(cart);
+      }
 
       case "add":
         if (!cartId || !variantId) throw new Error("cartId and variantId required");
