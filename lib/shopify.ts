@@ -62,15 +62,21 @@ export interface ShopifyCart {
 
 async function shopifyFetch<T>(
   query: string,
-  variables?: Record<string, unknown>
+  variables?: Record<string, unknown>,
+  opts?: { buyerIp?: string }
 ): Promise<T> {
   const endpoint = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+  };
+  // Required by Shopify to carry a logged-in customer's session from the cart
+  // into checkout on server-side Storefront API requests. Without it, the
+  // customer is associated to the cart but checkout still shows "Sign in".
+  if (opts?.buyerIp) headers["Shopify-Storefront-Buyer-IP"] = opts.buyerIp;
   const res = await fetch(endpoint, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
-    },
+    headers,
     body: JSON.stringify({ query, variables }),
     cache: "no-store",
   });
@@ -351,13 +357,23 @@ export async function removeCartLine(
   return normalizeCart(data.cartLinesRemove.cart);
 }
 
+export interface CartBuyerIdentityInput {
+  customerAccessToken?: string;
+  email?: string;
+}
+
 export async function linkCartToCustomer(
   cartId: string,
-  buyerIdentity: { customerAccessToken?: string; email?: string }
-): Promise<void> {
+  buyerIdentity: CartBuyerIdentityInput,
+  buyerIp?: string
+): Promise<{ checkoutUrl: string | null }> {
   const data = await shopifyFetch<{
     cartBuyerIdentityUpdate: {
-      cart: { id: string; buyerIdentity: { email: string | null; customer: { id: string } | null } } | null;
+      cart: {
+        id: string;
+        checkoutUrl: string;
+        buyerIdentity: { email: string | null; customer: { id: string } | null };
+      } | null;
       userErrors: { field: string[]; message: string }[];
     };
   }>(
@@ -366,13 +382,15 @@ export async function linkCartToCustomer(
       cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
         cart {
           id
+          checkoutUrl
           buyerIdentity { email customer { id } }
         }
         userErrors { field message }
       }
     }
   `,
-    { cartId, buyerIdentity }
+    { cartId, buyerIdentity },
+    { buyerIp }
   );
 
   const result = data.cartBuyerIdentityUpdate;
@@ -380,11 +398,13 @@ export async function linkCartToCustomer(
     cartId,
     hasToken: !!buyerIdentity.customerAccessToken,
     hasEmail: !!buyerIdentity.email,
+    hasBuyerIp: !!buyerIp,
   });
   console.log("[linkCartToCustomer] result buyerIdentity:", JSON.stringify(result.cart?.buyerIdentity));
   if (result.userErrors?.length) {
     console.error("[linkCartToCustomer] userErrors:", JSON.stringify(result.userErrors));
   }
+  return { checkoutUrl: result.cart?.checkoutUrl ?? null };
 }
 
 export async function fetchCart(cartId: string): Promise<ShopifyCart | null> {

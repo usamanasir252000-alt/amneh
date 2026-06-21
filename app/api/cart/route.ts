@@ -8,6 +8,7 @@ import {
   removeCartLine,
   fetchCart,
   linkCartToCustomer,
+  CartBuyerIdentityInput,
 } from "@/lib/shopify";
 
 export const dynamic = "force-dynamic";
@@ -39,33 +40,49 @@ export async function POST(request: Request) {
     quantity?: number;
   };
 
+  // The buyer's real IP. Shopify requires the Shopify-Storefront-Buyer-IP
+  // header on server-side calls to carry a logged-in customer's session into
+  // checkout — without it the customer is associated but checkout shows "Sign in".
+  const buyerIp =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    undefined;
+
   // Associate the cart with the logged-in customer so Shopify checkout shows
-  // them as signed in and pre-fills their details. Uses the customer access
-  // token when available (full sign-in), otherwise falls back to email.
-  async function linkCurrentCustomer(id: string) {
+  // them as signed in and pre-fills their details. Returns the fresh checkout
+  // URL produced under the authenticated buyer identity.
+  async function linkCurrentCustomer(id: string): Promise<string | null> {
     try {
       const cookieStore = await cookies();
       const sessionToken = cookieStore.get("session")?.value;
       if (!sessionToken) {
         console.log("[cart link] no session cookie — user not logged in");
-        return;
+        return null;
       }
       const payload = await verifyToken(sessionToken);
       console.log("[cart link] session:", {
         email: payload.email,
         hasShopifyToken: !!payload.shopifyToken,
+        hasBuyerIp: !!buyerIp,
       });
-      const buyerIdentity = payload.shopifyToken
-        ? {
-            customerAccessToken: payload.shopifyToken as string,
-            ...(payload.email ? { email: payload.email as string } : {}),
-          }
+
+      // IMPORTANT: when we have a customer access token, pass ONLY the token.
+      // Sending `email` alongside it makes Shopify treat the buyer as a guest
+      // with that email instead of the authenticated customer, which breaks the
+      // logged-in checkout (shows "Sign in"). Email-only is the fallback for
+      // sessions without a Shopify token.
+      const buyerIdentity: CartBuyerIdentityInput | null = payload.shopifyToken
+        ? { customerAccessToken: payload.shopifyToken as string }
         : payload.email
         ? { email: payload.email as string }
         : null;
-      if (buyerIdentity) await linkCartToCustomer(id, buyerIdentity);
+
+      if (!buyerIdentity) return null;
+      const { checkoutUrl } = await linkCartToCustomer(id, buyerIdentity, buyerIp);
+      return checkoutUrl;
     } catch {
       // non-fatal — cart still works without linking
+      return null;
     }
   }
 
@@ -80,8 +97,10 @@ export async function POST(request: Request) {
 
       case "link": {
         if (!cartId) throw new Error("cartId required");
-        await linkCurrentCustomer(cartId);
-        return NextResponse.json({ ok: true });
+        // Re-fetch the checkout URL here, at navigation time, with the buyer IP
+        // header present, so the returned URL carries the authenticated session.
+        const checkoutUrl = await linkCurrentCustomer(cartId);
+        return NextResponse.json({ ok: true, checkoutUrl });
       }
 
       case "add":

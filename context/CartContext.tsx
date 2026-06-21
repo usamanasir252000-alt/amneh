@@ -184,12 +184,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // so checkout is pre-filled even when the cart was built while logged out.
   const goToCheckout = useCallback(async () => {
     if (!checkoutUrl) return;
+    // Link at navigation time and prefer the fresh checkout URL returned by the
+    // server — it carries the authenticated customer session into checkout.
+    let url = checkoutUrl;
     try {
-      if (cartId) await cartAPI({ action: "link", cartId });
+      if (cartId) {
+        const res = await cartAPI({ action: "link", cartId });
+        if (res?.checkoutUrl) url = res.checkoutUrl;
+      }
     } catch {
       // non-fatal — proceed to checkout regardless
     }
-    window.location.href = checkoutUrl;
+    window.location.href = url;
   }, [cartId, checkoutUrl]);
 
   return (

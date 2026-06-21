@@ -346,30 +346,6 @@ export async function findOrderByPhone(phone: string): Promise<{
   return { id: open.node.id, name: open.node.name, tags: open.node.tags ?? [] };
 }
 
-// Returns recent orders for a phone (newest first) with tags + cancelled state,
-// so a WhatsApp reply can be matched to the specific order it was sent for
-// rather than guessing the most-recent order.
-export async function getRecentOrdersByPhone(phone: string): Promise<
-  { id: string; name: string; tags: string[]; cancelledAt: string | null }[]
-> {
-  const q = `
-    query FindOrders($query: String!) {
-      orders(first: 10, query: $query, sortKey: CREATED_AT, reverse: true) {
-        edges { node { id name cancelledAt tags } }
-      }
-    }
-  `;
-  const data = await shopifyAdminFetch<{ orders: { edges: { node: any }[] } }>(q, {
-    query: `phone:${phone}`,
-  });
-  return data.orders.edges.map((e: any) => ({
-    id: e.node.id,
-    name: e.node.name,
-    tags: e.node.tags ?? [],
-    cancelledAt: e.node.cancelledAt ?? null,
-  }));
-}
-
 export async function addOrderTag(orderId: string, tag: string) {
   const m = `
     mutation TagsAdd($id: ID!, $tags: [String!]!) {
