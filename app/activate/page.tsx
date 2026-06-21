@@ -141,10 +141,9 @@ function ActivateForm() {
 
         <button
           type="submit"
-          disabled={status === "submitting"}
           className="w-full rounded-2xl border border-[#8c5e6c] bg-[#f8e8ed] px-5 py-3 text-sm uppercase tracking-[0.2em] text-[#5f3d4e] transition hover:bg-[#e9d1d8] hover:text-[#6a4353] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {status === "submitting" ? "activating…" : "activate account"}
+          activate account
         </button>
 
         <div className="mt-6 text-center text-sm text-gray-600">
