@@ -322,6 +322,7 @@ export async function findOrderByPhone(phone: string): Promise<{
   id: string;
   name: string;
   tags: string[];
+  email: string | null;
 } | null> {
   const q = `
     query FindOrder($query: String!) {
@@ -332,6 +333,8 @@ export async function findOrderByPhone(phone: string): Promise<{
             name
             cancelledAt
             tags
+            email
+            customer { email }
           }
         }
       }
@@ -343,7 +346,11 @@ export async function findOrderByPhone(phone: string): Promise<{
   });
   const open = data.orders.edges.find((e: any) => !e.node.cancelledAt);
   if (!open) return null;
-  return { id: open.node.id, name: open.node.name, tags: open.node.tags ?? [] };
+  // Shopify only sends the "Order canceled" email if the order has an email.
+  // The order's own email takes precedence; fall back to the linked customer's.
+  const email: string | null = open.node.email ?? open.node.customer?.email ?? null;
+  console.log('[Shopify] order', open.node.name, 'email:', email ?? 'NONE (no cancellation email will be sent)');
+  return { id: open.node.id, name: open.node.name, tags: open.node.tags ?? [], email };
 }
 
 export async function addOrderTag(orderId: string, tag: string) {

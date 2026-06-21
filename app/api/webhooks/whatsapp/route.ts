@@ -102,11 +102,18 @@ export async function POST(req: NextRequest) {
     }
     if (isPending) {
       try {
+        // Cancel FIRST — this is what triggers Shopify's "Order canceled" email
+        // (notifyCustomer: true). Only tag + confirm to the customer once it
+        // actually succeeds, so we never claim success on a failed cancel.
+        await cancelShopifyOrder(order.id);
         await removeOrderTag(order.id, 'wa-pending');
         await addOrderTag(order.id, 'wa-cancelled');
-        await cancelShopifyOrder(order.id);
       } catch (err) {
         console.error('[Shopify] Cancel failed:', err);
+        return twiml(
+          `⚠️ We couldn't cancel your amneh. order ${orderName} just now. ` +
+          `Please contact us at amnehofficial.com and we'll sort it out right away.`
+        );
       }
       return twiml(
         `❌ Your amneh. order ${orderName} has been cancelled.\n\n` +
