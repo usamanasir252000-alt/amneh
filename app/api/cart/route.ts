@@ -56,7 +56,10 @@ export async function POST(request: Request) {
         hasShopifyToken: !!payload.shopifyToken,
       });
       const buyerIdentity = payload.shopifyToken
-        ? { customerAccessToken: payload.shopifyToken as string }
+        ? {
+            customerAccessToken: payload.shopifyToken as string,
+            ...(payload.email ? { email: payload.email as string } : {}),
+          }
         : payload.email
         ? { email: payload.email as string }
         : null;

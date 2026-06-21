@@ -16,7 +16,10 @@ export async function POST(req: Request) {
     if (sessionToken) {
       const payload = await verifyToken(sessionToken);
       const buyerIdentity = payload.shopifyToken
-        ? { customerAccessToken: payload.shopifyToken as string }
+        ? {
+            customerAccessToken: payload.shopifyToken as string,
+            ...(payload.email ? { email: payload.email as string } : {}),
+          }
         : payload.email
         ? { email: payload.email as string }
         : null;
