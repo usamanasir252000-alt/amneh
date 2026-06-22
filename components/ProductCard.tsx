@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 interface ProductImage {
@@ -29,7 +29,6 @@ export default function ProductCard({ product }: { product: Product }) {
   const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const touchStartX = useRef(0);
 
   const images = product.images.length
     ? product.images
@@ -54,18 +53,14 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group w-full">
 
-      {/* ── Mobile: swipe carousel with dots ── */}
+      {/* ── Mobile: image preview with tappable dots ──
+          No swipe-to-change-image here: this card lives inside a horizontal
+          product carousel, so horizontal swipes must scroll to the next
+          product. Tapping the dots changes the image instead. */}
       <Link
         href={`/products/${product.id}`}
         className="md:hidden block relative overflow-hidden bg-white aspect-[3/4]"
-        style={{ touchAction: "pan-y" }}
         aria-label={`${product.name} product link`}
-        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
-        onTouchEnd={(e) => {
-          const delta = touchStartX.current - e.changedTouches[0].clientX;
-          if (delta > 45) setActiveIndex((i) => Math.min(i + 1, imgCount - 1));
-          if (delta < -45) setActiveIndex((i) => Math.max(i - 1, 0));
-        }}
       >
         <div
           className="flex h-full w-full transition-transform duration-300 ease-in-out"
