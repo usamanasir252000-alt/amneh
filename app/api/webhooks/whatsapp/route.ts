@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import {
   findOrderByPhone,
+  findOrderByMessageSid,
   addOrderTag,
   removeOrderTag,
   cancelShopifyOrder,
@@ -30,15 +31,29 @@ export async function POST(req: NextRequest) {
   const from = String(form.get('From') ?? '');
   const body = String(form.get('Body') ?? '').trim().toUpperCase();
   const phone = from.replace('whatsapp:', '').trim();
+  // SID of the exact prompt message the customer tapped a button on. This is
+  // how we tell WHICH order they mean when several are open at once.
+  const repliedSid = String(form.get('OriginalRepliedMessageSid') ?? '').trim();
 
   if (!phone) return emptyTwiml();
 
-  console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body);
+  console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body, '→ repliedSid:', repliedSid || 'none');
 
-  const order = await findOrderByPhone(phone).catch((err) => {
-    console.error('[WhatsApp Reply] Shopify lookup failed:', err);
-    return null;
-  });
+  // Prefer the exact order tied to the replied-to message; only if there's no
+  // reply context (or no match) do we fall back to the customer's latest order.
+  let order = repliedSid
+    ? await findOrderByMessageSid(repliedSid).catch((err) => {
+        console.error('[WhatsApp Reply] SID lookup failed:', err);
+        return null;
+      })
+    : null;
+
+  if (!order) {
+    order = await findOrderByPhone(phone).catch((err) => {
+      console.error('[WhatsApp Reply] Shopify lookup failed:', err);
+      return null;
+    });
+  }
 
   console.log('[WhatsApp Reply] order found:', order ? order.name : 'NONE');
 

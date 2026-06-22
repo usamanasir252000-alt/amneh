@@ -369,6 +369,50 @@ export async function findOrderByPhone(phone: string): Promise<{
   return { id: target.id, name: target.name, tags: target.tags ?? [], email };
 }
 
+// Tag we stamp on each order carrying the Twilio SID of its WhatsApp prompt,
+// so an inbound reply (which reports OriginalRepliedMessageSid) maps back to
+// the EXACT order the customer tapped — even with multiple orders open.
+export function waSidTag(messageSid: string): string {
+  return `wa-sid-${messageSid}`;
+}
+
+export async function findOrderByMessageSid(messageSid: string): Promise<{
+  id: string;
+  name: string;
+  tags: string[];
+  email: string | null;
+} | null> {
+  const tag = waSidTag(messageSid);
+  const q = `
+    query FindOrderByTag($query: String!) {
+      orders(first: 1, query: $query) {
+        edges {
+          node {
+            id
+            name
+            cancelledAt
+            tags
+            email
+            customer { email }
+          }
+        }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ orders: { edges: { node: any }[] } }>(q, {
+    query: `tag:"${tag}"`,
+  });
+  const node = data.orders.edges[0]?.node;
+  // Require the exact tag — guards against Shopify's tag search matching loosely.
+  if (!node || !(node.tags ?? []).includes(tag)) {
+    console.log('[Shopify] no order matched message SID', messageSid);
+    return null;
+  }
+  const email: string | null = node.email ?? node.customer?.email ?? null;
+  console.log('[Shopify] matched order by message SID', messageSid, '→', node.name);
+  return { id: node.id, name: node.name, tags: node.tags ?? [], email };
+}
+
 export async function addOrderTag(orderId: string, tag: string) {
   const m = `
     mutation TagsAdd($id: ID!, $tags: [String!]!) {
@@ -604,6 +648,8 @@ export default {
   tagCustomer,
   cancelShopifyOrder,
   findOrderByPhone,
+  findOrderByMessageSid,
+  waSidTag,
   addOrderTag,
   removeOrderTag,
 };

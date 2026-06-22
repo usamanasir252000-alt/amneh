@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import {
   addOrderTag,
+  waSidTag,
   getCustomerLoyalty,
   setCustomerLoyalty,
   createLoyaltyDiscountCode,
@@ -139,7 +140,17 @@ export async function POST(req: NextRequest) {
 
   // Send WhatsApp confirmation request to customer (buttons if template SID is set)
   try {
-    await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount, items });
+    const msg = await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount, items });
+    // Stamp this prompt's Twilio SID onto the order so a reply to THIS specific
+    // message resolves to THIS order — even if the customer has several open.
+    const sid = msg?.sid;
+    if (sid) {
+      try {
+        await addOrderTag(shopifyGid, waSidTag(sid));
+      } catch (err) {
+        console.error('[Shopify] Failed to tag order with message SID:', err);
+      }
+    }
   } catch (err) {
     console.error('[WhatsApp] Failed to send message:', err);
   }
