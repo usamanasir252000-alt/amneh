@@ -144,12 +144,17 @@ export async function POST(req: NextRequest) {
     // Stamp this prompt's Twilio SID onto the order so a reply to THIS specific
     // message resolves to THIS order — even if the customer has several open.
     const sid = msg?.sid;
+    console.log('[WhatsApp] sent prompt for', orderNumber, '→ sid:', sid ?? 'MISSING',
+      '| response keys:', msg ? Object.keys(msg).join(',') : 'no-response');
     if (sid) {
       try {
         await addOrderTag(shopifyGid, waSidTag(sid));
+        console.log('[Shopify] tagged', orderNumber, 'with', waSidTag(sid));
       } catch (err) {
         console.error('[Shopify] Failed to tag order with message SID:', err);
       }
+    } else {
+      console.error('[WhatsApp] No SID on Twilio response — reply matching will fall back to latest order');
     }
   } catch (err) {
     console.error('[WhatsApp] Failed to send message:', err);
