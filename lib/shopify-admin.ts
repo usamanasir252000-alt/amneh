@@ -344,13 +344,29 @@ export async function findOrderByPhone(phone: string): Promise<{
   const data = await shopifyAdminFetch<{ orders: { edges: { node: any }[] } }>(q, {
     query: `phone:${phone}`,
   });
-  const open = data.orders.edges.find((e: any) => !e.node.cancelledAt);
-  if (!open) return null;
+
+  // Orders come back newest-first. Always anchor to the MOST RECENT order —
+  // that's the one the customer's latest WhatsApp prompt was about.
+  //
+  // The previous code did `.find(o => !o.cancelledAt)`, which skipped the
+  // just-cancelled order and walked back to an OLDER one. That's the bug where
+  // pressing "Confirm" after a "Cancel" confirmed a different, earlier order.
+  // By keeping the latest order even when it's cancelled, a stray "Confirm"
+  // resolves to that same order and the handler replies "already cancelled"
+  // instead of mis-acting on a previous order.
+  const target = data.orders.edges[0]?.node;
+  if (!target) return null;
+
   // Shopify only sends the "Order canceled" email if the order has an email.
   // The order's own email takes precedence; fall back to the linked customer's.
-  const email: string | null = open.node.email ?? open.node.customer?.email ?? null;
-  console.log('[Shopify] order', open.node.name, 'email:', email ?? 'NONE (no cancellation email will be sent)');
-  return { id: open.node.id, name: open.node.name, tags: open.node.tags ?? [], email };
+  const email: string | null = target.email ?? target.customer?.email ?? null;
+  console.log(
+    '[Shopify] target order', target.name,
+    '| cancelledAt:', target.cancelledAt ?? 'no',
+    '| tags:', (target.tags ?? []).join(',') || '(none)',
+    '| email:', email ?? 'NONE (no cancellation email will be sent)'
+  );
+  return { id: target.id, name: target.name, tags: target.tags ?? [], email };
 }
 
 export async function addOrderTag(orderId: string, tag: string) {

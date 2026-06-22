@@ -76,6 +76,11 @@ export async function POST(req: NextRequest) {
         await addOrderTag(order.id, 'wa-confirmed');
       } catch (err) {
         console.error('[Shopify] Tag update failed on confirm:', err);
+        // Don't claim success when the tag update actually failed.
+        return twiml(
+          `⚠️ We couldn't confirm your amneh. order ${orderName} just now. ` +
+          `Please try again shortly or contact us at amnehofficial.com.`
+        );
       }
       return twiml(
         `✅ Your amneh. order ${orderName} is confirmed!\n\n` +
