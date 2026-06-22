@@ -372,8 +372,14 @@ export async function findOrderByPhone(phone: string): Promise<{
 // Tag we stamp on each order carrying the Twilio SID of its WhatsApp prompt,
 // so an inbound reply (which reports OriginalRepliedMessageSid) maps back to
 // the EXACT order the customer tapped — even with multiple orders open.
+//
+// IMPORTANT: order tags are capped at 40 chars (products/customers get 255).
+// Twilio SIDs are 34 chars, so the prefix must be short and hyphen-free
+// (Shopify treats hyphens/special chars unreliably in tag search):
+// "wasid" + 34 = 39 chars. A "wa-sid-" prefix made it 41 and Shopify rejected
+// it with "Order tags is invalid", so the tag silently never got written.
 export function waSidTag(messageSid: string): string {
-  return `wa-sid-${messageSid}`;
+  return `wasid${messageSid}`;
 }
 
 export async function findOrderByMessageSid(messageSid: string): Promise<{
