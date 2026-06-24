@@ -74,12 +74,23 @@ async function shopifyFetch<T>(
   // into checkout on server-side Storefront API requests. Without it, the
   // customer is associated to the cart but checkout still shows "Sign in".
   if (opts?.buyerIp) headers["Shopify-Storefront-Buyer-IP"] = opts.buyerIp;
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({ query, variables }),
-    cache: "no-store",
-  });
+
+  // Hard timeout so a slow/unresponsive Shopify call can't hang the request —
+  // and, downstream, the checkout redirect — indefinitely.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  let res: Response;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ query, variables }),
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     throw new Error(`Shopify API error: ${res.status} ${res.statusText}`);
@@ -405,6 +416,28 @@ export async function linkCartToCustomer(
     console.error("[linkCartToCustomer] userErrors:", JSON.stringify(result.userErrors));
   }
   return { checkoutUrl: result.cart?.checkoutUrl ?? null };
+}
+
+// Store key/value metadata on the cart so it persists to the order's
+// note/custom attributes. We use this to stash Meta attribution data
+// (_fbp, _fbc, buyer IP, user agent) captured at checkout, so the
+// WhatsApp-confirmed Purchase can be matched back to the ad click via CAPI.
+export async function setCartAttributes(
+  cartId: string,
+  attributes: { key: string; value: string }[]
+): Promise<void> {
+  if (!attributes.length) return;
+  await shopifyFetch(
+    `
+    mutation CartAttributesUpdate($cartId: ID!, $attributes: [AttributeInput!]!) {
+      cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
+        cart { id }
+        userErrors { field message }
+      }
+    }
+  `,
+    { cartId, attributes }
+  );
 }
 
 export async function fetchCart(cartId: string): Promise<ShopifyCart | null> {

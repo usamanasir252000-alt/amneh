@@ -6,6 +6,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { fbTrack } from "@/lib/fbpixel";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 
@@ -260,6 +261,19 @@ export default function ProductDetailPage() {
       .catch(() => setLoading(false));
   }, [id]);
 
+  // Meta Pixel: product view
+  useEffect(() => {
+    if (product) {
+      fbTrack("ViewContent", {
+        content_ids: [product.variantId],
+        content_name: product.name,
+        content_type: "product",
+        value: product.price,
+        currency: "PKR",
+      });
+    }
+  }, [product]);
+
   const handleAddToCart = () => {
     if (!product) return;
     addItem({ variantId: product.variantId, name: product.name, price: product.price, image: product.images[0]?.url ?? "" });
@@ -270,6 +284,12 @@ export default function ProductDetailPage() {
   const handleBuyNow = async () => {
     if (!product || buyingNow) return;
     setBuyingNow(true);
+    fbTrack("InitiateCheckout", {
+      content_ids: [product.variantId],
+      value: product.price * quantity,
+      currency: "PKR",
+      num_items: quantity,
+    });
     try {
       const res = await fetch("/api/buy-now", {
         method: "POST",

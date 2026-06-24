@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
-import { createCart, linkCartToCustomer, CartBuyerIdentityInput } from "@/lib/shopify";
+import { createCart, linkCartToCustomer, setCartAttributes, CartBuyerIdentityInput } from "@/lib/shopify";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,23 @@ export async function POST(req: Request) {
     req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
     req.headers.get("x-real-ip") ||
     undefined;
+
+  // Stash Meta attribution (_fbp/_fbc cookies + IP/UA) on the cart so the
+  // WhatsApp-confirmed Purchase can match back to the ad click.
+  try {
+    const cookieStore = await cookies();
+    const ua = req.headers.get("user-agent") || undefined;
+    const attrs: { key: string; value: string }[] = [];
+    const fbp = cookieStore.get("_fbp")?.value;
+    const fbc = cookieStore.get("_fbc")?.value;
+    if (fbp) attrs.push({ key: "_fbp", value: fbp });
+    if (fbc) attrs.push({ key: "_fbc", value: fbc });
+    if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
+    if (ua) attrs.push({ key: "_fb_ua", value: ua });
+    if (attrs.length) await setCartAttributes(cart.id, attrs);
+  } catch (err) {
+    console.error("[meta attrs] failed to store on cart (buy-now):", err);
+  }
 
   // Link to the logged-in customer so checkout shows them signed in.
   let checkoutUrl = cart.checkoutUrl;

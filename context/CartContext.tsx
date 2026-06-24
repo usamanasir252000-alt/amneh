@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
+import { fbTrack } from "@/lib/fbpixel";
 
 export interface CartItem {
   lineId: string;
@@ -97,6 +98,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       image: string;
     }) => {
       setIsLoading(true);
+      fbTrack("AddToCart", {
+        content_ids: [item.variantId],
+        content_name: item.name,
+        content_type: "product",
+        value: item.price,
+        currency: "PKR",
+      });
       try {
         const existingCartId = localStorage.getItem(CART_ID_KEY);
 
@@ -184,19 +192,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // so checkout is pre-filled even when the cart was built while logged out.
   const goToCheckout = useCallback(async () => {
     if (!checkoutUrl) return;
+    fbTrack("InitiateCheckout", {
+      value: items.reduce((t, i) => t + i.price * i.quantity, 0),
+      currency: "PKR",
+      num_items: items.reduce((t, i) => t + i.quantity, 0),
+      content_ids: items.map((i) => i.variantId),
+    });
     // Link at navigation time and prefer the fresh checkout URL returned by the
     // server — it carries the authenticated customer session into checkout.
+    // Capped with a timeout so a slow link call can NEVER block the redirect
+    // (that was the "checkout loads forever" bug); we fall back to the cached URL.
     let url = checkoutUrl;
-    try {
-      if (cartId) {
-        const res = await cartAPI({ action: "link", cartId });
+    if (cartId) {
+      try {
+        const res = await Promise.race([
+          cartAPI({ action: "link", cartId }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("link-timeout")), 4000)
+          ),
+        ]);
         if (res?.checkoutUrl) url = res.checkoutUrl;
+      } catch {
+        // timed out or failed — proceed to checkout with the cached URL
       }
-    } catch {
-      // non-fatal — proceed to checkout regardless
     }
     window.location.href = url;
-  }, [cartId, checkoutUrl]);
+  }, [cartId, checkoutUrl, items]);
 
   return (
     <CartContext.Provider

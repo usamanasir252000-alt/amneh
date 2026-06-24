@@ -8,6 +8,7 @@ import {
   removeCartLine,
   fetchCart,
   linkCartToCustomer,
+  setCartAttributes,
   CartBuyerIdentityInput,
 } from "@/lib/shopify";
 
@@ -86,6 +87,27 @@ export async function POST(request: Request) {
     }
   }
 
+  // Stash Meta attribution data on the cart (persists to the order) so the
+  // WhatsApp-confirmed Purchase can match back to the ad click. _fbp/_fbc are
+  // first-party cookies sent with this same-origin request; IP/UA come from
+  // this (customer-originated) request's headers.
+  async function storeMetaAttributes(id: string) {
+    try {
+      const cookieStore = await cookies();
+      const ua = request.headers.get("user-agent") || undefined;
+      const attrs: { key: string; value: string }[] = [];
+      const fbp = cookieStore.get("_fbp")?.value;
+      const fbc = cookieStore.get("_fbc")?.value;
+      if (fbp) attrs.push({ key: "_fbp", value: fbp });
+      if (fbc) attrs.push({ key: "_fbc", value: fbc });
+      if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
+      if (ua) attrs.push({ key: "_fb_ua", value: ua });
+      if (attrs.length) await setCartAttributes(id, attrs);
+    } catch (err) {
+      console.error("[meta attrs] failed to store on cart:", err);
+    }
+  }
+
   try {
     switch (action) {
       case "create": {
@@ -97,8 +119,9 @@ export async function POST(request: Request) {
 
       case "link": {
         if (!cartId) throw new Error("cartId required");
-        // Re-fetch the checkout URL here, at navigation time, with the buyer IP
-        // header present, so the returned URL carries the authenticated session.
+        // Capture Meta attribution onto the cart, then link the customer and
+        // re-fetch the authenticated checkout URL at navigation time.
+        await storeMetaAttributes(cartId);
         const checkoutUrl = await linkCurrentCustomer(cartId);
         return NextResponse.json({ ok: true, checkoutUrl });
       }
