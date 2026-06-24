@@ -438,6 +438,8 @@ export async function getOrderConversionData(orderGid: string): Promise<{
         email
         phone
         customer { email phone }
+        shippingAddress { phone }
+        billingAddress { phone }
         totalPriceSet { shopMoney { amount currencyCode } }
         customAttributes { key value }
       }
@@ -452,7 +454,12 @@ export async function getOrderConversionData(orderGid: string): Promise<{
     value: parseFloat(o.totalPriceSet?.shopMoney?.amount ?? "0"),
     currency: o.totalPriceSet?.shopMoney?.currencyCode ?? "PKR",
     email: o.email ?? o.customer?.email ?? null,
-    phone: o.phone ?? o.customer?.phone ?? null,
+    phone:
+      o.phone ??
+      o.customer?.phone ??
+      o.shippingAddress?.phone ??
+      o.billingAddress?.phone ??
+      null,
     fbp: attrs["_fbp"] ?? null,
     fbc: attrs["_fbc"] ?? null,
     fbIp: attrs["_fb_ip"] ?? null,
