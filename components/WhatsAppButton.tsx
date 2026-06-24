@@ -1,6 +1,6 @@
 import { FaWhatsapp } from "react-icons/fa";
 
-const whatsappPhone = "923334274492";
+const whatsappPhone = "923068639708";
 const whatsappLink = `https://wa.me/${whatsappPhone}`;
 
 export default function WhatsAppButton() {
