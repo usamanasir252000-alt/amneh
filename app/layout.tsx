@@ -5,6 +5,7 @@ import Script from "next/script";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import MetaPixel from "@/components/MetaPixel";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
         />
+        <MetaPixel />
         <CartProvider>
           {children}
           <CartDrawer />
