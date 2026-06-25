@@ -35,6 +35,17 @@ export async function sendWhatsApp(to: string, body: string) {
   return twilioPost({ From: FROM, To: `whatsapp:${to}`, Body: body });
 }
 
+// Twilio Content-template variables CANNOT contain newlines, tabs, or 4+
+// consecutive spaces — doing so returns error 21656 ("Content Variables
+// parameter is invalid") and the message silently fails to send. Sanitize
+// every value we put into ContentVariables.
+function sanitizeVar(v: string): string {
+  return String(v ?? "")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/\s{4,}/g, "   ")
+    .trim();
+}
+
 // Sends interactive quick-reply buttons if a Content SID is configured,
 // otherwise falls back to plain text.
 // Prefers CONTENT_SID_DETAILED (includes line items) over CONTENT_SID.
@@ -42,20 +53,20 @@ export async function sendOrderConfirmation(
   to: string,
   params: { name: string; orderNumber: string; amount: string; items?: string[] }
 ) {
-  const itemsList = params.items?.length
-    ? params.items.map((i) => `• ${i}`).join('\n')
-    : '';
+  // Single-line, newline-free items string for the Content template variable.
+  // (The previous '\n'-joined list broke multi-item orders with error 21656.)
+  const itemsInline = params.items?.length ? params.items.join(", ") : "";
 
-  if (CONTENT_SID_DETAILED && itemsList) {
+  if (CONTENT_SID_DETAILED && itemsInline) {
     return twilioPost({
       From: FROM,
       To: `whatsapp:${to}`,
       ContentSid: CONTENT_SID_DETAILED,
       ContentVariables: JSON.stringify({
-        '1': params.name,
-        '2': params.orderNumber,
-        '3': itemsList,
-        '4': params.amount,
+        '1': sanitizeVar(params.name),
+        '2': sanitizeVar(params.orderNumber),
+        '3': sanitizeVar(itemsInline),
+        '4': sanitizeVar(params.amount),
       }),
     });
   }
@@ -66,13 +77,17 @@ export async function sendOrderConfirmation(
       To: `whatsapp:${to}`,
       ContentSid: CONTENT_SID,
       ContentVariables: JSON.stringify({
-        '1': params.name,
-        '2': params.orderNumber,
-        '3': params.amount,
+        '1': sanitizeVar(params.name),
+        '2': sanitizeVar(params.orderNumber),
+        '3': sanitizeVar(params.amount),
       }),
     });
   }
 
+  // Plain-text fallback (no Content template) — newlines are fine here.
+  const itemsList = params.items?.length
+    ? params.items.map((i) => `• ${i}`).join("\n")
+    : "";
   return sendWhatsApp(to, buildOrderMessage({ ...params, itemsList }));
 }
 
