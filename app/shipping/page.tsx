@@ -142,10 +142,10 @@ export default function ShippingPage() {
                 </a>{" "}
                 or WhatsApp{" "}
                 <a
-                  href="https://wa.me/923334274492"
+                  href="https://wa.me/923068639707"
                   className="underline underline-offset-2 text-gray-800"
                 >
-                  +92 333 4274492
+                  +92 306 8639707
                 </a>
                 .
               </p>
