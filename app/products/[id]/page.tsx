@@ -284,6 +284,16 @@ export default function ProductDetailPage() {
   const handleBuyNow = async () => {
     if (!product || buyingNow) return;
     setBuyingNow(true);
+    // Buy Now skips the cart, so fire BOTH AddToCart and InitiateCheckout —
+    // otherwise these (high-intent) shoppers would be missing from the
+    // Add-to-Cart audience entirely.
+    fbTrack("AddToCart", {
+      content_ids: [product.variantId],
+      content_name: product.name,
+      content_type: "product",
+      value: product.price * quantity,
+      currency: "PKR",
+    });
     fbTrack("InitiateCheckout", {
       content_ids: [product.variantId],
       value: product.price * quantity,
