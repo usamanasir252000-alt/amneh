@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { POINTS_PER_ORDER, MIN_ORDER_VALUE, REWARDS } from "./loyalty";
 
 const CLIENT_ID = process.env.AUTH_CLIENT_ID!;
 const CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET!;
@@ -655,6 +656,78 @@ export async function createLoyaltyDiscountCode(
     throw new Error(errs.map((e: any) => e.message).join(", "));
 
   return { threshold: 0, discountPct, code, expiresAt: endsAt.toISOString() };
+}
+
+/**
+ * Idempotently awards loyalty points for an order and mints discount codes for
+ * any reward thresholds newly crossed. Safe to call more than once for the same
+ * order (e.g. WhatsApp confirm + orders/paid) — the processed_orders list
+ * guarantees points are credited at most once. Looks up the order's customer
+ * and subtotal itself, so callers only need the order id (numeric or gid).
+ * Returns whether points were newly awarded.
+ */
+export async function awardLoyaltyForOrder(
+  orderId: string,
+): Promise<{ awarded: boolean }> {
+  const orderGid = orderId.startsWith("gid://")
+    ? orderId
+    : `gid://shopify/Order/${orderId}`;
+
+  const q = `
+    query OrderLoyalty($id: ID!) {
+      order(id: $id) {
+        id
+        customer { id }
+        subtotalPriceSet { shopMoney { amount } }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ order: any }>(q, { id: orderGid });
+  const order = data.order;
+  if (!order) return { awarded: false };
+
+  const customerId = order.customer?.id;
+  if (!customerId) return { awarded: false }; // guest checkout — no account to credit
+
+  const loyalty = await getCustomerLoyalty(customerId);
+  if (loyalty.processedOrders.includes(orderGid)) return { awarded: false }; // already counted
+
+  const subtotal = parseFloat(order.subtotalPriceSet?.shopMoney?.amount ?? "0");
+  const qualifies = subtotal >= MIN_ORDER_VALUE;
+
+  let points = loyalty.points;
+  if (qualifies) points += POINTS_PER_ORDER;
+
+  const processedOrders = [...loyalty.processedOrders, orderGid];
+  const claimedRewards = [...loyalty.claimedRewards];
+  const rewardCodes = [...loyalty.rewardCodes];
+
+  for (const reward of REWARDS) {
+    if (points >= reward.points && !claimedRewards.includes(reward.points)) {
+      try {
+        const minted = await createLoyaltyDiscountCode(customerId, reward.discountPct);
+        rewardCodes.push({
+          threshold: reward.points,
+          discountPct: reward.discountPct,
+          code: minted.code,
+          expiresAt: minted.expiresAt,
+        });
+        claimedRewards.push(reward.points);
+      } catch (err) {
+        console.error("[Loyalty] Failed to mint discount code:", err);
+      }
+    }
+  }
+
+  // Record the order as processed even when it doesn't qualify, so a re-fire
+  // (e.g. a second WhatsApp reply) never re-evaluates it.
+  await setCustomerLoyalty(customerId, {
+    points,
+    processedOrders,
+    claimedRewards,
+    rewardCodes,
+  });
+  return { awarded: qualifies };
 }
 
 export async function cancelShopifyOrder(shopifyId: string) {

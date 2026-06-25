@@ -6,6 +6,7 @@ import {
   addOrderTag,
   removeOrderTag,
   cancelShopifyOrder,
+  awardLoyaltyForOrder,
 } from '@/lib/shopify-admin';
 import { sendMetaPurchase } from '@/lib/meta';
 
@@ -121,6 +122,16 @@ export async function POST(req: NextRequest) {
         }
       } catch (err) {
         console.error('[Meta CAPI] failed to send Purchase on confirm:', err);
+      }
+
+      // Award loyalty points for this confirmed order. A confirmed order is the
+      // store's definition of a real COD sale (same bar as the Meta Purchase
+      // above), and it's idempotent, so a repeat CONFIRM never double-credits.
+      // Best-effort — never blocks the customer's reply.
+      try {
+        await awardLoyaltyForOrder(order.id);
+      } catch (err) {
+        console.error('[Loyalty] Failed to award points on confirm:', err);
       }
 
       return twiml(
