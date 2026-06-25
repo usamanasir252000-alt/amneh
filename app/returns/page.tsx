@@ -4,7 +4,7 @@ import BackButton from "@/components/BackButton";
 
 export const metadata = {
   title: "Returns & Refunds — amneh.",
-  description: "amneh. return and refund policy.",
+  description: "amneh. returns, no-refund policy, and goodwill compensation for genuine cases.",
 };
 
 export default function ReturnsPage() {
@@ -29,22 +29,50 @@ export default function ReturnsPage() {
                 Our Policy
               </h2>
               <p>
-                We want you to love your amneh. products. If you are not
-                completely satisfied, you may request a return or exchange
-                within <strong>7 days</strong> of receiving your order.
+                We want you to love your amneh. products. Because our products
+                are personal-care and skincare items, <strong>all sales are
+                final and we do not offer refunds</strong>. That said, if
+                something is genuinely wrong with your order, we will always try
+                to make it right — see <em>Genuine Issues</em> below.
               </p>
             </section>
 
             <section>
               <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
-                Eligibility
+                No Refunds
+              </h2>
+              <p>
+                We do not provide cash, card, or bank-transfer refunds on any
+                order, including Cash on Delivery. We also do not accept change-
+                of-mind returns. Please review your order carefully before
+                confirming it.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
+                Genuine Issues
+              </h2>
+              <p>
+                If your case is genuine and verified, we will make it right —
+                not with a refund, but with a <strong>replacement</strong> of
+                the affected item or a <strong>goodwill discount toward a
+                future order</strong>. The form of compensation is offered at
+                amneh.&apos;s discretion after we review your case.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
+                Eligibility for Compensation
               </h2>
               <ul className="space-y-2 list-none">
                 {[
-                  "Item must be unused, unopened, and in its original packaging.",
-                  "Returns are not accepted on opened or used skincare products due to hygiene reasons.",
-                  "Sale or discounted items are final sale and cannot be returned.",
-                  "The original order confirmation must be provided.",
+                  "Report the issue within 7 days of receiving your order.",
+                  "Provide your order number and clear photos of the product and packaging.",
+                  "The issue must be genuine and verifiable — e.g. damaged in transit, wrong item delivered, or a confirmed product defect.",
+                  "Opened or used skincare products are not eligible except in the case of verified damage or defect, due to hygiene reasons.",
+                  "Change-of-mind, 'no longer needed', or ordering the wrong item by mistake do not qualify.",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
@@ -56,7 +84,7 @@ export default function ReturnsPage() {
 
             <section>
               <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
-                How to Request a Return
+                How to Report an Issue
               </h2>
               <p>
                 Contact us at{" "}
@@ -73,22 +101,9 @@ export default function ReturnsPage() {
                 >
                   +92 333 4274492
                 </a>{" "}
-                within 7 days of delivery. Include your order number and reason
-                for return. We will provide return instructions within 1–2
-                business days.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
-                Refunds
-              </h2>
-              <p>
-                Once your return is received and inspected, we will notify you
-                of the approval or rejection of your refund. Approved refunds
-                are processed within <strong>5–7 business days</strong> to your
-                original payment method. For Cash on Delivery orders, refunds
-                are issued via bank transfer.
+                within 7 days of delivery. Include your order number, a
+                description of the problem, and clear photos. We will review and
+                respond within 1–2 business days.
               </p>
             </section>
 
@@ -98,20 +113,10 @@ export default function ReturnsPage() {
               </h2>
               <p>
                 If you received a damaged or incorrect item, please contact us
-                immediately with a photo of the product and packaging. We will
-                arrange a replacement or full refund at no additional cost.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-[11px] uppercase tracking-[0.25em] text-gray-900 mb-3 font-semibold">
-                Return Shipping
-              </h2>
-              <p>
-                Customers are responsible for return shipping costs unless the
-                item is damaged or incorrect. We recommend using a trackable
-                shipping method as we cannot be held responsible for lost
-                return parcels.
+                immediately with photos of the product and packaging. Once
+                verified, we will arrange a replacement or offer a goodwill
+                discount at no additional cost. We do not issue refunds for
+                these cases.
               </p>
             </section>
           </div>

@@ -230,8 +230,8 @@ export default function RewardsPage() {
                   code is single-use, tied to your account, and valid for 30
                   days. Points keep adding up — reaching a reward doesn&apos;t
                   reset your balance. Orders under PKR{" "}
-                  {MIN_ORDER_VALUE.toLocaleString()}, cancelled orders, and
-                  refunds don&apos;t earn points.
+                  {MIN_ORDER_VALUE.toLocaleString()} and cancelled orders
+                  don&apos;t earn points.
                 </p>
               </div>
             </div>
