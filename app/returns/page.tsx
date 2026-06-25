@@ -96,10 +96,10 @@ export default function ReturnsPage() {
                 </a>{" "}
                 or via WhatsApp at{" "}
                 <a
-                  href="https://wa.me/923068639707"
+                  href="https://wa.me/923068639708"
                   className="underline underline-offset-2 text-gray-800"
                 >
-                  +92 306 8639707
+                  +92 306 8639708
                 </a>{" "}
                 within 7 days of delivery. Include your order number, a
                 description of the problem, and clear photos. We will review and

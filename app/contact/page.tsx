@@ -30,7 +30,7 @@ export default function ContactPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             {/* WhatsApp */}
             <a
-              href="https://wa.me/923068639707"
+              href="https://wa.me/923068639708"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col gap-3 border border-gray-200 bg-white/60 p-6 hover:border-gray-400 transition duration-200"
@@ -43,7 +43,7 @@ export default function ContactPage() {
                   WhatsApp
                 </span>
               </div>
-              <p className="text-[13px] text-gray-600">+92 306 8639707</p>
+              <p className="text-[13px] text-gray-600">+92 306 8639708</p>
               <p className="text-[12px] text-gray-400">
                 Mon–Sat, 10am–8pm PKT
               </p>
