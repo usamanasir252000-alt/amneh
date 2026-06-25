@@ -664,11 +664,12 @@ export async function createLoyaltyDiscountCode(
  * order (e.g. WhatsApp confirm + orders/paid) — the processed_orders list
  * guarantees points are credited at most once. Looks up the order's customer
  * and subtotal itself, so callers only need the order id (numeric or gid).
- * Returns whether points were newly awarded.
+ * Returns whether points were newly awarded, the new balance, and any reward
+ * codes minted by THIS call (so callers can notify the customer).
  */
 export async function awardLoyaltyForOrder(
   orderId: string,
-): Promise<{ awarded: boolean }> {
+): Promise<{ awarded: boolean; points: number; newCodes: LoyaltyRewardCode[] }> {
   const orderGid = orderId.startsWith("gid://")
     ? orderId
     : `gid://shopify/Order/${orderId}`;
@@ -684,13 +685,14 @@ export async function awardLoyaltyForOrder(
   `;
   const data = await shopifyAdminFetch<{ order: any }>(q, { id: orderGid });
   const order = data.order;
-  if (!order) return { awarded: false };
+  if (!order) return { awarded: false, points: 0, newCodes: [] };
 
   const customerId = order.customer?.id;
-  if (!customerId) return { awarded: false }; // guest checkout — no account to credit
+  if (!customerId) return { awarded: false, points: 0, newCodes: [] }; // guest — no account
 
   const loyalty = await getCustomerLoyalty(customerId);
-  if (loyalty.processedOrders.includes(orderGid)) return { awarded: false }; // already counted
+  if (loyalty.processedOrders.includes(orderGid))
+    return { awarded: false, points: loyalty.points, newCodes: [] }; // already counted
 
   const subtotal = parseFloat(order.subtotalPriceSet?.shopMoney?.amount ?? "0");
   const qualifies = subtotal >= MIN_ORDER_VALUE;
@@ -701,17 +703,20 @@ export async function awardLoyaltyForOrder(
   const processedOrders = [...loyalty.processedOrders, orderGid];
   const claimedRewards = [...loyalty.claimedRewards];
   const rewardCodes = [...loyalty.rewardCodes];
+  const newCodes: LoyaltyRewardCode[] = [];
 
   for (const reward of REWARDS) {
     if (points >= reward.points && !claimedRewards.includes(reward.points)) {
       try {
         const minted = await createLoyaltyDiscountCode(customerId, reward.discountPct);
-        rewardCodes.push({
+        const code: LoyaltyRewardCode = {
           threshold: reward.points,
           discountPct: reward.discountPct,
           code: minted.code,
           expiresAt: minted.expiresAt,
-        });
+        };
+        rewardCodes.push(code);
+        newCodes.push(code);
         claimedRewards.push(reward.points);
       } catch (err) {
         console.error("[Loyalty] Failed to mint discount code:", err);
@@ -727,7 +732,7 @@ export async function awardLoyaltyForOrder(
     claimedRewards,
     rewardCodes,
   });
-  return { awarded: qualifies };
+  return { awarded: qualifies, points, newCodes };
 }
 
 export async function cancelShopifyOrder(shopifyId: string) {

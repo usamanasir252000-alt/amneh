@@ -127,9 +127,22 @@ export async function POST(req: NextRequest) {
       // Award loyalty points for this confirmed order. A confirmed order is the
       // store's definition of a real COD sale (same bar as the Meta Purchase
       // above), and it's idempotent, so a repeat CONFIRM never double-credits.
-      // Best-effort — never blocks the customer's reply.
+      // Best-effort — never blocks the customer's reply. Any reward unlocked by
+      // this order is appended to the confirmation message below.
+      let rewardMsg = '';
       try {
-        await awardLoyaltyForOrder(order.id);
+        const { newCodes } = await awardLoyaltyForOrder(order.id);
+        if (newCodes.length) {
+          rewardMsg =
+            `\n\n🎉 You've unlocked a reward!\n` +
+            newCodes
+              .map(
+                (c) =>
+                  `🎁 ${c.discountPct}% OFF your next order — use code *${c.code}* ` +
+                  `(valid until ${new Date(c.expiresAt).toLocaleDateString('en-GB')}).`
+              )
+              .join('\n');
+        }
       } catch (err) {
         console.error('[Loyalty] Failed to award points on confirm:', err);
       }
@@ -137,7 +150,8 @@ export async function POST(req: NextRequest) {
       return twiml(
         `✅ Your amneh. order ${orderName} is confirmed!\n\n` +
         `We'll start processing it right away and notify you once it's on its way. ` +
-        `Thank you for choosing amneh. 🌿`
+        `Thank you for choosing amneh. 🌿` +
+        rewardMsg
       );
     }
   }
