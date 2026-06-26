@@ -8,7 +8,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const { email, firstName, lastName } = await request.json();
+  const { email, firstName, lastName, acceptsMarketing } = await request.json();
 
   if (!email || !firstName) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       tags: ["website-signup"],
+      acceptsMarketing: Boolean(acceptsMarketing),
     });
 
     // Send Shopify's account-invite/activation email.

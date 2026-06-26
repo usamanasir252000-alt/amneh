@@ -130,6 +130,7 @@ export async function createCustomer(payload: {
   lastName?: string;
   phone?: string;
   tags?: string[];
+  acceptsMarketing?: boolean;
 }) {
   const email = payload.email.toLowerCase();
   const m = `
@@ -153,10 +154,10 @@ export async function createCustomer(payload: {
     email,
     firstName: payload.firstName ?? "",
     lastName: payload.lastName ?? "",
-    emailMarketingConsent: {
-      marketingState: "SUBSCRIBED",
-      marketingOptInLevel: "SINGLE_OPT_IN",
-    },
+    // Only subscribe to email marketing if the customer ticked the opt-in box.
+    emailMarketingConsent: payload.acceptsMarketing
+      ? { marketingState: "SUBSCRIBED", marketingOptInLevel: "SINGLE_OPT_IN" }
+      : { marketingState: "NOT_SUBSCRIBED" },
     tags: [...(payload.tags ?? []), "whatsapp"],
   };
 

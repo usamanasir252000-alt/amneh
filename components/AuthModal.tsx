@@ -25,6 +25,7 @@ export default function AuthModal({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreeToEmails, setAgreeToEmails] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -55,7 +56,7 @@ export default function AuthModal({
       const body =
         mode === "signIn"
           ? { email, password }
-          : { email, firstName, lastName };
+          : { email, firstName, lastName, acceptsMarketing: agreeToEmails };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -262,6 +263,20 @@ export default function AuthModal({
 
                   {mode === "signUp" && (
                     <>
+                      <label className="flex items-start gap-3 text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={agreeToEmails}
+                          onChange={(event) =>
+                            setAgreeToEmails(event.target.checked)
+                          }
+                          className="mt-0.5 h-4 w-4 rounded border-Deep_blue/20 text-Deep_blue focus:ring-Deep_blue"
+                        />
+                        <span>
+                          i would like to receive emails with updates on
+                          products, offers, and promotions from amneh.
+                        </span>
+                      </label>
                       <label className="flex items-start gap-3 text-xs text-gray-700">
                         <input
                           type="checkbox"
