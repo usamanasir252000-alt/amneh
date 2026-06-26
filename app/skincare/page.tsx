@@ -318,7 +318,7 @@ export default function SkincarePage() {
             <RevealText
               lines={["The Full", "Routine"]}
               tag="h2"
-              className="text-3xl font-bold uppercase tracking-tight text-[#9ac9df]"
+              className="text-3xl font-bold uppercase tracking-tight text-white"
               delay={0}
               stagger={130}
             />
