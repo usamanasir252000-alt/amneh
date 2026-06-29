@@ -455,32 +455,33 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* ── Ingredients ─────────────────────────────────────────────────────── */}
-      <section className="bg-white py-14 border-t border-gray-200">
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
-          <SectionHeading
-            title="Ingredients"
-            icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>}
-          />
-          {product.ingredients
-            ? <IngredientsCloud text={product.ingredients} />
-            : <p className="text-sm text-gray-400 italic">Ingredients list coming soon.</p>
-          }
-        </div>
-      </section>
+      {/* ── Ingredients (always visible) ────────────────────────────────────── */}
+      {product.ingredients && (
+        <section className="bg-white py-14 border-t border-gray-200">
+          <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
+            <SectionHeading
+              title="Ingredients"
+              icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>}
+            />
+            <IngredientsCloud text={product.ingredients} />
+          </div>
+        </section>
+      )}
 
-      {/* ── How to Use ──────────────────────────────────────────────────────── */}
-      <section className="bg-[#e8f4fa] py-14">
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
-          <SectionHeading
-            title="How to Use"
-            icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>}
-          />
-          <HowToUseSteps text={product.howToUse} />
-        </div>
-      </section>
+      {/* ── How to Use (always visible) ─────────────────────────────────────── */}
+      {product.howToUse && (
+        <section className="bg-[#e8f4fa] py-14">
+          <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
+            <SectionHeading
+              title="How to Use"
+              icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>}
+            />
+            <HowToUseSteps text={product.howToUse} />
+          </div>
+        </section>
+      )}
 
-      {/* ── When to Use ─────────────────────────────────────────────────────── */}
+      {/* ── When to Use (always visible) ────────────────────────────────────── */}
       {product.whenToUse && (
         <section className="bg-white py-14 border-t border-gray-200">
           <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
@@ -493,65 +494,61 @@ export default function ProductDetailPage() {
         </section>
       )}
 
-      {/* ── Patch Test ──────────────────────────────────────────────────────── */}
-      {product.patchTest && (
-        <section className="bg-white py-14 border-t border-gray-200">
-          <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
-            <SectionHeading
+      {/* ── Patch Test, Key Benefits, Shipping & Returns — accordions ───────── */}
+      <section className="bg-white border-t border-gray-200">
+        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 pt-4 pb-24">
+
+          {product.patchTest && (
+            <Accordion
               title="Patch Test"
               icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>}
-            />
-            <FormattedText text={product.patchTest} />
-          </div>
-        </section>
-      )}
+            >
+              <FormattedText text={product.patchTest} />
+            </Accordion>
+          )}
 
-      {/* ── Key Benefits ─────────────────────────────────────────────────────── */}
-      {product.benefits && (
-        <section className="bg-[#e8f4fa] py-14">
-          <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
-            <SectionHeading
+          {product.benefits && (
+            <Accordion
               title="Key Benefits"
               icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>}
-            />
-            <BenefitsGrid text={product.benefits} />
-          </div>
-        </section>
-      )}
+            >
+              <BenefitsGrid text={product.benefits} />
+            </Accordion>
+          )}
 
-      {/* ── Shipping & Returns — accordion ──────────────────────────────────── */}
-      <div className="max-w-screen-xl mx-auto px-6 lg:px-10 pb-24">
-        <Accordion
-          title="Shipping & Returns"
-          icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>}
-        >
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            {[
-              { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" },
-              { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc:"PKR 200 flat · Free on orders over PKR 3,000" },
-              { icon:"M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15", title:"Returns", desc:"7 days for unused, unopened products" },
-            ].map(item => (
-              <div key={item.title} className="bg-[#f7fbfd] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#d6ecf7] flex items-center justify-center">
-                  <svg className="h-5 w-5 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
-                  </svg>
+          <Accordion
+            title="Shipping & Returns"
+            icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              {[
+                { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" },
+                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc:"PKR 200 flat rate across Pakistan" },
+                { icon:"M6 18 18 6M6 6l12 12", title:"No Returns", desc:"All sales are final. For hygiene & safety reasons, we don't accept returns or exchanges." },
+              ].map(item => (
+                <div key={item.title} className="bg-[#f7fbfd] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#d6ecf7] flex items-center justify-center">
+                    <svg className="h-5 w-5 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-gray-900 mb-1.5">{item.title}</p>
+                    <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-gray-900 mb-1.5">{item.title}</p>
-                  <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-400">
-            Full details in our{" "}
-            <Link href="/returns" className="underline text-gray-600 hover:text-gray-900 transition">Return Policy</Link>{" "}
-            and{" "}
-            <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.
-          </p>
-        </Accordion>
-      </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400">
+              All sales are final — we do not offer returns or exchanges. Full details in our{" "}
+              <Link href="/returns" className="underline text-gray-600 hover:text-gray-900 transition">Return Policy</Link>{" "}
+              and{" "}
+              <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.
+            </p>
+          </Accordion>
+
+        </div>
+      </section>
 
       <Footer />
     </main>
