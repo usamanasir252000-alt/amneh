@@ -44,6 +44,7 @@ export interface ShopifyProduct {
   howToUse: string | null;
   benefits: string | null;
   patchTest: string | null;
+  whenToUse: string | null;
 }
 
 export interface ShopifyCartLine {
@@ -116,6 +117,7 @@ function normalizeProduct(node: {
   howToUse?: { value: string } | null;
   benefits?: { value: string } | null;
   patchTest?: { value: string } | null;
+  whenToUse?: { value: string } | null;
 }): ShopifyProduct {
   const tags = node.tags ?? [];
   const badgeTags = ["best seller", "bestseller", "new", "limited", "sale"];
@@ -152,6 +154,7 @@ function normalizeProduct(node: {
     howToUse: node.howToUse?.value ?? null,
     benefits: node.benefits?.value ?? null,
     patchTest: node.patchTest?.value ?? null,
+    whenToUse: node.whenToUse?.value ?? null,
   };
 }
 
@@ -250,6 +253,7 @@ export async function getProductByHandle(
         howToUse: metafield(namespace: "custom", key: "how_to_use") { value }
         benefits: metafield(namespace: "custom", key: "benefits") { value }
         patchTest: metafield(namespace: "custom", key: "patch_test") { value }
+        whenToUse: metafield(namespace: "custom", key: "when_to_use") { value }
       }
     }
   `,

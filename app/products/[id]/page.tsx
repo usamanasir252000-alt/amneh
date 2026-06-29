@@ -19,6 +19,7 @@ interface Product {
   compareAtPrice: number | null;
   ingredients: string | null; howToUse: string | null; benefits: string | null;
   patchTest: string | null;
+  whenToUse: string | null;
 }
 
 // ── Stars ──────────────────────────────────────────────────────────────────
@@ -158,6 +159,26 @@ function bold(text: string) {
     p.startsWith("*") && p.endsWith("*")
       ? <strong key={j} className="text-gray-800 font-semibold">{p.slice(1,-1)}</strong>
       : p
+  );
+}
+
+// ── When to use (Morning / Night / Morning & Night) ────────────────────────
+function WhenToUse({ value }: { value: string }) {
+  const lower = value.toLowerCase();
+  const showSun = lower.includes("morning") || lower.includes("day");
+  const showMoon = lower.includes("night") || lower.includes("evening");
+  return (
+    <div className="inline-flex items-center gap-3 rounded-full border border-[#d6ecf7] bg-[#f7fbfd] px-5 py-3">
+      <span className="flex items-center gap-2 text-[#4d9ab5]">
+        {showSun && (
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+        )}
+        {showMoon && (
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        )}
+      </span>
+      <span className="text-sm font-medium tracking-wide text-gray-800">{value}</span>
+    </div>
   );
 }
 
@@ -458,6 +479,19 @@ export default function ProductDetailPage() {
           <HowToUseSteps text={product.howToUse} />
         </div>
       </section>
+
+      {/* ── When to Use ─────────────────────────────────────────────────────── */}
+      {product.whenToUse && (
+        <section className="bg-white py-14 border-t border-gray-200">
+          <div className="max-w-screen-xl mx-auto px-6 lg:px-10">
+            <SectionHeading
+              title="When to Use"
+              icon={<svg className="h-4 w-4 text-[#4d9ab5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
+            />
+            <WhenToUse value={product.whenToUse} />
+          </div>
+        </section>
+      )}
 
       {/* ── Patch Test ──────────────────────────────────────────────────────── */}
       {product.patchTest && (
