@@ -275,6 +275,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity]   = useState(1);
   const [added, setAdded]         = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
+  const [buyNowError, setBuyNowError] = useState(false);
 
   useEffect(() => {
     fetch(`/api/products/${id}`)
@@ -306,6 +307,7 @@ export default function ProductDetailPage() {
   const handleBuyNow = async () => {
     if (!product || buyingNow) return;
     setBuyingNow(true);
+    setBuyNowError(false);
     // Buy Now skips the cart, so fire BOTH AddToCart and InitiateCheckout —
     // otherwise these (high-intent) shoppers would be missing from the
     // Add-to-Cart audience entirely.
@@ -322,15 +324,30 @@ export default function ProductDetailPage() {
       currency: "PKR",
       num_items: quantity,
     });
+    // Hard timeout so a slow/stuck backend can NEVER leave the button spinning
+    // forever — surface a retryable error instead.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
     try {
       const res = await fetch("/api/buy-now", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId: product.variantId, quantity }),
+        signal: controller.signal,
       });
       const { checkoutUrl } = await res.json();
-      if (checkoutUrl) window.location.href = checkoutUrl;
-    } catch { setBuyingNow(false); }
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
+        setBuyingNow(false);
+        setBuyNowError(true);
+      }
+    } catch {
+      setBuyingNow(false);
+      setBuyNowError(true);
+    } finally {
+      clearTimeout(timer);
+    }
   };
 
   if (loading) return (
@@ -450,6 +467,9 @@ export default function ProductDetailPage() {
                 : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>Buy Now</>
               }
             </button>
+            {buyNowError && (
+              <p className="text-xs text-rose-500 mt-2 text-center">Checkout is taking too long. Please try again.</p>
+            )}
 
           </div>
         </div>
