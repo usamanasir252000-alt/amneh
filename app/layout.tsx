@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "amneh. — Luxury Beauty",
+  title: "Amneh | Best Skincare Brand in Pakistan",
   description:
     "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
   icons: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     shortcut: "/amneh.png",
   },
   openGraph: {
-    title: "amneh. — Luxury Beauty",
+    title: "Amneh | Best Skincare Brand in Pakistan",
     description:
       "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
     type: "website",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "amneh. — Luxury Beauty",
+    title: "Amneh | Best Skincare Brand in Pakistan",
     description:
       "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
     images: ["/amneh.png"],
