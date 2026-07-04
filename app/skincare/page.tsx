@@ -211,6 +211,14 @@ export default function SkincarePage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const el = document.getElementById("serums");
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 40;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, []);
+
   return (
     <main className="bg-[#f1efef]">
       <Navbar />
