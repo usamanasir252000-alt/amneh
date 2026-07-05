@@ -21,7 +21,9 @@ export async function GET(
 
     return NextResponse.json(product);
   } catch (error) {
+    // Shopify failed/timed out — this is NOT the same as "product doesn't exist".
+    // Return 503 so the client shows a retry instead of a false "not found".
     console.error('[ProductAPI] error:', error);
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Upstream error" }, { status: 503 });
   }
 }

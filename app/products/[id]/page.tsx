@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -270,19 +270,38 @@ export default function ProductDetailPage() {
   const { addItem } = useCart();
 
   const [product, setProduct]     = useState<Product | null>(null);
-  const [loading, setLoading]     = useState(true);
+  // "loading" spinner → "ready" product → "notfound" (genuine 404) → "error"
+  // (Shopify/network failed or timed out; retryable). We must NEVER get stuck on
+  // "loading": every fetch path below resolves the status.
+  const [status, setStatus]       = useState<"loading" | "ready" | "notfound" | "error">("loading");
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity]   = useState(1);
   const [added, setAdded]         = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
   const [buyNowError, setBuyNowError] = useState(false);
 
-  useEffect(() => {
-    fetch(`/api/products/${id}`)
-      .then(r => r.json())
-      .then(p => { setProduct(p); setLoading(false); })
-      .catch(() => setLoading(false));
+  const loadProduct = useCallback(() => {
+    setStatus("loading");
+    // Hard client-side timeout — a stalled connection can NEVER leave the page
+    // spinning forever; it surfaces a retryable error instead.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    fetch(`/api/products/${id}`, { signal: controller.signal })
+      .then(async (r) => {
+        if (r.status === 404) { setStatus("notfound"); return; }
+        // Any non-OK (503 upstream/timeout, 5xx, etc.) is a transient failure.
+        if (!r.ok) { setStatus("error"); return; }
+        const p = await r.json();
+        // Guard against an error body slipping through with a 200-ish status.
+        if (!p || p.error || !p.id) { setStatus("notfound"); return; }
+        setProduct(p);
+        setStatus("ready");
+      })
+      .catch(() => setStatus("error"))
+      .finally(() => clearTimeout(timer));
   }, [id]);
+
+  useEffect(() => { loadProduct(); }, [loadProduct]);
 
   // Meta Pixel: product view
   useEffect(() => {
@@ -350,7 +369,7 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading) return (
+  if (status === "loading") return (
     <main className="min-h-screen bg-[#f1efef]"><Navbar />
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
@@ -358,7 +377,21 @@ export default function ProductDetailPage() {
     </main>
   );
 
-  if (!product) return (
+  // Transient failure (Shopify slow/down, network dropped, request timed out) —
+  // give the customer a way to retry instead of a dead end or an infinite spinner.
+  if (status === "error") return (
+    <main className="min-h-screen bg-[#f1efef]"><Navbar />
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-6 text-center">
+        <p className="text-gray-500 text-sm">We couldn&apos;t load this product right now.</p>
+        <div className="flex gap-3">
+          <button onClick={loadProduct} className="text-xs uppercase tracking-widest bg-gray-900 text-white px-6 py-2.5 hover:bg-gray-700 transition">Try Again</button>
+          <Link href="/" className="text-xs uppercase tracking-widest border border-gray-900 px-6 py-2.5 hover:bg-gray-900 hover:text-white transition">Back to Home</Link>
+        </div>
+      </div>
+    </main>
+  );
+
+  if (status === "notfound" || !product) return (
     <main className="min-h-screen bg-[#f1efef]"><Navbar />
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <p className="text-gray-400 text-sm">Product not found.</p>
