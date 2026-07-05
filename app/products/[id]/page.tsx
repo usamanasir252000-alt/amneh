@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import { fbTrack } from "@/lib/fbpixel";
+import { fetchWithRetry } from "@/lib/fetchRetry";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 
@@ -282,11 +283,10 @@ export default function ProductDetailPage() {
 
   const loadProduct = useCallback(() => {
     setStatus("loading");
-    // Hard client-side timeout — a stalled connection can NEVER leave the page
-    // spinning forever; it surfaces a retryable error instead.
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
-    fetch(`/api/products/${id}`, { signal: controller.signal })
+    // Hard timeout + automatic retry: a transient connection drop (common on
+    // mobile / in-app browsers) recovers silently instead of stranding the user
+    // on a spinner. Only a genuine, repeated failure surfaces the retry button.
+    fetchWithRetry(`/api/products/${id}`, { timeoutMs: 10000, retries: 2 })
       .then(async (r) => {
         if (r.status === 404) { setStatus("notfound"); return; }
         // Any non-OK (503 upstream/timeout, 5xx, etc.) is a transient failure.
@@ -297,8 +297,7 @@ export default function ProductDetailPage() {
         setProduct(p);
         setStatus("ready");
       })
-      .catch(() => setStatus("error"))
-      .finally(() => clearTimeout(timer));
+      .catch(() => setStatus("error"));
   }, [id]);
 
   useEffect(() => { loadProduct(); }, [loadProduct]);
@@ -343,16 +342,18 @@ export default function ProductDetailPage() {
       currency: "PKR",
       num_items: quantity,
     });
-    // Hard timeout so a slow/stuck backend can NEVER leave the button spinning
-    // forever — surface a retryable error instead.
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
+    // Hard timeout + one automatic retry on a dropped connection — the exact
+    // net::ERR_HTTP2_PING_FAILED case, which recovers on retry. We do NOT retry
+    // on a 5xx response: the server may have already created the cart, and we'd
+    // rather show a retry button than risk a duplicate.
     try {
-      const res = await fetch("/api/buy-now", {
+      const res = await fetchWithRetry("/api/buy-now", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId: product.variantId, quantity }),
-        signal: controller.signal,
+        timeoutMs: 15000,
+        retries: 1,
+        retryOnServerError: false,
       });
       const { checkoutUrl } = await res.json();
       if (checkoutUrl) {
@@ -364,8 +365,6 @@ export default function ProductDetailPage() {
     } catch {
       setBuyingNow(false);
       setBuyNowError(true);
-    } finally {
-      clearTimeout(timer);
     }
   };
 

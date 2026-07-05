@@ -9,6 +9,7 @@ import {
   ReactNode,
 } from "react";
 import { fbTrack } from "@/lib/fbpixel";
+import { fetchWithRetry } from "@/lib/fetchRetry";
 
 export interface CartItem {
   lineId: string;
@@ -45,10 +46,19 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const CART_ID_KEY = "shopify_cart_id";
 
 async function cartAPI(body: Record<string, unknown>) {
-  const res = await fetch("/api/cart", {
+  // Retry a dropped connection (net::ERR_HTTP2_PING_FAILED / timeout) once, so a
+  // network wobble doesn't fail Add-to-Cart or the checkout link. We deliberately
+  // do NOT retry on a 5xx server response (retryOnServerError: false): a mutating
+  // POST the server may have already applied shouldn't be replayed. A pure
+  // connection drop means the request almost certainly never completed, so
+  // replaying it is safe.
+  const res = await fetchWithRetry("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    timeoutMs: 15000,
+    retries: 1,
+    retryOnServerError: false,
   });
   if (!res.ok) throw new Error("Cart operation failed");
   return res.json();
@@ -66,7 +76,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const savedCartId = localStorage.getItem(CART_ID_KEY);
     if (!savedCartId) return;
 
-    fetch(`/api/cart?cartId=${encodeURIComponent(savedCartId)}`)
+    fetchWithRetry(`/api/cart?cartId=${encodeURIComponent(savedCartId)}`, {
+      timeoutMs: 10000,
+      retries: 2,
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((cart) => {
         if (!cart) {
