@@ -45,19 +45,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body
-        className={`${inter.variable} font-sans overflow-x-hidden bg-[#f1efef]`}
-      >
+      <body className={`${inter.variable} font-sans bg-[#f1efef]`}>
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
         />
         <MetaPixel />
-        <CartProvider>
-          {children}
-          <CartDrawer />
-          <WhatsAppButton />
-        </CartProvider>
+        {/*
+          overflow-x-hidden lives on this wrapper, NOT <body>/<html>. Setting it
+          directly on body breaks vertical scrolling entirely in Facebook's
+          in-app browser (a known WebView bug) — it worked in Instagram's
+          in-app browser and regular mobile browsers, but froze scroll on every
+          page when opened from a Facebook ad.
+        */}
+        <div className="overflow-x-hidden">
+          <CartProvider>
+            {children}
+            <CartDrawer />
+            <WhatsAppButton />
+          </CartProvider>
+        </div>
       </body>
     </html>
   );
