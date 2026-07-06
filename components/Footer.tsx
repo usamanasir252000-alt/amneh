@@ -45,7 +45,11 @@ export default function Footer() {
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
           {footerLinks.map(({ label, href }) =>
             href ? (
-              <Link key={label} href={href} className="text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-gray-900 transition duration-200">
+              // prefetch off — these are low-traffic policy/info pages, not the
+              // buying path, and Next prefetches every visible Link's full page
+              // by default. On slow mobile connections that's bandwidth better
+              // spent loading the actual page the visitor is on.
+              <Link key={label} href={href} prefetch={false} className="text-[12px] uppercase tracking-[0.15em] text-gray-500 hover:text-gray-900 transition duration-200">
                 {label}
               </Link>
             ) : (
@@ -62,7 +66,7 @@ export default function Footer() {
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-1.5 mb-4">
           {legalLinks.map(({ label, href }) =>
             href ? (
-              <Link key={label} href={href} className="text-[11px] text-gray-400 uppercase tracking-[0.1em] hover:text-gray-700 transition duration-200">
+              <Link key={label} href={href} prefetch={false} className="text-[11px] text-gray-400 uppercase tracking-[0.1em] hover:text-gray-700 transition duration-200">
                 {label}
               </Link>
             ) : (
