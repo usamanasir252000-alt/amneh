@@ -121,9 +121,9 @@ export async function POST(request: Request) {
 
       case "link": {
         if (!cartId) throw new Error("cartId required");
-        // Capture Meta attribution onto the cart, then link the customer and
-        // re-fetch the authenticated checkout URL at navigation time.
-        await storeMetaAttributes(cartId);
+        // Meta attribution never affects checkoutUrl, so it must never block
+        // the redirect — fire it and move on instead of awaiting it.
+        storeMetaAttributes(cartId);
         const checkoutUrl = await linkCurrentCustomer(cartId);
         return NextResponse.json({ ok: true, checkoutUrl });
       }

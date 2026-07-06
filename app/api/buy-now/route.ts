@@ -29,46 +29,45 @@ export async function POST(req: Request) {
   const ua = req.headers.get("user-agent") || undefined;
   const sessionToken = cookieStore.get("session")?.value;
 
-  // Attribution tagging and customer-linking are independent of each other —
-  // both only need cart.id — so run them concurrently instead of sequentially.
-  // Neither is fatal to checkout, so failures/timeouts here just fall back to
-  // the base cart.checkoutUrl instead of blocking the redirect.
-  const [, checkoutUrl] = await Promise.all([
-    (async () => {
-      try {
-        const attrs: { key: string; value: string }[] = [];
-        const fbp = cookieStore.get("_fbp")?.value;
-        const fbc = cookieStore.get("_fbc")?.value;
-        if (fbp) attrs.push({ key: "_fbp", value: fbp });
-        if (fbc) attrs.push({ key: "_fbc", value: fbc });
-        if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
-        if (ua) attrs.push({ key: "_fb_ua", value: ua });
-        if (attrs.length) await setCartAttributes(cart.id, attrs);
-      } catch (err) {
-        console.error("[meta attrs] failed to store on cart (buy-now):", err);
-      }
-    })(),
-    (async () => {
-      // Link to the logged-in customer so checkout shows them signed in.
-      try {
-        if (!sessionToken) return cart.checkoutUrl;
-        const payload = await verifyToken(sessionToken);
-        // Pass ONLY the token when present — adding `email` alongside it makes
-        // Shopify treat the buyer as a guest and breaks logged-in checkout.
-        const buyerIdentity: CartBuyerIdentityInput | null = payload.shopifyToken
-          ? { customerAccessToken: payload.shopifyToken as string }
-          : payload.email
-          ? { email: payload.email as string }
-          : null;
-        if (!buyerIdentity) return cart.checkoutUrl;
+  // Meta attribution tagging never affects which checkoutUrl to send the
+  // buyer to, so it must never block the redirect — fire it and move on.
+  (async () => {
+    try {
+      const attrs: { key: string; value: string }[] = [];
+      const fbp = cookieStore.get("_fbp")?.value;
+      const fbc = cookieStore.get("_fbc")?.value;
+      if (fbp) attrs.push({ key: "_fbp", value: fbp });
+      if (fbc) attrs.push({ key: "_fbc", value: fbc });
+      if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
+      if (ua) attrs.push({ key: "_fb_ua", value: ua });
+      if (attrs.length) await setCartAttributes(cart.id, attrs);
+    } catch (err) {
+      console.error("[meta attrs] failed to store on cart (buy-now):", err);
+    }
+  })();
+
+  // Only logged-in buyers need the extra round-trip: it swaps in the
+  // authenticated checkoutUrl so they land on checkout already signed in.
+  // Anonymous buyers (most ad traffic) skip it and redirect immediately.
+  let checkoutUrl = cart.checkoutUrl;
+  if (sessionToken) {
+    try {
+      const payload = await verifyToken(sessionToken);
+      // Pass ONLY the token when present — adding `email` alongside it makes
+      // Shopify treat the buyer as a guest and breaks logged-in checkout.
+      const buyerIdentity: CartBuyerIdentityInput | null = payload.shopifyToken
+        ? { customerAccessToken: payload.shopifyToken as string }
+        : payload.email
+        ? { email: payload.email as string }
+        : null;
+      if (buyerIdentity) {
         const linked = await linkCartToCustomer(cart.id, buyerIdentity, buyerIp);
-        // Prefer the authenticated checkout URL returned under the buyer IP.
-        return linked.checkoutUrl || cart.checkoutUrl;
-      } catch {
-        return cart.checkoutUrl;
+        checkoutUrl = linked.checkoutUrl || cart.checkoutUrl;
       }
-    })(),
-  ]);
+    } catch {
+      // Fall back to the guest checkoutUrl already set above.
+    }
+  }
 
   console.log("[buy-now] success:", JSON.stringify({ variantId, cartId: cart.id, elapsedMs: Date.now() - startedAt }));
   return NextResponse.json({ checkoutUrl });

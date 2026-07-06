@@ -50,6 +50,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://cdn.shopify.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://vercel.live" />
+        {/*
+          shop.amnehofficial.com is Shopify's checkout domain — a completely
+          different origin from this app that the browser has never talked to.
+          Buy Now / checkout redirect there cold: fresh DNS + TLS handshake
+          happening at the exact moment the customer is waiting to see a page.
+          Warming the connection here means that handshake is already done by
+          the time they click, instead of adding to the "checkout keeps
+          loading" delay on a slow connection.
+        */}
+        <link rel="preconnect" href="https://shop.amnehofficial.com" />
       </head>
       <body className={`${inter.variable} font-sans bg-[#f1efef]`}>
         <MetaPixel />
