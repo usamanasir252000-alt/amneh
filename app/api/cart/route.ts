@@ -32,6 +32,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   const body = await request.json();
   const { action, cartId, variantId, lineId, quantity } = body as {
     action: "create" | "add" | "update" | "remove" | "link";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     lineId?: string;
     quantity?: number;
   };
+  console.log("[cart] received:", JSON.stringify({ action, cartId, variantId, lineId, quantity }));
 
   // The buyer's real IP. Shopify requires the Shopify-Storefront-Buyer-IP
   // header on server-side calls to carry a logged-in customer's session into
@@ -143,9 +145,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
+    console.error("[cart] failed:", JSON.stringify({ action, cartId, variantId, elapsedMs: Date.now() - startedAt, error: (error as Error)?.message }));
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 500 }
     );
+  } finally {
+    console.log("[cart] completed:", JSON.stringify({ action, cartId, elapsedMs: Date.now() - startedAt }));
   }
 }

@@ -10,6 +10,7 @@ import {
 } from "react";
 import { fbTrack } from "@/lib/fbpixel";
 import { fetchWithRetry } from "@/lib/fetchRetry";
+import { logEvent } from "@/lib/clientLog";
 
 export interface CartItem {
   lineId: string;
@@ -111,6 +112,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       image: string;
     }) => {
       setIsLoading(true);
+      logEvent("add_to_cart_attempt", { variantId: item.variantId, name: item.name, price: item.price });
       fbTrack("AddToCart", {
         content_ids: [item.variantId],
         content_name: item.name,
@@ -135,6 +137,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         syncCart(cart);
         setIsOpen(true);
+        logEvent("add_to_cart_success", { variantId: item.variantId, cartId: cart.id });
       } catch (error) {
         // If cart is stale/expired, create a new one
         localStorage.removeItem(CART_ID_KEY);
@@ -142,8 +145,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const cart = await cartAPI({ action: "create", variantId: item.variantId, quantity: 1 });
           syncCart(cart);
           setIsOpen(true);
-        } catch {
+          logEvent("add_to_cart_success", { variantId: item.variantId, cartId: cart.id, recovered: true });
+        } catch (retryError) {
           console.error("Failed to add item to cart:", error);
+          logEvent("add_to_cart_failed", {
+            variantId: item.variantId,
+            firstError: (error as Error)?.message,
+            retryError: (retryError as Error)?.message,
+          });
         }
       } finally {
         setIsLoading(false);
@@ -205,10 +214,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // so checkout is pre-filled even when the cart was built while logged out.
   const goToCheckout = useCallback(async () => {
     if (!checkoutUrl) return;
+    const value = items.reduce((t, i) => t + i.price * i.quantity, 0);
+    const numItems = items.reduce((t, i) => t + i.quantity, 0);
+    logEvent("checkout_click", { cartId, value, numItems });
     fbTrack("InitiateCheckout", {
-      value: items.reduce((t, i) => t + i.price * i.quantity, 0),
+      value,
       currency: "PKR",
-      num_items: items.reduce((t, i) => t + i.quantity, 0),
+      num_items: numItems,
       content_ids: items.map((i) => i.variantId),
     });
     // Link at navigation time and prefer the fresh checkout URL returned by the
@@ -227,8 +239,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (res?.checkoutUrl) url = res.checkoutUrl;
       } catch {
         // timed out or failed — proceed to checkout with the cached URL
+        logEvent("checkout_link_timeout", { cartId });
       }
     }
+    logEvent("checkout_redirect", { cartId, usedFallbackUrl: url === checkoutUrl });
     window.location.href = url;
   }, [cartId, checkoutUrl, items]);
 

@@ -6,13 +6,15 @@ import { createCart, linkCartToCustomer, setCartAttributes, CartBuyerIdentityInp
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const startedAt = Date.now();
   const { variantId, quantity } = await req.json();
+  console.log("[buy-now] received:", JSON.stringify({ variantId, quantity }));
 
   let cart;
   try {
     cart = await createCart(variantId, quantity ?? 1);
   } catch (err) {
-    console.error("[buy-now] createCart failed:", err);
+    console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
     return NextResponse.json({ error: "Could not create cart" }, { status: 502 });
   }
 
@@ -68,5 +70,6 @@ export async function POST(req: Request) {
     })(),
   ]);
 
+  console.log("[buy-now] success:", JSON.stringify({ variantId, cartId: cart.id, elapsedMs: Date.now() - startedAt }));
   return NextResponse.json({ checkoutUrl });
 }

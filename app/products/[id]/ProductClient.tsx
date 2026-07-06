@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import { fbTrack } from "@/lib/fbpixel";
 import { fetchWithRetry } from "@/lib/fetchRetry";
+import { logEvent } from "@/lib/clientLog";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import type { ShopifyProduct } from "@/lib/shopify";
@@ -279,6 +280,16 @@ export default function ProductClient({ product }: { product: Product }) {
       value: product.price,
       currency: "PKR",
     });
+    // Our own log, independent of Meta's dashboard — lets us compare page
+    // views against add_to_cart/buy_now counts for the same product directly
+    // in our own logs, and catches views Meta's pixel might miss (ad blockers,
+    // in-app browsers that block third-party trackers but not same-origin
+    // requests).
+    logEvent("product_view", {
+      variantId: product.variantId,
+      name: product.name,
+      price: product.price,
+    });
   }, [product]);
 
   const handleAddToCart = () => {
@@ -291,6 +302,7 @@ export default function ProductClient({ product }: { product: Product }) {
     if (buyingNow) return;
     setBuyingNow(true);
     setBuyNowError(false);
+    logEvent("buy_now_click", { variantId: product.variantId, name: product.name, quantity, value: product.price * quantity });
     // Buy Now skips the cart, so fire BOTH AddToCart and InitiateCheckout —
     // otherwise these (high-intent) shoppers would be missing from the
     // Add-to-Cart audience entirely.
@@ -322,12 +334,15 @@ export default function ProductClient({ product }: { product: Product }) {
       });
       const { checkoutUrl } = await res.json();
       if (checkoutUrl) {
+        logEvent("buy_now_success", { variantId: product.variantId });
         window.location.href = checkoutUrl;
       } else {
+        logEvent("buy_now_failed", { variantId: product.variantId, reason: "no_checkout_url" });
         setBuyingNow(false);
         setBuyNowError(true);
       }
-    } catch {
+    } catch (err) {
+      logEvent("buy_now_failed", { variantId: product.variantId, reason: "network_error", message: (err as Error)?.message });
       setBuyingNow(false);
       setBuyNowError(true);
     }
