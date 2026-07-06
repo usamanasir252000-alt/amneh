@@ -356,7 +356,7 @@ export default function ProductClient({ product }: { product: Product }) {
 
       {/* Breadcrumb */}
       <div className="max-w-screen-xl mx-auto px-6 lg:px-10 pt-28 pb-4">
-        <div className="mb-4"><BackButton /></div>
+        <div className="mb-4"><BackButton href="/skincare" /></div>
         <nav className="flex items-center gap-2 text-[11px] text-gray-400 uppercase tracking-widest">
           <Link href="/" className="hover:text-gray-700 transition">Home</Link>
           <span>/</span>
