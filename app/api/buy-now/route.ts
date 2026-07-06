@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { createCart, linkCartToCustomer, setCartAttributes, CartBuyerIdentityInput } from "@/lib/shopify";
@@ -30,8 +30,12 @@ export async function POST(req: Request) {
   const sessionToken = cookieStore.get("session")?.value;
 
   // Meta attribution tagging never affects which checkoutUrl to send the
-  // buyer to, so it must never block the redirect — fire it and move on.
-  (async () => {
+  // buyer to, so it must never block the redirect. Scheduled via after() —
+  // NOT a bare fire-and-forget promise — because Vercel can freeze/kill the
+  // function the instant the response is sent, which aborts any in-flight
+  // fetch that isn't explicitly kept alive (this was surfacing as
+  // "[meta attrs] failed to store on cart: AbortError").
+  after(async () => {
     try {
       const attrs: { key: string; value: string }[] = [];
       const fbp = cookieStore.get("_fbp")?.value;
@@ -44,7 +48,7 @@ export async function POST(req: Request) {
     } catch (err) {
       console.error("[meta attrs] failed to store on cart (buy-now):", err);
     }
-  })();
+  });
 
   // Only logged-in buyers need the extra round-trip: it swaps in the
   // authenticated checkoutUrl so they land on checkout already signed in.

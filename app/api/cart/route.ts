@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import {
@@ -122,8 +122,11 @@ export async function POST(request: Request) {
       case "link": {
         if (!cartId) throw new Error("cartId required");
         // Meta attribution never affects checkoutUrl, so it must never block
-        // the redirect — fire it and move on instead of awaiting it.
-        storeMetaAttributes(cartId);
+        // the redirect. Scheduled via after() — NOT a bare fire-and-forget
+        // promise — because Vercel can freeze/kill the function the instant
+        // the response is sent, aborting any in-flight fetch that isn't
+        // explicitly kept alive.
+        after(() => storeMetaAttributes(cartId));
         const checkoutUrl = await linkCurrentCustomer(cartId);
         return NextResponse.json({ ok: true, checkoutUrl });
       }
