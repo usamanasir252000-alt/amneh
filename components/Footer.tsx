@@ -19,7 +19,7 @@ export default function Footer() {
     <footer className="bg-[#f1efef] border-t border-gray-200/60">
       {/* Brand statement */}
       <div className="text-center pt-14 pb-10 px-6">
-        <img src="/logo.svg" alt="amneh." className="h-7 w-auto mx-auto mb-5 opacity-80" />
+        <img src="/logo.svg" alt="amneh." width={81} height={28} className="h-7 w-auto mx-auto mb-5 opacity-80" />
         <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400 max-w-sm mx-auto leading-6">
           Crafted for every skin. Rooted in science. Made for you.
         </p>

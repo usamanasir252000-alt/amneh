@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 
 declare global {
   interface Window {
@@ -73,6 +74,17 @@ export default function GoogleSignInButton({ onClose }: GoogleSignInButtonProps)
 
   return (
     <div className="space-y-2">
+      {/*
+        Loaded here (not globally in layout.tsx) so the SDK only downloads for
+        the fraction of visitors who actually open sign-in — not on every page
+        for every visitor. Safe because the effect above already polls for
+        window.google.accounts.id until it's ready, so it doesn't matter that
+        the script may still be loading when this component mounts.
+      */}
+      <Script
+        src="https://accounts.google.com/gsi/client"
+        strategy="afterInteractive"
+      />
       <div ref={buttonRef} />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>

@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-[#f1efef] flex items-center justify-center">
       <div className="w-full max-w-sm bg-white shadow-sm rounded-lg p-8">
         <div className="mb-8 text-center">
-          <img src="/logo.svg" alt="amneh." className="h-8 mx-auto mb-2" />
+          <img src="/logo.svg" alt="amneh." width={93} height={32} className="h-8 w-auto mx-auto mb-2" />
           <p className="text-xs text-gray-400 uppercase tracking-widest mt-3">Admin Panel</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">

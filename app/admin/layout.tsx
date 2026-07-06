@@ -10,7 +10,7 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <img src="/logo.svg" alt="amneh." className="h-7" />
+          <img src="/logo.svg" alt="amneh." width={81} height={28} className="h-7 w-auto" />
           <span className="text-xs text-gray-300">|</span>
           <nav className="flex gap-5">
             <Link

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
-const heroImages = ["/f4.png", "/c13.png", "/f2.png"];
+const heroImages = ["/f4.webp", "/c13.webp", "/f2.webp"];
 
 export default function Hero() {
   const [activeIdx, setActiveIdx] = useState(0);
@@ -36,23 +36,23 @@ export default function Hero() {
                 : { duration: 0, delay: 1.1 }
             }
           >
-            {src === "/f2.png" ? (
+            {src === "/f2.webp" ? (
               <>
                 <Image
-                  src="/c9.png"
+                  src="/c9.webp"
                   alt="amneh collection"
                   fill
                   className="object-cover object-top block md:hidden"
-                  quality={100}
+                  quality={85}
                   sizes="(max-width: 768px) 300vw, 100vw"
                   priority={i === 0}
                 />
                 <Image
-                  src="/f2.png"
+                  src="/f2.webp"
                   alt="amneh collection"
                   fill
                   className="object-cover object-center hidden md:block"
-                  quality={100}
+                  quality={85}
                   sizes="100vw"
                 />
               </>
@@ -63,7 +63,7 @@ export default function Hero() {
                 fill
                 className="object-cover object-top md:object-center"
                 priority={i === 0}
-                quality={100}
+                quality={85}
                 sizes="(max-width: 768px) 300vw, 100vw"
               />
             )}
@@ -76,12 +76,14 @@ export default function Hero() {
 
       {/* Text content — bottom-left on desktop, centered on mobile */}
       <div className="relative z-20 flex h-full items-end justify-start px-6 pb-10 text-left md:justify-start md:px-16 md:pb-20 lg:px-24">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.85, ease: "easeOut" }}
-          className="w-full max-w-md text-white text-left md:w-auto"
-        >
+        {/*
+          Plain div, NOT motion.div — this holds the LCP element (the H1).
+          Framer Motion renders its initial state (opacity: 0) until JS
+          hydrates and runs the animation, which delays the largest
+          contentful paint by the animation duration on every visitor. The
+          hero text should be visible immediately, not fade in.
+        */}
+        <div className="w-full max-w-md text-white text-left md:w-auto">
           <p className="text-[10px] uppercase tracking-[0.38em] text-white/60 mb-2 md:text-xs md:text-white/70 md:mb-3">
             just dropped
           </p>
@@ -100,7 +102,7 @@ export default function Hero() {
           >
             shop now
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

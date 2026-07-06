@@ -1,16 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import FeatureSplit from "../components/FeatureSplit";
 import ProductCarousel from "../components/ProductCarousel";
-import FullWidthBanner from "../components/FullWidthBanner";
-import SocialFeed from "../components/SocialFeed";
-import Footer from "../components/Footer";
-import ReviewsModal, { Review } from "@/components/ReviewsModal";
-import AddReviewModal from "@/components/AddReviewModal";
 import ReviewSideTab from "@/components/ReviewSideTab";
+import type { Review } from "@/components/ReviewsModal";
+
+// Below-the-fold / interaction-only — split into their own chunks so they
+// don't add to the JS the browser must download and parse before the hero
+// and product carousel (the content every visitor actually sees first) can
+// become interactive.
+const FullWidthBanner = dynamic(() => import("../components/FullWidthBanner"));
+const SocialFeed = dynamic(() => import("../components/SocialFeed"));
+const Footer = dynamic(() => import("../components/Footer"));
+// Modals are closed by default and only ever needed after a click — no reason
+// to server-render or ship their JS until then.
+const ReviewsModal = dynamic(() => import("@/components/ReviewsModal"), { ssr: false });
+const AddReviewModal = dynamic(() => import("@/components/AddReviewModal"), { ssr: false });
 
 export default function Home() {
   const [reviewsOpen, setReviewsOpen] = useState(false);
