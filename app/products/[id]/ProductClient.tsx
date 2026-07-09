@@ -806,6 +806,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState("overview");
   const touchStartX = useRef(0);
+  const buyBoxRef = useRef<HTMLDivElement>(null);
 
   // Meta Pixel: product view
   useEffect(() => {
@@ -850,32 +851,53 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   }, []);
 
   // Mobile only, every screen size: auto-scroll past the navbar/back-button
-  // chrome straight to the product content (title/image/price/buy buttons),
-  // so a visitor never has to manually scroll past dead space to reach the
-  // purchase actions. Manually computed scrollTo (not scrollIntoView) fired
-  // after a settle delay + double rAF — a bare scrollIntoView on a fixed
-  // timer was getting silently overridden by the browser's own scroll
-  // handling around navigation; this version reliably lands where intended.
+  // chrome straight to the product content, so a visitor never has to
+  // manually scroll to reach the purchase actions.
+  //
+  // On a real phone, title + image + price + qty + both buttons can add up
+  // to MORE than the visible viewport height even after clearing the navbar
+  // — scrolling to the top of that block isn't enough to guarantee Buy Now
+  // is actually on screen. So the target is the LARGER of two candidates:
+  // (a) clear the navbar, and (b) put the buy box's bottom edge (past Buy
+  // Now, the last element in it) right at the bottom of the viewport. That
+  // guarantees both buttons are visible even if it means the title scrolls
+  // slightly out of view on a short screen.
+  //
+  // Fires twice: once after initial settle, and once again ~1s later as a
+  // correction pass, in case a slow-loading product photo on mobile data
+  // shifted the layout out from under the first scroll.
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth >= 1024) return;
     let cancelled = false;
+    const timers: number[] = [];
 
-    const scrollToOverview = () => {
+    const performScroll = () => {
       if (cancelled) return;
-      const el = document.getElementById("overview");
-      if (!el) return;
-      const OFFSET = 148; // matches #overview's scroll-mt-[148px]
-      const top = el.getBoundingClientRect().top + window.scrollY - OFFSET;
-      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+      const overviewEl = document.getElementById("overview");
+      const buyBoxEl = buyBoxRef.current;
+      if (!overviewEl || !buyBoxEl) return;
+
+      const NAV_OFFSET = 148; // matches #overview's scroll-mt-[148px]
+      const BOTTOM_PADDING = 16;
+
+      const overviewTop = overviewEl.getBoundingClientRect().top + window.scrollY;
+      const clearNavTarget = overviewTop - NAV_OFFSET;
+
+      const buyBoxBottom = buyBoxEl.getBoundingClientRect().bottom + window.scrollY;
+      const showButtonsTarget = buyBoxBottom - (window.innerHeight - BOTTOM_PADDING);
+
+      const target = Math.max(clearNavTarget, showButtonsTarget, 0);
+      window.scrollTo({ top: target, behavior: "smooth" });
     };
 
-    const t = setTimeout(() => {
-      requestAnimationFrame(() => requestAnimationFrame(scrollToOverview));
-    }, 500);
+    timers.push(window.setTimeout(() => {
+      requestAnimationFrame(() => requestAnimationFrame(performScroll));
+    }, 400));
+    timers.push(window.setTimeout(performScroll, 1200));
 
     return () => {
       cancelled = true;
-      clearTimeout(t);
+      timers.forEach(clearTimeout);
     };
   }, [product.id]);
 
@@ -1160,6 +1182,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
 
           {/* Buy box — price, qty, buttons, trust badges */}
           <motion.div
+            ref={buyBoxRef}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.14 }}
