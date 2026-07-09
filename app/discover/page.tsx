@@ -79,7 +79,7 @@ export default function DiscoverPage() {
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
-        <div className="absolute top-24 left-6 z-[60]">
+        <div className="absolute top-[132px] left-6 z-[60]">
           <BackButton light />
         </div>
         <div className="relative z-10 flex h-full flex-col items-center justify-end pb-16 text-center px-6">

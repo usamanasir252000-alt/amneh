@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProductByHandle } from "@/lib/shopify";
+import { getProductByHandle, getProducts } from "@/lib/shopify";
 import ProductClient from "./ProductClient";
 
 // Fetch fresh from Shopify on EVERY request — same as the old client-side
@@ -18,5 +18,16 @@ export default async function ProductPage(
 
   if (!product) notFound();
 
-  return <ProductClient product={product} />;
+  // "Most Loved" rail at the bottom of the page — same category, current
+  // product excluded, capped well above what we'll ever show so a short
+  // catalog doesn't leave the section looking sparse.
+  // NOTE: getProducts(category) filters on Shopify TAGS, but `product.category`
+  // is derived from productType — the two aren't the same value, so we fetch
+  // unfiltered and match on `category` ourselves instead of passing it through.
+  const allProducts = await getProducts().catch(() => []);
+  const relatedProducts = allProducts
+    .filter((p) => p.handle !== product.handle && p.category === product.category)
+    .slice(0, 8);
+
+  return <ProductClient product={product} relatedProducts={relatedProducts} />;
 }

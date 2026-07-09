@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/CartDrawer";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MetaPixel from "@/components/MetaPixel";
 
@@ -71,6 +72,7 @@ export default function RootLayout({
           page when opened from a Facebook ad.
         */}
         <div className="overflow-x-hidden">
+          <AnnouncementBar />
           <CartProvider>
             {children}
             <CartDrawer />

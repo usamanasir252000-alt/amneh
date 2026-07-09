@@ -5,7 +5,7 @@ const whatsappLink = `https://wa.me/${whatsappPhone}`;
 
 export default function WhatsAppButton() {
   return (
-    <div className="fixed right-2 bottom-3 z-50">
+    <div className="whatsapp-fab fixed right-2 bottom-3 z-50 transition-transform duration-300">
       <a
         href={whatsappLink}
         target="_blank"

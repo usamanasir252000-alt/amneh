@@ -77,7 +77,7 @@ export default function ProfilePage() {
     <main className="bg-[#f1efef] min-h-screen">
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-6 pt-28 pb-12 lg:px-10">
+      <div className="max-w-2xl mx-auto px-6 pt-[148px] pb-12 lg:px-10">
         <div className="mb-6">
           <BackButton />
         </div>

@@ -30,3 +30,47 @@ select {
 ::selection {
   background: rgba(177, 91, 130, 0.18);
 }
+
+/* Announcement bar marquee — AnnouncementBar.tsx renders however many
+   identical copies of the message set are needed to cover the viewport
+   (measured at runtime, re-measured on resize) and sets --marquee-shift to
+   exactly one copy's width, so the loop is gap-free at any screen size. */
+@keyframes marquee-shift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--marquee-shift, -100%));
+  }
+}
+
+.animate-marquee-dynamic {
+  animation-name: marquee-shift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-dynamic {
+    animation: none;
+  }
+}
+
+/* Hides the scrollbar on the product page's horizontally-scrollable section
+   nav — the row of pill tabs still scrolls by touch/drag, just without the
+   OS scrollbar chrome cluttering a slim single-row control. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* The product page's mobile sticky buy bar sits flush with the bottom edge
+   and would otherwise sit underneath/overlap the floating WhatsApp button.
+   ProductClient toggles this class on <body> while that bar is visible so
+   the WhatsApp button lifts clear of it instead of the two colliding. */
+body.pdp-sticky-bar-visible .whatsapp-fab {
+  transform: translateY(-72px);
+}

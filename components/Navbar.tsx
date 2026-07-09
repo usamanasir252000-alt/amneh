@@ -77,7 +77,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 top-9 z-50 transition-all duration-300 ${
         useDarkNav
           ? "bg-white shadow-[0_1px_0_rgba(0,0,0,0.07)]"
           : "bg-transparent"

@@ -38,7 +38,7 @@ function Stars({ count = 4 }: { count?: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
-          className={`h-3.5 w-3.5 ${i <= count ? "text-gray-700" : "text-gray-300"}`}
+          className={`h-3.5 w-3.5 ${i <= count ? "text-amber-400" : "text-gray-200"}`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -62,6 +62,8 @@ function SkincareProductCard({ product }: { product: Product }) {
   const primaryImage = images[0].url;
   const hoverImage = images[1]?.url ?? null;
   const imgCount = images.length;
+  const hasDiscount = product.compareAtPrice != null && product.compareAtPrice > product.price;
+  const discountPct = hasDiscount ? Math.round((1 - product.price / (product.compareAtPrice as number)) * 100) : 0;
 
   const handleAddToCart = () => {
     addItem({
@@ -75,11 +77,11 @@ function SkincareProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="group cursor-pointer">
+    <div className="group">
       <Link href={`/products/${product.id}`} className="block">
         {/* ── Mobile: swipe carousel with dots ── */}
         <div
-          className="md:hidden relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
+          className="md:hidden relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#dff0f8] to-[#fbeef2] aspect-[3/4] shadow-[0_10px_28px_rgba(95,61,78,0.08)]"
           style={{ touchAction: "pan-y" }}
           onTouchStart={(e) => {
             touchStartX.current = e.touches[0].clientX;
@@ -111,9 +113,14 @@ function SkincareProductCard({ product }: { product: Product }) {
             ))}
           </div>
 
-          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+          <span className="absolute right-3 top-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm z-10">
             {product.badge}
           </span>
+          {hasDiscount && (
+            <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
+              {discountPct}% OFF
+            </span>
+          )}
 
           {imgCount > 1 && (
             <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
@@ -127,7 +134,7 @@ function SkincareProductCard({ product }: { product: Product }) {
                   }}
                   aria-label={`Image ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === activeIndex ? "w-4 bg-gray-900" : "w-1.5 bg-white/70"
+                    i === activeIndex ? "w-5 bg-white" : "w-1.5 bg-white/60"
                   }`}
                 />
               ))}
@@ -137,7 +144,7 @@ function SkincareProductCard({ product }: { product: Product }) {
 
         {/* ── Desktop: hover image swap ── */}
         <div
-          className="hidden md:block relative overflow-hidden bg-[#dff0f8] aspect-[3/4]"
+          className="hidden md:block relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#dff0f8] to-[#fbeef2] aspect-[3/4] shadow-[0_10px_28px_rgba(95,61,78,0.08)] transition-shadow duration-300 group-hover:shadow-[0_20px_48px_rgba(95,61,78,0.16)]"
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
@@ -145,7 +152,7 @@ function SkincareProductCard({ product }: { product: Product }) {
             src={primaryImage}
             alt={product.name}
             fill
-            className={`object-cover object-center transition-opacity duration-500 ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
+            className={`object-cover object-center transition-all duration-500 ${hovered ? "scale-105" : "scale-100"} ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
             sizes="33vw"
           />
           {hoverImage && (
@@ -153,70 +160,110 @@ function SkincareProductCard({ product }: { product: Product }) {
               src={hoverImage}
               alt={product.name}
               fill
-              className={`object-cover object-center absolute inset-0 transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
+              className={`object-cover object-center absolute inset-0 scale-105 transition-opacity duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
               sizes="33vw"
             />
           )}
-          <span className="absolute right-3 top-3 bg-white px-2.5 py-1 text-[10px] uppercase tracking-wide text-gray-700 z-10">
+          <span className="absolute right-3 top-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm z-10">
             {product.badge}
           </span>
+          {hasDiscount && (
+            <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
+              {discountPct}% OFF
+            </span>
+          )}
         </div>
       </Link>
 
-      <div className="mt-4">
-        <Stars count={product.badge === "best seller" ? 5 : 4} />
-        <p className="mt-1.5 text-[15px] font-semibold text-gray-900">{product.name}</p>
+      <div className="mt-2.5 sm:mt-4">
+        <div className="scale-90 origin-left sm:scale-100"><Stars count={product.badge === "best seller" ? 5 : 4} /></div>
+        <p className="mt-1 sm:mt-1.5 text-[12.5px] sm:text-[15px] font-semibold text-gray-900 leading-snug line-clamp-1 transition-colors group-hover:text-[#5f3d4e]">{product.name}</p>
         {product.tagline && (
-          <p className="text-[13px] text-[#2b6c8a]">{product.tagline}</p>
+          <p className="hidden sm:block text-[13px] text-[#4d9ab5]">{product.tagline}</p>
         )}
         {product.description && (
-          <p className="mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
+          <p className="hidden sm:block mt-2 text-[12px] leading-5 text-gray-500 line-clamp-2">
             {product.description}
           </p>
         )}
-        <div className="mt-2 flex items-center gap-2 flex-wrap">
-          <span className="text-[15px] font-medium text-gray-900">PKR {product.price}</span>
-          {product.compareAtPrice != null && product.compareAtPrice > product.price && (
-            <>
-              <span className="text-[13px] text-gray-400 line-through">PKR {product.compareAtPrice}</span>
-              <span className="text-[10px] font-bold text-white bg-rose-400 px-1.5 py-0.5 rounded">
-                {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
-              </span>
-            </>
+        <div className="mt-1 sm:mt-2 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <span className="text-[13px] sm:text-[15px] font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
+          {hasDiscount && (
+            <span className="text-[11px] sm:text-[13px] text-gray-400 line-through">PKR {product.compareAtPrice}</span>
           )}
         </div>
       </div>
 
       <button
         onClick={handleAddToCart}
-        className={`mt-4 w-full border py-2.5 text-xs uppercase tracking-[0.2em] transition duration-300 ${
+        className={`mt-2.5 sm:mt-3 w-full flex items-center justify-center gap-1.5 sm:gap-2 rounded-full py-2 sm:py-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.15em] sm:tracking-[0.2em] font-semibold transition-all duration-300 active:scale-[0.97] ${
           added
-            ? "bg-rose-400 text-white border-rose-400"
-            : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+            ? "bg-rose-400 text-white"
+            : "bg-gray-900 text-white hover:bg-gray-700"
         }`}
       >
-        {added ? "✓ Added to cart" : "add to cart"}
+        {added
+          ? <><svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg><span className="hidden sm:inline">Added to Cart</span><span className="sm:hidden">Added</span></>
+          : <><svg className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg><span className="hidden sm:inline">Add to Cart</span><span className="sm:hidden">Add</span></>
+        }
       </button>
+    </div>
+  );
+}
+
+function ProductCardSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-[3/4] rounded-2xl bg-gray-200" />
+      <div className="mt-4 space-y-2">
+        <div className="h-3 w-14 rounded bg-gray-200" />
+        <div className="h-4 w-3/4 rounded bg-gray-200" />
+        <div className="h-3 w-1/3 rounded bg-gray-200" />
+      </div>
+      <div className="mt-3 h-10 rounded-full bg-gray-200" />
     </div>
   );
 }
 
 export default function SkincarePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/products?category=serums")
       .then((r) => r.json())
-      .then(setProducts)
-      .catch(() => {});
+      .then((data) => { setProducts(data); setLoaded(true); })
+      .catch(() => setLoaded(true));
   }, []);
 
+  // Auto-scroll straight to the products on every visit, so shoppers land on
+  // the collection instead of having to scroll past the hero themselves.
+  // Manually computed scrollTo (not scrollIntoView) fired after a settle
+  // delay + double rAF — the same reliable technique used on the product
+  // detail page; a bare scrollIntoView on a fixed timer was getting
+  // silently overridden by the browser's own scroll handling around
+  // navigation/hydration.
   useEffect(() => {
-    const el = document.getElementById("serums");
-    if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - 40;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+
+    const scrollToSerums = () => {
+      if (cancelled) return;
+      const el = document.getElementById("serums");
+      if (!el) return;
+      const OFFSET = 160; // clears the fixed navbar + announcement bar
+      const top = el.getBoundingClientRect().top + window.scrollY - OFFSET;
+      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+    };
+
+    const t = setTimeout(() => {
+      requestAnimationFrame(() => requestAnimationFrame(scrollToSerums));
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, []);
 
   return (
@@ -224,7 +271,7 @@ export default function SkincarePage() {
       <Navbar />
 
       {/* Category hero banner */}
-      <div className="relative mt-[88px] h-[42vh] min-h-[280px] w-full overflow-hidden">
+      <div className="relative mt-[124px] h-[38vh] sm:h-[42vh] min-h-[260px] sm:min-h-[280px] w-full overflow-hidden">
         <Image
           src="/c4.png"
           alt="amneh skincare"
@@ -233,16 +280,16 @@ export default function SkincarePage() {
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/15 to-transparent" />
-        <div className="absolute top-24 left-10 z-[60] lg:left-16">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent" />
+        <div className="absolute top-[132px] left-6 z-[60] sm:left-10 lg:left-16">
           <BackButton light />
         </div>
-        <div className="relative z-10 flex h-full items-end px-10 pb-10 lg:px-16">
+        <div className="relative z-10 flex h-full items-end px-6 pb-8 sm:px-10 sm:pb-10 lg:px-16">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-white/70 mb-2">
+            <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-white/70 mb-2">
               collection
             </p>
-            <h1 className="text-5xl font-bold uppercase tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white">
               Skincare
             </h1>
           </div>
@@ -251,15 +298,15 @@ export default function SkincarePage() {
 
       {/* Sub-category nav */}
       <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-screen-xl items-center gap-8 overflow-x-auto px-8 py-4">
+        <div className="mx-auto flex max-w-screen-xl items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-hide px-6 sm:px-8 py-3.5 sm:py-4">
           {categories.map((cat) => (
             <a
               key={cat}
               href={`#${cat.replace(" ", "-")}`}
-              className={`shrink-0 text-[13px] tracking-wide transition hover:text-gray-900 ${
+              className={`shrink-0 text-[12px] sm:text-[13px] uppercase tracking-wide transition ${
                 cat === "serums"
-                  ? "border-b-2 border-gray-900 pb-0.5 font-semibold text-gray-900"
-                  : "text-gray-500"
+                  ? "border-b-2 border-[#5f3d4e] pb-1 font-semibold text-[#5f3d4e]"
+                  : "text-gray-500 hover:text-gray-900"
               }`}
             >
               {cat}
@@ -271,7 +318,7 @@ export default function SkincarePage() {
       {/* Serums section */}
       <section
         id="serums"
-        className="mx-auto max-w-screen-xl px-6 py-16 lg:px-10"
+        className="mx-auto max-w-screen-xl px-6 py-12 sm:py-16 lg:px-10 scroll-mt-[160px]"
       >
         <FadeUp delay={0} duration={600} distance={14}>
           <h2 className="mb-1 text-sm uppercase tracking-[0.3em] text-gray-400">
@@ -282,26 +329,27 @@ export default function SkincarePage() {
         <RevealText
           lines={["Serums"]}
           tag="h3"
-          className="mb-10 text-3xl font-bold uppercase tracking-tight text-gray-900"
+          className="mb-8 sm:mb-10 text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900"
           delay={80}
         />
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p, i) => (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-8">
+          {!loaded && Array.from({ length: 6 }, (_, i) => <ProductCardSkeleton key={i} />)}
+          {loaded && products.map((p, i) => (
             <ScaleIn key={p.id} delay={i * 90} threshold={0.05}>
               <SkincareProductCard product={p} />
             </ScaleIn>
           ))}
-          {products.length === 0 && (
-            <p className="col-span-3 text-center text-gray-300 py-16 text-sm">
-              Loading products…
+          {loaded && products.length === 0 && (
+            <p className="col-span-full text-center text-gray-300 py-16 text-sm">
+              No products found in this collection yet.
             </p>
           )}
         </div>
       </section>
 
       {/* Banner */}
-      <div className="relative h-[50vh] min-h-[340px] w-full overflow-hidden">
+      <div className="relative h-[42vh] sm:h-[50vh] min-h-[300px] sm:min-h-[340px] w-full overflow-hidden">
         <div className="absolute inset-0 block sm:hidden">
           <Image
             src="/r10.png"
@@ -321,17 +369,17 @@ export default function SkincarePage() {
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/35 to-transparent" />
-        <div className="relative z-10 flex h-full items-center px-12 lg:px-20">
+        <div className="relative z-10 flex h-full items-center px-6 sm:px-12 lg:px-20">
           <div className="max-w-xs text-white">
             <RevealText
               lines={["The Full", "Routine"]}
               tag="h2"
-              className="text-3xl font-bold uppercase tracking-tight text-white"
+              className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white"
               delay={0}
               stagger={130}
             />
             <FadeUp delay={300} duration={700}>
-              <p className="mt-4 text-sm leading-7 text-white/80">
+              <p className="mt-3 sm:mt-4 text-sm leading-6 sm:leading-7 text-white/80">
                 Discover our powerful serums, expertly formulated to hydrate,
                 brighten, and reveal your skin’s natural glow
               </p>

@@ -78,8 +78,8 @@ export default function RewardsPage() {
       <Navbar />
 
       {/* Header */}
-      <div className="relative overflow-hidden bg-gray-900 pt-32 pb-16 text-center px-6">
-        <div className="absolute top-24 left-6 z-[60]">
+      <div className="relative overflow-hidden bg-gray-900 pt-[164px] pb-16 text-center px-6">
+        <div className="absolute top-[132px] left-6 z-[60]">
           <BackButton light />
         </div>
         <div className="relative z-10">

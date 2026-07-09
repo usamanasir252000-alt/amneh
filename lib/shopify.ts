@@ -45,6 +45,10 @@ export interface ShopifyProduct {
   benefits: string | null;
   patchTest: string | null;
   whenToUse: string | null;
+  spotlightImages: string | null;
+  bundleIngredients: string | null;
+  mobileHeroImage: string | null;
+  desktopHeroImage: string | null;
 }
 
 export interface ShopifyCartLine {
@@ -118,6 +122,10 @@ function normalizeProduct(node: {
   benefits?: { value: string } | null;
   patchTest?: { value: string } | null;
   whenToUse?: { value: string } | null;
+  spotlightImages?: { value: string } | null;
+  bundleIngredients?: { value: string } | null;
+  mobileHeroImage?: { value: string } | null;
+  desktopHeroImage?: { value: string } | null;
 }): ShopifyProduct {
   const tags = node.tags ?? [];
   const badgeTags = ["best seller", "bestseller", "new", "limited", "sale"];
@@ -155,6 +163,10 @@ function normalizeProduct(node: {
     benefits: node.benefits?.value ?? null,
     patchTest: node.patchTest?.value ?? null,
     whenToUse: node.whenToUse?.value ?? null,
+    spotlightImages: node.spotlightImages?.value ?? null,
+    bundleIngredients: node.bundleIngredients?.value ?? null,
+    mobileHeroImage: node.mobileHeroImage?.value ?? null,
+    desktopHeroImage: node.desktopHeroImage?.value ?? null,
   };
 }
 
@@ -254,6 +266,10 @@ export async function getProductByHandle(
         benefits: metafield(namespace: "custom", key: "benefits") { value }
         patchTest: metafield(namespace: "custom", key: "patch_test") { value }
         whenToUse: metafield(namespace: "custom", key: "when_to_use") { value }
+        spotlightImages: metafield(namespace: "custom", key: "spotlight_images") { value }
+        bundleIngredients: metafield(namespace: "custom", key: "bundle_ingredients") { value }
+        mobileHeroImage: metafield(namespace: "custom", key: "mobile_hero_image") { value }
+        desktopHeroImage: metafield(namespace: "custom", key: "desktop_hero_image") { value }
       }
     }
   `,
