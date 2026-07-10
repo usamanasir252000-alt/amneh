@@ -39,11 +39,15 @@ export default function ProductBadge({ badge, className = "" }: { badge: string;
   const classes = preset?.classes ?? DEFAULT_PRESET.classes;
 
   return (
+    // Shrinks on mobile (smaller text/padding/tracking) so long labels like
+    // "Customer Favourite" fit inside a narrow 2-up mobile card without
+    // overflowing — max-w-full + truncate is a last-resort safety net in
+    // case a future/custom tag produces an even longer label.
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide shadow-sm whitespace-nowrap ${classes} ${className}`}
+      className={`inline-flex max-w-full items-center gap-0.5 sm:gap-1 rounded-full border px-2 sm:px-3 py-0.5 sm:py-1 text-[7.5px] sm:text-[10px] font-bold uppercase tracking-normal sm:tracking-wide shadow-sm whitespace-nowrap ${classes} ${className}`}
     >
-      {label}
-      <span className="text-xs leading-none" aria-hidden>{emoji}</span>
+      <span className="truncate">{label}</span>
+      <span className="flex-shrink-0 text-[9px] sm:text-xs leading-none" aria-hidden>{emoji}</span>
     </span>
   );
 }

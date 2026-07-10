@@ -701,11 +701,6 @@ function LovedProductCard({ product }: { product: Product }) {
           sizes="(max-width: 768px) 60vw, (max-width: 1024px) 40vw, 25vw"
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-110" />
         <ProductBadge badge={product.badge} className="absolute top-3 left-3" />
-        {hasDiscount && (
-          <span className="absolute top-3 right-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-sm">
-            {discountPct}% OFF
-          </span>
-        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </Link>
 
@@ -720,9 +715,16 @@ function LovedProductCard({ product }: { product: Product }) {
             </svg>
           ))}
         </div>
-        <div className="flex items-baseline gap-2 mb-3">
+        <div className="mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-base font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
-          {hasDiscount && <span className="text-xs text-gray-400 line-through">PKR {product.compareAtPrice}</span>}
+          {hasDiscount && (
+            <>
+              <span className="text-xs text-black line-through">PKR {product.compareAtPrice}</span>
+              <span className="inline-block bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 leading-none">
+                {discountPct}% OFF
+              </span>
+            </>
+          )}
         </div>
         <button
           onClick={handleAdd}

@@ -136,14 +136,14 @@ export default function ProductCard({ product }: { product: Product }) {
               PKR {product.price}
             </span>
             {product.compareAtPrice != null && product.compareAtPrice > product.price && (
-              <span className="text-[12px] text-gray-400 line-through">
-                PKR {product.compareAtPrice}
-              </span>
-            )}
-            {product.compareAtPrice != null && product.compareAtPrice > product.price && (
-              <span className="text-[10px] font-semibold text-white bg-rose-400 px-1.5 py-0.5 rounded">
-                {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
-              </span>
+              <>
+                <span className="text-[12px] text-black line-through">
+                  PKR {product.compareAtPrice}
+                </span>
+                <span className="inline-block bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 leading-none">
+                  {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
+                </span>
+              </>
             )}
             {(product.compareAtPrice == null || product.compareAtPrice <= product.price) && (
               <span className="text-[11px] text-gray-400">{product.type}</span>

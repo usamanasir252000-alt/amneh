@@ -115,11 +115,6 @@ function SkincareProductCard({ product }: { product: Product }) {
           </div>
 
           <ProductBadge badge={product.badge} className="absolute right-3 top-3 z-10" />
-          {hasDiscount && (
-            <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
-              {discountPct}% OFF
-            </span>
-          )}
 
           {imgCount > 1 && (
             <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
@@ -164,11 +159,6 @@ function SkincareProductCard({ product }: { product: Product }) {
             />
           )}
           <ProductBadge badge={product.badge} className="absolute right-3 top-3 z-10" />
-          {hasDiscount && (
-            <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
-              {discountPct}% OFF
-            </span>
-          )}
         </div>
       </Link>
 
@@ -186,7 +176,12 @@ function SkincareProductCard({ product }: { product: Product }) {
         <div className="mt-1 sm:mt-2 flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <span className="text-[13px] sm:text-[15px] font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
           {hasDiscount && (
-            <span className="text-[11px] sm:text-[13px] text-gray-400 line-through">PKR {product.compareAtPrice}</span>
+            <>
+              <span className="text-[11px] sm:text-[13px] text-black line-through">PKR {product.compareAtPrice}</span>
+              <span className="inline-block bg-red-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 leading-none">
+                {discountPct}% OFF
+              </span>
+            </>
           )}
         </div>
       </div>
