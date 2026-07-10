@@ -6,6 +6,7 @@ import CartDrawer from "@/components/CartDrawer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://cdn.shopify.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://vercel.live" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
         {/*
           shop.amnehofficial.com is Shopify's checkout domain — a completely
           different origin from this app that the browser has never talked to.
@@ -64,6 +66,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans bg-[#f1efef]`}>
         <MetaPixel />
+        <GoogleAnalytics />
         {/*
           overflow-x-hidden lives on this wrapper, NOT <body>/<html>. Setting it
           directly on body breaks vertical scrolling entirely in Facebook's
