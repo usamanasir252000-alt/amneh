@@ -11,6 +11,7 @@ import { fetchWithRetry } from "@/lib/fetchRetry";
 import { logEvent } from "@/lib/clientLog";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
+import ProductBadge from "@/components/ProductBadge";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 type Product = ShopifyProduct;
@@ -699,7 +700,7 @@ function LovedProductCard({ product }: { product: Product }) {
         <Image src={primaryImage} alt={product.name} fill
           sizes="(max-width: 768px) 60vw, (max-width: 1024px) 40vw, 25vw"
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-110" />
-        <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest text-gray-700 shadow-sm">{product.badge}</span>
+        <ProductBadge badge={product.badge} className="absolute top-3 left-3" />
         {hasDiscount && (
           <span className="absolute top-3 right-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-sm">
             {discountPct}% OFF
@@ -1156,7 +1157,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                 ))}
               </div>
 
-              <span className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest text-gray-700 shadow-md z-10 font-medium">{product.badge}</span>
+              <ProductBadge badge={product.badge} className="absolute top-4 left-4 z-10 shadow-md" />
               {hasDiscount && (
                 <span className="absolute top-4 right-4 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-md z-10">
                   {discountPct}% OFF

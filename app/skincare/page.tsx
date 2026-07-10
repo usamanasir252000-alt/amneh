@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import BackButton from "@/components/BackButton";
+import ProductBadge from "@/components/ProductBadge";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 
 interface ProductImage {
@@ -113,9 +114,7 @@ function SkincareProductCard({ product }: { product: Product }) {
             ))}
           </div>
 
-          <span className="absolute right-3 top-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm z-10">
-            {product.badge}
-          </span>
+          <ProductBadge badge={product.badge} className="absolute right-3 top-3 z-10" />
           {hasDiscount && (
             <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
               {discountPct}% OFF
@@ -164,9 +163,7 @@ function SkincareProductCard({ product }: { product: Product }) {
               sizes="33vw"
             />
           )}
-          <span className="absolute right-3 top-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wide text-gray-700 shadow-sm z-10">
-            {product.badge}
-          </span>
+          <ProductBadge badge={product.badge} className="absolute right-3 top-3 z-10" />
           {hasDiscount && (
             <span className="absolute left-3 top-3 bg-gradient-to-r from-[#5f3d4e] to-[#8a5a70] text-white px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wide shadow-sm z-10">
               {discountPct}% OFF

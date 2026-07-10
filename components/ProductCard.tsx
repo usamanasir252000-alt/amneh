@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import ProductBadge from "@/components/ProductBadge";
 
 interface ProductImage {
   id: string;
@@ -79,9 +80,7 @@ export default function ProductCard({ product }: { product: Product }) {
           ))}
         </div>
 
-        <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700 z-10">
-          {product.badge}
-        </span>
+        <ProductBadge badge={product.badge} className="absolute right-2.5 top-2.5 z-10" />
 
         {imgCount > 1 && (
           <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
@@ -123,9 +122,7 @@ export default function ProductCard({ product }: { product: Product }) {
             sizes="25vw"
           />
         )}
-        <span className="absolute right-2.5 top-2.5 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-700 z-10">
-          {product.badge}
-        </span>
+        <ProductBadge badge={product.badge} className="absolute right-2.5 top-2.5 z-10" />
       </Link>
 
       {/* Info row */}

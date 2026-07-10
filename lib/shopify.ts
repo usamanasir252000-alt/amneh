@@ -106,6 +106,33 @@ async function shopifyFetch<T>(
   return json.data as T;
 }
 
+// Only four badge types are allowed to show, ever. "new" is explicit-tag
+// only — it's excluded from the random/round-robin fallback pool below,
+// since labeling an untagged older product "New" by chance would be
+// misleading. A product only shows "New" if actually tagged that in Shopify.
+const BADGE_SIGNAL_TAGS = [
+  "new", "best selling", "best seller", "bestseller",
+  "customer favorite", "customer favourite", "most loved",
+];
+const FALLBACK_BADGES = ["best selling", "customer favorite", "most loved"];
+
+function hasBadgeSignalTag(tags: string[]): boolean {
+  return tags.some((t) => BADGE_SIGNAL_TAGS.some((b) => t.toLowerCase().includes(b)));
+}
+
+// Deterministic (same product → same badge across requests) but only used
+// as a single-product fallback (getProductByHandle, which has no sibling
+// products to spread badges across). getProducts() below instead assigns
+// fallback badges round-robin across the whole result set, which is what
+// actually guarantees no two products in the same listing show the same
+// badge — a hash can collide, especially with a small catalog and only 3
+// fallback labels; round-robin by position cannot.
+function hashFallbackBadge(handle: string): string {
+  let hash = 0;
+  for (let i = 0; i < handle.length; i++) hash = (hash * 31 + handle.charCodeAt(i)) >>> 0;
+  return FALLBACK_BADGES[hash % FALLBACK_BADGES.length];
+}
+
 function normalizeProduct(node: {
   id: string;
   handle: string;
@@ -128,11 +155,8 @@ function normalizeProduct(node: {
   desktopHeroImage?: { value: string } | null;
 }): ShopifyProduct {
   const tags = node.tags ?? [];
-  const badgeTags = ["best seller", "bestseller", "new", "limited", "sale"];
-  const badge =
-    tags.find((t) => badgeTags.some((b) => t.toLowerCase().includes(b))) ??
-    tags[0] ??
-    "new";
+  const matchedBadge = tags.find((t) => BADGE_SIGNAL_TAGS.some((b) => t.toLowerCase().includes(b)));
+  const badge = matchedBadge ?? hashFallbackBadge(node.handle);
 
   return {
     id: node.handle,
@@ -239,7 +263,23 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
     { first: 50, query: queryFilter }
   );
 
-  return data.products.edges.map((e) => normalizeProduct(e.node));
+  const products = data.products.edges.map((e) => normalizeProduct(e.node));
+
+  // Round-robin the fallback badges across THIS result set — guarantees no
+  // two untagged products in the same listing (e.g. the same category grid)
+  // show the same badge. normalizeProduct's hash-based pick (used above)
+  // can't guarantee that on its own since a hash can collide, especially
+  // with a small catalog and only 3 fallback labels. Products with a real
+  // merchandiser tag (checked independently here) are left untouched.
+  let fallbackIdx = 0;
+  data.products.edges.forEach((e, i) => {
+    if (!hasBadgeSignalTag(e.node.tags ?? [])) {
+      products[i].badge = FALLBACK_BADGES[fallbackIdx % FALLBACK_BADGES.length];
+      fallbackIdx++;
+    }
+  });
+
+  return products;
 }
 
 export async function getProductByHandle(
