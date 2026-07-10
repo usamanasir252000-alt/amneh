@@ -20,6 +20,7 @@ const Footer = dynamic(() => import("../components/Footer"));
 // to server-render or ship their JS until then.
 const ReviewsModal = dynamic(() => import("@/components/ReviewsModal"), { ssr: false });
 const AddReviewModal = dynamic(() => import("@/components/AddReviewModal"), { ssr: false });
+const WelcomePopup = dynamic(() => import("@/components/WelcomePopup"), { ssr: false });
 
 export default function Home() {
   const [reviewsOpen, setReviewsOpen] = useState(false);
@@ -58,6 +59,7 @@ export default function Home() {
 
   return (
     <main>
+      <WelcomePopup />
       <Navbar />
       <div className="relative">
         <Hero />
