@@ -9,7 +9,7 @@
 // visual style rather than becoming separate badge types.
 const NEW = { label: "New", emoji: "🌱", classes: "bg-emerald-50 border-emerald-300 text-emerald-700" };
 const BEST_SELLING = { label: "Best Selling", emoji: "🏆", classes: "bg-cyan-50 border-cyan-300 text-cyan-700" };
-const CUSTOMER_FAVOURITE = { label: "Customer Favourite", emoji: "💖", classes: "bg-fuchsia-50 border-fuchsia-300 text-fuchsia-700" };
+const CUSTOMER_FAV = { label: "Customer Fav", emoji: "💖", classes: "bg-fuchsia-50 border-fuchsia-300 text-fuchsia-700" };
 const MOST_LOVED = { label: "Most Loved", emoji: "💕", classes: "bg-pink-50 border-pink-300 text-pink-600" };
 
 const PRESETS: Record<string, { label: string; emoji: string; classes: string }> = {
@@ -17,8 +17,11 @@ const PRESETS: Record<string, { label: string; emoji: string; classes: string }>
   "best selling": BEST_SELLING,
   "best seller": BEST_SELLING,
   "bestseller": BEST_SELLING,
-  "customer favorite": CUSTOMER_FAVOURITE,
-  "customer favourite": CUSTOMER_FAVOURITE,
+  // All three spellings map to the same "Customer Fav" pill — matches
+  // whichever wording a product might be tagged with in Shopify.
+  "customer favorite": CUSTOMER_FAV,
+  "customer favourite": CUSTOMER_FAV,
+  "customer fav": CUSTOMER_FAV,
   "most loved": MOST_LOVED,
 };
 
@@ -39,8 +42,8 @@ export default function ProductBadge({ badge, className = "" }: { badge: string;
   const classes = preset?.classes ?? DEFAULT_PRESET.classes;
 
   return (
-    // Shrinks on mobile (smaller text/padding/tracking) so long labels like
-    // "Customer Favourite" fit inside a narrow 2-up mobile card without
+    // Shrinks on mobile (smaller text/padding/tracking) so labels like
+    // "Best Selling" fit inside a narrow 2-up mobile card without
     // overflowing — max-w-full + truncate is a last-resort safety net in
     // case a future/custom tag produces an even longer label.
     <span

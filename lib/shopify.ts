@@ -112,9 +112,9 @@ async function shopifyFetch<T>(
 // misleading. A product only shows "New" if actually tagged that in Shopify.
 const BADGE_SIGNAL_TAGS = [
   "new", "best selling", "best seller", "bestseller",
-  "customer favorite", "customer favourite", "most loved",
+  "customer favorite", "customer favourite", "customer fav", "most loved",
 ];
-const FALLBACK_BADGES = ["best selling", "customer favorite", "most loved"];
+const FALLBACK_BADGES = ["best selling", "customer fav", "most loved"];
 
 function hasBadgeSignalTag(tags: string[]): boolean {
   return tags.some((t) => BADGE_SIGNAL_TAGS.some((b) => t.toLowerCase().includes(b)));
