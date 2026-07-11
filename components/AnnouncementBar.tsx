@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 // account for this 36px bar).
 const MESSAGES = [
   "15% OFF ON ALL PRODUCTS",
+  "FREE SHIPPING ON ORDERS Above PKR 3,000",
   "15% OFF ON ALL PRODUCTS",
   "LIMITED TIME ONLY",
 ];
@@ -21,7 +22,7 @@ function MessageSet() {
     <div className="flex shrink-0 items-center">
       {MESSAGES.map((msg, i) => (
         <span key={i} className="flex items-center">
-          <span className="px-8 text-[11px] font-medium uppercase tracking-[0.22em]">
+          <span className="px-8 text-[11px] font-bold uppercase tracking-[0.22em]">
             {msg}
           </span>
           <span aria-hidden className="text-white/40">

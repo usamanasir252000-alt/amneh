@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useState, useEffect, useRef } from "react";
 import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
+import FreeShippingNote from "@/components/FreeShippingNote";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 
 interface ProductImage {
@@ -321,9 +322,13 @@ export default function SkincarePage() {
         <RevealText
           lines={["Serums"]}
           tag="h3"
-          className="mb-8 sm:mb-10 text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900"
+          className="mb-4 text-2xl sm:text-3xl font-bold uppercase tracking-tight text-gray-900"
           delay={80}
         />
+
+        <FadeUp delay={100} duration={500} distance={10}>
+          <FreeShippingNote className="mb-8 sm:mb-10 w-fit mx-auto sm:mx-0" />
+        </FadeUp>
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-8">
           {!loaded && Array.from({ length: 6 }, (_, i) => <ProductCardSkeleton key={i} />)}

@@ -4,6 +4,36 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart, CartItem } from "@/context/CartContext";
 import Image from "next/image";
 
+const FREE_SHIPPING_THRESHOLD = 3000;
+
+// Free-shipping progress banner — the highest-value spot to surface this,
+// since it's shown exactly when a shopper is deciding whether to add one
+// more item. Bold, can't-miss styling per request.
+function FreeShippingBanner({ subtotal }: { subtotal: number }) {
+  const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
+  const unlocked = remaining <= 0;
+  const pct = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+
+  return (
+    <div className="px-6 py-3 bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5]">
+      <p className="text-center text-[12px] sm:text-[13px] font-bold uppercase tracking-wide text-white">
+        {unlocked
+          ? "🎉 You've unlocked FREE shipping!"
+          : <>Add <span className="text-amber-300">PKR {Math.ceil(remaining)}</span> more for FREE shipping</>
+        }
+      </p>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/25">
+        <motion.div
+          className="h-full rounded-full bg-white"
+          initial={false}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function CartDrawer() {
   const {
     items,
@@ -73,6 +103,8 @@ export default function CartDrawer() {
                 </svg>
               </button>
             </div>
+
+            {items.length > 0 && <FreeShippingBanner subtotal={totalPrice} />}
 
             {/* Cart Content */}
             <div className="p-6">
@@ -169,7 +201,9 @@ export default function CartDrawer() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500">
-                      shipping & discounts calculated at checkout
+                      {totalPrice >= FREE_SHIPPING_THRESHOLD
+                        ? "free shipping applied at checkout"
+                        : "additional discounts calculated at checkout"}
                     </p>
                   </div>
 

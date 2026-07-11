@@ -12,6 +12,7 @@ import { logEvent } from "@/lib/clientLog";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
+import FreeShippingNote from "@/components/FreeShippingNote";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 type Product = ShopifyProduct;
@@ -1254,6 +1255,8 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               <p className="text-xs text-rose-500 mt-2 text-center">Checkout is taking too long. Please try again.</p>
             )}
 
+            <FreeShippingNote className="mt-4" />
+
             <TrustBadges />
           </motion.div>
         </div>
@@ -1332,9 +1335,9 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
           >
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               {[
-                { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" },
-                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc:"PKR 200 flat rate across Pakistan" },
-                { icon:"M6 18 18 6M6 6l12 12", title:"No Returns", desc:"All sales are final. For hygiene & safety reasons, we don't accept returns or exchanges." },
+                { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
+                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 3,000+</> as React.ReactNode },
+                { icon:"M6 18 18 6M6 6l12 12", title:"No Returns", desc:"All sales are final. For hygiene & safety reasons, we don't accept returns or exchanges." as React.ReactNode },
               ].map(item => (
                 <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
