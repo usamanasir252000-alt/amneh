@@ -34,12 +34,19 @@ export default function CartDrawer() {
           />
 
           {/* Drawer */}
+          {/* top-9 (not inset-y-0) — the announcement bar sits at z-[70],
+              deliberately above every overlay so it stays visible while
+              they're open (see AnnouncementBar.tsx). A drawer starting at
+              y:0 would have its own z-50 header rendered UNDER that bar,
+              covering the close button. Starting the drawer below the bar
+              instead avoids the stacking conflict entirely, the same way
+              Navbar already offsets itself with top-9. */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white overflow-y-auto shadow-2xl"
+            className="fixed top-9 bottom-0 right-0 z-50 w-full max-w-md bg-white overflow-y-auto shadow-2xl"
           >
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between">
