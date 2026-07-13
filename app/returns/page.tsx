@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
+import { waChatLink, WHATSAPP_DISPLAY } from "@/lib/contact";
 
 export const metadata = {
   title: "Returns & Refunds — amneh.",
@@ -29,11 +30,16 @@ export default function ReturnsPage() {
                 Our Policy
               </h2>
               <p>
-                We want you to love your amneh. products. Because our products
-                are personal-care and skincare items, <strong>all sales are
-                final and we do not offer refunds</strong>. That said, if
-                something is genuinely wrong with your order, we will always try
-                to make it right — see <em>Genuine Issues</em> below.
+                <strong>If your product arrives damaged, broken, or incorrect,
+                we will replace it free of charge</strong> — just send us a
+                photo on WhatsApp within 7 days of delivery. Your money is
+                never at risk on a damaged delivery.
+              </p>
+              <p className="mt-3">
+                Because our products are personal-care and skincare items, we
+                cannot accept returns or exchanges on products that arrive in
+                good condition — <strong>all sales of undamaged items are
+                final</strong>, for hygiene and safety reasons.
               </p>
             </section>
 
@@ -96,10 +102,10 @@ export default function ReturnsPage() {
                 </a>{" "}
                 or via WhatsApp at{" "}
                 <a
-                  href="https://wa.me/923068639708"
+                  href={waChatLink()}
                   className="underline underline-offset-2 text-gray-800"
                 >
-                  +92 306 8639708
+                  {WHATSAPP_DISPLAY}
                 </a>{" "}
                 within 7 days of delivery. Include your order number, a
                 description of the problem, and clear photos. We will review and

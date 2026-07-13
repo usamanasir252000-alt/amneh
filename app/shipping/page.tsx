@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
+import { waChatLink, WHATSAPP_DISPLAY } from "@/lib/contact";
 
 export const metadata = {
   title: "Shipping Policy — amneh.",
@@ -145,10 +146,10 @@ export default function ShippingPage() {
                 </a>{" "}
                 or WhatsApp{" "}
                 <a
-                  href="https://wa.me/923068639708"
+                  href={waChatLink()}
                   className="underline underline-offset-2 text-gray-800"
                 >
-                  +92 306 8639708
+                  {WHATSAPP_DISPLAY}
                 </a>
                 .
               </p>

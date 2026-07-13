@@ -14,12 +14,10 @@ import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
 import FreeShippingNote from "@/components/FreeShippingNote";
 import { FaWhatsapp } from "react-icons/fa";
+import { waChatLink } from "@/lib/contact";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 type Product = ShopifyProduct;
-
-// Same number as the floating WhatsAppButton in the layout.
-const WHATSAPP_ORDER_PHONE = "923068639708";
 
 // ── Ingredient spotlight images ─────────────────────────────────────────────
 // Sourced per-product from Shopify: Admin → Products → (a product) → Metafields
@@ -577,7 +575,10 @@ function Reveal({ children, className }: { children: React.ReactNode; className?
 const TRUST_BADGES = [
   { label: "100% Authentic", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
   { label: "Cash on Delivery", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z" },
-  { label: "Dermatologist Tested", icon: "M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8 1.4 2.8a1.5 1.5 0 01-1.34 2.15H4.14A1.5 1.5 0 012.8 18.1l1.4-2.8" },
+  // NOTE: this slot previously said "Dermatologist Tested" — an unverified
+  // claim (a legal/trust liability if not literally true). Replaced with the
+  // damage-replacement promise, which IS true and answers the #1 COD fear.
+  { label: "Free Replacement if Damaged", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
 ];
 
 function TrustBadges() {
@@ -933,10 +934,24 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   // Fires twice: once after initial settle, and once again ~1s later as a
   // correction pass, in case a slow-loading product photo on mobile data
   // shifted the layout out from under the first scroll.
+  //
+  // YIELDS TO THE USER: the moment the visitor touches, scrolls, or types,
+  // every pending auto-scroll is cancelled permanently. Without this, a
+  // visitor who started reading/scrolling within the first ~1.2s had the
+  // page yanked out from under their thumb (twice!) — scroll hijacking that
+  // feels broken, and the same interruption that originally caused the
+  // invisible-content bug. Auto-scroll now only acts on genuinely idle
+  // landings.
   useEffect(() => {
     if (typeof window === "undefined" || window.innerWidth >= 1024) return;
     let cancelled = false;
     const timers: number[] = [];
+
+    const cancelOnInteraction = () => { cancelled = true; };
+    const INTERACTION_EVENTS: (keyof WindowEventMap)[] = ["touchstart", "wheel", "keydown"];
+    INTERACTION_EVENTS.forEach((ev) =>
+      window.addEventListener(ev, cancelOnInteraction, { passive: true, once: true })
+    );
 
     const performScroll = () => {
       if (cancelled) return;
@@ -965,6 +980,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     return () => {
       cancelled = true;
       timers.forEach(clearTimeout);
+      INTERACTION_EVENTS.forEach((ev) => window.removeEventListener(ev, cancelOnInteraction));
     };
   }, [product.id]);
 
@@ -1028,7 +1044,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     `Hi amneh.! I'd like to order:\n` +
     `${product.name} × ${quantity} — PKR ${product.price * quantity}\n` +
     `Please help me place my order.`;
-  const waOrderHref = `https://wa.me/${WHATSAPP_ORDER_PHONE}?text=${encodeURIComponent(waMessage)}`;
+  const waOrderHref = waChatLink(waMessage);
 
   const handleWhatsAppOrder = () => {
     logEvent("whatsapp_order_click", {
@@ -1446,7 +1462,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               {[
                 { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
                 { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 3,000+</> as React.ReactNode },
-                { icon:"M6 18 18 6M6 6l12 12", title:"No Returns", desc:"All sales are final. For hygiene & safety reasons, we don't accept returns or exchanges." as React.ReactNode },
+                { icon:"M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z", title:"Damage Protection", desc: <><strong className="font-semibold text-gray-700">Damaged, broken, or wrong item? Free replacement</strong> — WhatsApp us a photo within 7 days of delivery. Otherwise all sales are final for hygiene &amp; safety reasons.</> as React.ReactNode },
               ].map(item => (
                 <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
@@ -1462,7 +1478,8 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               ))}
             </div>
             <p className="text-xs text-gray-400">
-              All sales are final — we do not offer returns or exchanges. Full details in our{" "}
+              Damaged or wrong items are replaced free — report within 7 days of delivery. Otherwise all
+              sales are final for hygiene reasons. Full details in our{" "}
               <Link href="/returns" className="underline text-gray-600 hover:text-gray-900 transition">Return Policy</Link>{" "}
               and{" "}
               <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.

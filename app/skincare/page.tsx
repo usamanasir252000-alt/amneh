@@ -246,9 +246,21 @@ export default function SkincarePage() {
   // detail page; a bare scrollIntoView on a fixed timer was getting
   // silently overridden by the browser's own scroll handling around
   // navigation/hydration.
+  //
+  // YIELDS TO THE USER: any touch/scroll/keypress before the timer fires
+  // cancels the auto-scroll permanently — a visitor who has already started
+  // reading or scrolling must never have the page yanked out from under
+  // them (scroll hijacking reads as broken, and interrupted smooth-scrolls
+  // are what originally triggered the invisible-content bug here).
   useEffect(() => {
     if (typeof window === "undefined") return;
     let cancelled = false;
+
+    const cancelOnInteraction = () => { cancelled = true; };
+    const INTERACTION_EVENTS: (keyof WindowEventMap)[] = ["touchstart", "wheel", "keydown"];
+    INTERACTION_EVENTS.forEach((ev) =>
+      window.addEventListener(ev, cancelOnInteraction, { passive: true, once: true })
+    );
 
     const scrollToSerums = () => {
       if (cancelled) return;
@@ -266,6 +278,7 @@ export default function SkincarePage() {
     return () => {
       cancelled = true;
       clearTimeout(t);
+      INTERACTION_EVENTS.forEach((ev) => window.removeEventListener(ev, cancelOnInteraction));
     };
   }, []);
 

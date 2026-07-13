@@ -13,14 +13,34 @@ const SHOW_DELAY_MS = 2500;
 // If the video hasn't finished buffering by this point (very slow
 // connection), reveal the popup anyway rather than waiting indefinitely.
 const MAX_WAIT_MS = 6000;
+const SESSION_KEY = "amneh_welcome_popup_shown";
 
 export default function WelcomePopup() {
   const [videoReady, setVideoReady] = useState(false);
   const [delayElapsed, setDelayElapsed] = useState(false);
+  // null = not yet decided (during SSR/first render); the gate is read in an
+  // effect because sessionStorage doesn't exist on the server.
+  const [eligible, setEligible] = useState<boolean | null>(null);
   const router = useRouter();
 
+  // Once per browser session — restored deliberately as a conversion fix.
+  // Clarity showed real visitors leaving and returning within minutes; with
+  // the every-visit behavior each return got the full-screen popup AGAIN,
+  // interrupting people mid-consideration (popup fatigue is a well-known
+  // conversion killer). Gating also means the 2.3MB video (the single
+  // largest payload on the site) isn't re-downloaded on every homepage
+  // load — the component renders nothing at all once shown this session.
   useEffect(() => {
     if (!POPUP_VIDEO_URL) return;
+    let show = true;
+    try {
+      show = !sessionStorage.getItem(SESSION_KEY);
+    } catch {
+      // Storage blocked (some in-app browsers) — fall back to showing.
+    }
+    setEligible(show);
+    if (!show) return;
+
     const delayTimer = setTimeout(() => setDelayElapsed(true), SHOW_DELAY_MS);
     const failsafeTimer = setTimeout(() => setVideoReady(true), MAX_WAIT_MS);
     return () => {
@@ -31,9 +51,16 @@ export default function WelcomePopup() {
 
   // Reveals only once BOTH the requested delay has passed AND the video has
   // actually buffered enough to play smoothly — whichever finishes last.
-  // Fires every time the homepage is visited/reloaded — no once-per-session
-  // gate, by design.
-  const open = delayElapsed && videoReady;
+  const open = eligible === true && delayElapsed && videoReady;
+
+  // Mark as shown the moment it actually opens (not on mount), so a visitor
+  // who bounces before the 2.5s delay still gets it on their next page.
+  useEffect(() => {
+    if (!open) return;
+    try {
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {}
+  }, [open]);
 
   const close = () => setDelayElapsed(false);
 
@@ -42,7 +69,11 @@ export default function WelcomePopup() {
     router.push("/skincare");
   };
 
-  if (!POPUP_VIDEO_URL) return null;
+  // Render nothing until eligibility is decided (and nothing at all when
+  // ineligible) — this is what prevents the 2.3MB video from being fetched
+  // again on repeat homepage visits this session. Waiting for the effect
+  // costs ~one tick, trivial against the 2.5s reveal delay.
+  if (!POPUP_VIDEO_URL || eligible !== true) return null;
 
   return (
     // Mounted from the very start (not gated behind `open`), so the <video>
