@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useInView } from '@/hooks/useInView';
 import { RevealText, FadeUp } from '@/components/ui/Reveal';
 
@@ -12,10 +13,12 @@ export default function FeatureSplit() {
       {/* ── Mobile layout ─────────────────────────────────────────────── */}
       <div className="md:hidden relative min-h-[78vh] flex flex-col justify-end">
         {/* Full-bleed image */}
-        <img
-          src="/c5.png"
+        <Image
+          src="/c5.webp"
           alt="Intense Hydration Serum"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
         />
         {/* Subtle bottom-only gradient so image stays visible */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -83,10 +86,12 @@ export default function FeatureSplit() {
 
         {/* Right: product image */}
         <div ref={imgRef} className="w-7/12 relative bg-[#c9c9c9] overflow-hidden">
-          <img
-            src="/c5.png"
+          <Image
+            src="/c5.webp"
             alt="Intense Hydration Serum"
-            className="w-full h-full object-cover object-center"
+            fill
+            sizes="58vw"
+            className="object-cover object-center"
             style={{
               transform: imgInView ? 'scale(1)' : 'scale(1.06)',
               transition: 'transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) 100ms',

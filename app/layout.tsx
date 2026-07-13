@@ -48,11 +48,20 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Cuts DNS/TLS handshake time off the first request to each origin. */}
+        {/*
+          Cuts DNS/TLS handshake time off the first request to each origin —
+          kept to only origins the BROWSER itself actually talks to. Shopify
+          product images and Cloudinary uploads never qualify: Shopify images
+          go through Next's /_next/image proxy (the Next.js SERVER fetches
+          cdn.shopify.com, not the browser), and the one place Cloudinary is
+          used client-side (admin product image upload) hits a completely
+          different subdomain (api.cloudinary.com, not res.cloudinary.com) —
+          so preconnecting either on customer-facing pages was pure dead
+          weight, confirmed by PageSpeed Insights flagging both as unused on
+          every page tested.
+        */}
         <link rel="preconnect" href="https://connect.facebook.net" />
-        <link rel="preconnect" href="https://cdn.shopify.com" />
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="preconnect" href="https://vercel.live" />
+        <link rel="preconnect" href="https://www.facebook.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
         {/*

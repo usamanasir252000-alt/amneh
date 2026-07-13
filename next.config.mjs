@@ -3,6 +3,14 @@ const nextConfig = {
   images: {
     qualities: [75, 90, 100],
     formats: ["image/avif", "image/webp"],
+    // Next's default imageSizes tops out at 384, then jumps straight to
+    // deviceSizes' 640 — any image whose real rendered width falls in that
+    // 384-640px gap (product-card thumbnails on this site commonly render
+    // around 405-486px) gets rounded up to 640 regardless of how accurate
+    // its `sizes` prop is, sending noticeably more bytes than needed. Adding
+    // 480 closes that gap (PageSpeed flagged this exact "640x799 requested
+    // for 405x542 displayed" waste on the Most Loved product cards).
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384, 480],
     remotePatterns: [
       {
         protocol: "https",

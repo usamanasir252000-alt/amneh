@@ -91,6 +91,9 @@ export default function Navbar() {
           <img
             src="/logo.svg"
             alt="amneh."
+            width={93}
+            height={32}
+            fetchPriority="high"
             className={`h-8 w-auto transition-all duration-300 ${!useDarkNav ? "brightness-0 invert" : ""}`}
           />
         </a>

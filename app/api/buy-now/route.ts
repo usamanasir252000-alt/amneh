@@ -53,6 +53,14 @@ export async function POST(req: Request) {
   // Only logged-in buyers need the extra round-trip: it swaps in the
   // authenticated checkoutUrl so they land on checkout already signed in.
   // Anonymous buyers (most ad traffic) skip it and redirect immediately.
+  //
+  // Capped at 4s via Promise.race — linkCartToCustomer() calls shopifyFetch,
+  // which has its own 8s timeout, and createCart() above already spent up to
+  // 8s of its own. Uncapped, a logged-in buyer could wait ~16s of pure API
+  // latency before the browser even starts navigating to Shopify checkout —
+  // this is what was surfacing as "checkout sometimes takes 10-15+ seconds
+  // to load." A slow/timed-out link attempt now always falls back to the
+  // guest checkoutUrl already set above rather than blocking the redirect.
   let checkoutUrl = cart.checkoutUrl;
   if (sessionToken) {
     try {
@@ -65,11 +73,14 @@ export async function POST(req: Request) {
         ? { email: payload.email as string }
         : null;
       if (buyerIdentity) {
-        const linked = await linkCartToCustomer(cart.id, buyerIdentity, buyerIp);
+        const linked = await Promise.race([
+          linkCartToCustomer(cart.id, buyerIdentity, buyerIp),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("link-timeout")), 4000)),
+        ]);
         checkoutUrl = linked.checkoutUrl || cart.checkoutUrl;
       }
     } catch {
-      // Fall back to the guest checkoutUrl already set above.
+      // Timed out or failed — fall back to the guest checkoutUrl already set above.
     }
   }
 

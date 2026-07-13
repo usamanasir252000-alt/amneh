@@ -110,7 +110,7 @@ function SkincareProductCard({ product }: { product: Product }) {
                   alt={product.name}
                   fill
                   className="object-cover object-center"
-                  sizes="100vw"
+                  sizes="48vw"
                 />
               </div>
             ))}
@@ -290,7 +290,7 @@ export default function SkincarePage() {
       {/* Category hero banner */}
       <div className="relative mt-[124px] h-[38vh] sm:h-[42vh] min-h-[260px] sm:min-h-[280px] w-full overflow-hidden">
         <Image
-          src="/off2.png"
+          src="/off2.webp"
           alt="amneh skincare"
           fill
           className="object-cover object-center"
