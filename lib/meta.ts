@@ -1,9 +1,11 @@
 // Meta Conversions API (CAPI) — server-side event sending.
 //
 // Stays DORMANT until META env vars are set, so it's safe to deploy before the
-// Meta side is finished. We send the Purchase event server-side ONLY when an
-// order is confirmed on WhatsApp (COD-quality optimization), never on plain
-// order placement.
+// Meta side is finished. The Purchase event currently fires at ORDER CREATION
+// (app/api/webhooks/shopify/route.ts) so a new store's Purchase-optimized ad
+// campaigns have signal to learn from. At real order volume (~30-50/month),
+// move it back to the WhatsApp CONFIRM handler for stricter COD-quality
+// reporting — see the notes at both call sites.
 import crypto from "crypto";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;

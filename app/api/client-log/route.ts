@@ -15,6 +15,7 @@ const ALLOWED_EVENTS = new Set([
   "checkout_click",
   "checkout_link_timeout",
   "checkout_redirect",
+  "whatsapp_order_click",
 ]);
 
 export async function POST(req: Request) {

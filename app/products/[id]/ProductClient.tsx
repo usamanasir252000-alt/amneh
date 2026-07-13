@@ -13,9 +13,13 @@ import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
 import FreeShippingNote from "@/components/FreeShippingNote";
+import { FaWhatsapp } from "react-icons/fa";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 type Product = ShopifyProduct;
+
+// Same number as the floating WhatsAppButton in the layout.
+const WHATSAPP_ORDER_PHONE = "923068639708";
 
 // ── Ingredient spotlight images ─────────────────────────────────────────────
 // Sourced per-product from Shopify: Admin → Products → (a product) → Metafields
@@ -45,18 +49,29 @@ function parseSpotlightImages(raw: string | null): SpotlightImage[] {
     .filter(item => item.url);
 }
 
-// ── Stars ──────────────────────────────────────────────────────────────────
-function Stars({ count = 4 }: { count?: number }) {
+// ── Stars — REAL review data only ───────────────────────────────────────────
+// Rating and count come from actual published Judge.me reviews (fetched in
+// ProductClient below). This used to hardcode "(128 reviews)" with a star
+// count derived from the product badge — pure fabrication, and exactly the
+// kind a shopper catches the moment they open the real reviews list.
+// Renders nothing until real data arrives, and nothing at all if there are
+// no published reviews yet — an absent rating is honest; a fake one is a
+// trust grenade.
+function Stars({ rating, totalReviews }: { rating: number; totalReviews: number }) {
+  if (totalReviews <= 0) return null;
+  const filled = Math.round(rating);
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex gap-0.5">
         {[1,2,3,4,5].map(i => (
-          <svg key={i} className={`h-3.5 w-3.5 ${i <= count ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
+          <svg key={i} className={`h-3.5 w-3.5 ${i <= filled ? "text-amber-400" : "text-gray-200"}`} fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
       </div>
-      <span className="text-[12px] text-gray-400">(128 reviews)</span>
+      <span className="text-[12px] text-gray-400">
+        {rating.toFixed(1)} ({totalReviews} review{totalReviews === 1 ? "" : "s"})
+      </span>
     </div>
   );
 }
@@ -734,15 +749,11 @@ function LovedProductCard({ product }: { product: Product }) {
 
       <div className="p-4">
         <Link href={`/products/${product.id}`} className="block">
-          <p className="text-sm font-semibold text-gray-900 leading-tight truncate mb-1.5 transition-colors group-hover:text-[#5f3d4e]">{product.name}</p>
+          {/* No star row here — it used to render a hardcoded 5.0 rating,
+              which is fabricated social proof. Real per-product ratings can
+              come back once Judge.me reviews are linked to products. */}
+          <p className="text-sm font-semibold text-gray-900 leading-tight truncate mb-2 transition-colors group-hover:text-[#5f3d4e]">{product.name}</p>
         </Link>
-        <div className="flex items-center gap-0.5 mb-2.5">
-          {[1,2,3,4,5].map(s => (
-            <svg key={s} className="h-3 w-3 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
         <div className="mb-3 flex items-center gap-2 flex-wrap">
           <span className="text-base font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
           {hasDiscount && (
@@ -836,8 +847,33 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState("overview");
+  const [reviewStats, setReviewStats] = useState<{ avg: number; count: number } | null>(null);
   const touchStartX = useRef(0);
   const buyBoxRef = useRef<HTMLDivElement>(null);
+
+  // Real review stats from Judge.me (store-wide published reviews — the same
+  // set the homepage reviews modal shows). Drives the star rating + count in
+  // the buy box; until this resolves (or if there are zero reviews), no
+  // rating is shown at all — never a fabricated one.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/reviews")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const ratings = data
+          .map((r: { rating?: unknown }) => Number(r?.rating))
+          .filter((n: number) => Number.isFinite(n) && n >= 1 && n <= 5);
+        if (ratings.length > 0) {
+          setReviewStats({
+            avg: ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length,
+            count: ratings.length,
+          });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Meta Pixel: product view
   useEffect(() => {
@@ -983,6 +1019,36 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     setTimeout(() => setAdded(false), 2500);
   };
 
+  // "Order on WhatsApp" — an alternative to web checkout for shoppers who
+  // don't trust filling a checkout form on an unknown brand (very common in
+  // the Pakistan COD market) but will happily order in a chat. Opens WhatsApp
+  // with a prefilled message naming the exact product/qty/total, so the
+  // conversation starts ready-to-confirm instead of "hi".
+  const waMessage =
+    `Hi amneh.! I'd like to order:\n` +
+    `${product.name} × ${quantity} — PKR ${product.price * quantity}\n` +
+    `Please help me place my order.`;
+  const waOrderHref = `https://wa.me/${WHATSAPP_ORDER_PHONE}?text=${encodeURIComponent(waMessage)}`;
+
+  const handleWhatsAppOrder = () => {
+    logEvent("whatsapp_order_click", {
+      variantId: product.variantId,
+      name: product.name,
+      quantity,
+      value: product.price * quantity,
+    });
+    // Standard Meta "Contact" event — real intent signal for the pixel from
+    // shoppers who order via chat instead of checkout (otherwise they'd look
+    // like bounces to the algorithm).
+    fbTrack("Contact", {
+      content_ids: [product.variantId],
+      content_name: product.name,
+      content_type: "product",
+      value: product.price * quantity,
+      currency: "PKR",
+    });
+  };
+
   const handleBuyNow = async () => {
     if (buyingNow) return;
     setBuyingNow(true);
@@ -1084,7 +1150,9 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
           >
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#4d9ab5] font-semibold mb-1.5 sm:mb-3">{product.type}</p>
             <h1 className="text-[1.7rem] leading-tight sm:text-3xl lg:text-4xl font-bold uppercase tracking-tight text-gray-900 mb-2 sm:mb-3 break-words">{product.name}</h1>
-            <div className="mb-2.5 sm:mb-5"><Stars count={product.badge==="best seller"?5:4} /></div>
+            {reviewStats && (
+              <div className="mb-2.5 sm:mb-5"><Stars rating={reviewStats.avg} totalReviews={reviewStats.count} /></div>
+            )}
 
             {/* Desktop only — price sits beside the image here, not above it,
                 so this is fine; on mobile it moves to its own row below the
@@ -1281,6 +1349,20 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
             {buyNowError && (
               <p className="text-xs text-rose-500 mt-2 text-center">Checkout is taking too long. Please try again.</p>
             )}
+
+            {/* Order on WhatsApp — outlined (vs the solid CTAs above) to keep
+                the visual hierarchy: checkout first, chat as the alternative. */}
+            <motion.a
+              whileTap={{ scale: 0.97 }}
+              href={waOrderHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={handleWhatsAppOrder}
+              className="w-full flex items-center justify-center gap-2.5 py-4 mt-3 rounded-full text-sm uppercase tracking-[0.25em] font-medium border-2 border-[#25D366] text-[#128C7E] hover:bg-[#25D366] hover:text-white transition-all duration-300"
+            >
+              <FaWhatsapp className="h-5 w-5" />
+              Order on WhatsApp
+            </motion.a>
 
             <FreeShippingNote className="mt-4" />
 

@@ -2,13 +2,11 @@ import { NextRequest } from 'next/server';
 import {
   findOrderByPhone,
   findOrderByMessageSid,
-  getOrderConversionData,
   addOrderTag,
   removeOrderTag,
   cancelShopifyOrder,
   awardLoyaltyForOrder,
 } from '@/lib/shopify-admin';
-import { sendMetaPurchase } from '@/lib/meta';
 
 function twiml(message: string) {
   const escaped = message
@@ -101,28 +99,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // COD-quality conversion: only a WhatsApp-CONFIRMED order is reported to
-      // Meta as a Purchase, so the algorithm optimizes for real buyers, not
-      // every (often-cancelled) COD order. Best-effort — never blocks the reply.
-      try {
-        const conv = await getOrderConversionData(order.id);
-        if (conv && conv.value > 0) {
-          await sendMetaPurchase({
-            eventId: `purchase_${order.id}`,
-            value: conv.value,
-            currency: conv.currency,
-            email: conv.email,
-            phone: conv.phone,
-            fbp: conv.fbp,
-            fbc: conv.fbc,
-            clientIp: conv.fbIp,
-            clientUserAgent: conv.fbUa,
-            eventSourceUrl: 'https://amnehofficial.com',
-          });
-        }
-      } catch (err) {
-        console.error('[Meta CAPI] failed to send Purchase on confirm:', err);
-      }
+      // NOTE: the Meta CAPI Purchase used to fire HERE, on WhatsApp
+      // confirmation only (COD-quality optimization). It now fires at order
+      // creation instead (app/api/webhooks/shopify/route.ts) — with zero
+      // purchase history, confirmed-only reporting starved the Purchase-
+      // optimized ad campaign of any signal to learn from. Once real order
+      // volume exists (~30-50/month), move it back here for stricter
+      // quality; keep the same `purchase_${order.id}` event_id when doing so.
 
       // Award loyalty points for this confirmed order. A confirmed order is the
       // store's definition of a real COD sale (same bar as the Meta Purchase

@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import crypto from 'crypto';
 import { addOrderTag, waSidTag, awardLoyaltyForOrder } from '@/lib/shopify-admin';
 import { sendOrderConfirmation, formatPhone } from '@/lib/whatsapp';
+import { sendMetaPurchase } from '@/lib/meta';
+
+// Pulls a Meta-attribution attribute (_fbp/_fbc/_fb_ip/_fb_ua, stashed on the
+// cart at checkout time — see setCartAttributes) out of the order webhook
+// payload. Shopify surfaces cart attributes as note_attributes on the order.
+function noteAttr(order: any, key: string): string | null {
+  const attrs: any[] = order?.note_attributes ?? [];
+  const hit = attrs.find((a) => (a?.name ?? a?.key) === key);
+  return hit?.value ?? null;
+}
 
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
@@ -39,6 +50,51 @@ export async function POST(req: NextRequest) {
       console.error('[Loyalty] Failed to process paid order:', err);
     }
     return NextResponse.json({ ok: true, loyalty: true });
+  }
+
+  // Meta CAPI Purchase — fired at ORDER CREATION, not WhatsApp confirmation.
+  //
+  // The original design only reported WhatsApp-CONFIRMED orders as Purchases
+  // (COD-quality optimization). That's the right call at volume, but with a
+  // brand-new store it starves Meta's algorithm completely: a Purchase-
+  // optimized campaign whose pixel has never seen a Purchase has nothing to
+  // learn from and barely delivers. Until there's real order volume
+  // (~30-50/month), every created order counts; tighten back to
+  // confirmed-only later by moving this into the WhatsApp CONFIRM handler
+  // again. event_id is `purchase_${order.id}`, so Meta dedupes retries of
+  // this webhook (and any overlap if the confirm-time event is ever
+  // re-enabled within the dedup window).
+  //
+  // Runs via after() so a slow Graph API call never delays the webhook
+  // response or the WhatsApp prompt below. Placed BEFORE the no-phone early
+  // return — a Purchase must be reported even for orders without a phone.
+  if (topic === 'orders/create' || topic === '') {
+    const orderId = String(order.id);
+    const value = parseFloat(order.total_price ?? '0');
+    if (value > 0) {
+      after(async () => {
+        await sendMetaPurchase({
+          eventId: `purchase_${orderId}`,
+          value,
+          currency: order.currency ?? 'PKR',
+          email: order.email ?? order.customer?.email ?? null,
+          phone:
+            order.shipping_address?.phone ??
+            order.billing_address?.phone ??
+            order.customer?.phone ??
+            order.phone ??
+            null,
+          fbp: noteAttr(order, '_fbp'),
+          fbc: noteAttr(order, '_fbc'),
+          clientIp: noteAttr(order, '_fb_ip'),
+          clientUserAgent: noteAttr(order, '_fb_ua'),
+          eventSourceUrl: 'https://amnehofficial.com',
+          eventTime: order.created_at
+            ? Math.floor(Date.parse(order.created_at) / 1000)
+            : undefined,
+        });
+      });
+    }
   }
 
   // Extract phone from wherever Shopify puts it
