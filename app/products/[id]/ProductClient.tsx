@@ -1155,14 +1155,21 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
           the page. Desktop keeps the original two-column layout untouched:
           image spans both rows on the left, info stacks on the right. */}
       <div id="overview" className="max-w-screen-xl mx-auto px-6 lg:px-10 py-4 lg:py-6 scroll-mt-[148px]">
-        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-2 gap-x-12 lg:gap-x-20 gap-y-5 lg:gap-y-0">
+        {/* Desktop rows are [auto,1fr] — NOT 1fr/1fr. With equal rows, both
+            rows grow to half the image column's height (the image spans both
+            rows), and since the title block bottom-aligns to row 1, a tall
+            portrait product photo pushed the entire info column down to the
+            image's vertical midpoint — below the fold, right side looked
+            empty. auto/1fr pins the title row to its content height, so the
+            info column starts at the top regardless of image height. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-[auto_1fr] gap-x-12 lg:gap-x-20 gap-y-5 lg:gap-y-5">
 
           {/* Title + price */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="order-1 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-end"
+            className="order-1 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-start"
           >
             <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#4d9ab5] font-semibold mb-1.5 sm:mb-3">{product.type}</p>
             <h1 className="text-[1.7rem] leading-tight sm:text-3xl lg:text-4xl font-bold uppercase tracking-tight text-gray-900 mb-2 sm:mb-3 break-words">{product.name}</h1>
@@ -1256,17 +1263,21 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                 )}
               </div>
               <div className="hidden lg:block relative">
-                {/* Natural intrinsic sizing (no fixed container height) means
-                    a custom desktop_hero_image renders at its own true
-                    aspect ratio automatically — no cropping/letterbox logic
-                    needed here, unlike the mobile block above. */}
+                {/* Natural intrinsic sizing, but CAPPED at 78vh — an uncapped
+                    portrait photo (e.g. the Bundle Pack's 3:4 shot) rendered
+                    ~1400px tall at column width, dominating the whole page.
+                    objectFit:contain only kicks in when the cap actually
+                    bites (landscape/square photos keep their exact natural
+                    aspect, cap never reached); when it does, the photo
+                    letterboxes over the container's gradient background
+                    instead of distorting. */}
                 <Image src={desktopHeroSrc} alt={product.name}
                   width={0} height={0} sizes="50vw"
-                  style={{ width:"100%", height:"auto", visibility: activeImage===0?"visible":"hidden" }}
+                  style={{ width:"100%", height:"auto", maxHeight:"78vh", objectFit:"contain", visibility: activeImage===0?"visible":"hidden" }}
                   className="transition-transform duration-500 ease-out group-hover:scale-105" priority />
                 {images.slice(1).map((img,i) => (
                   <Image key={`${img.id}-d`} src={img.url} alt={product.name} fill
-                    className={`object-cover transition-opacity duration-500 ease-out group-hover:scale-105 ${activeImage===i+1?"opacity-100":"opacity-0"}`}
+                    className={`object-contain transition-opacity duration-500 ease-out group-hover:scale-105 ${activeImage===i+1?"opacity-100":"opacity-0"}`}
                     sizes="50vw" />
                 ))}
               </div>
