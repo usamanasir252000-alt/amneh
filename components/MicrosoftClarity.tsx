@@ -14,11 +14,18 @@ export default function MicrosoftClarity() {
 
   return (
     <Script id="ms-clarity" strategy="afterInteractive">
-      {`(function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
+      {`
+        // Skip entirely on localhost — otherwise every local dev-server test
+        // session gets recorded into the same dashboard as real visitors,
+        // making the data useless for judging actual customer behavior.
+        if (!/^(localhost|127\\.0\\.0\\.1)$/.test(window.location.hostname)) {
+          (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");
+        }
+      `}
     </Script>
   );
 }
