@@ -10,6 +10,7 @@ import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
 import FreeShippingNote from "@/components/FreeShippingNote";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
+import { fetchWithRetry } from "@/lib/fetchRetry";
 
 interface ProductImage {
   id: string;
@@ -221,13 +222,36 @@ function ProductCardSkeleton() {
 export default function SkincarePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
 
+  // fetchWithRetry (not a bare fetch) — mobile/in-app-browser connections
+  // intermittently drop mid-request (see lib/fetchRetry.ts). A bare fetch
+  // has no timeout at all, so a stalled connection just hangs forever with
+  // neither .then nor .catch ever firing — the customer is left staring at
+  // an empty page indefinitely, with no error and no way to recover. This
+  // is what a real customer's Clarity session recording showed: page loaded,
+  // product grid never did, session just sat there until they gave up.
   useEffect(() => {
-    fetch("/api/products?category=serums")
+    let cancelled = false;
+    setLoaded(false);
+    setLoadError(false);
+
+    fetchWithRetry("/api/products?category=serums", { timeoutMs: 10000, retries: 2 })
       .then((r) => r.json())
-      .then((data) => { setProducts(data); setLoaded(true); })
-      .catch(() => setLoaded(true));
-  }, []);
+      .then((data) => {
+        if (cancelled) return;
+        setProducts(data);
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoadError(true);
+        setLoaded(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [retryTick]);
 
   // Auto-scroll straight to the products on every visit, so shoppers land on
   // the collection instead of having to scroll past the hero themselves.
@@ -332,12 +356,25 @@ export default function SkincarePage() {
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-3 lg:gap-8">
           {!loaded && Array.from({ length: 6 }, (_, i) => <ProductCardSkeleton key={i} />)}
-          {loaded && products.map((p, i) => (
+          {loaded && !loadError && products.map((p, i) => (
             <ScaleIn key={p.id} delay={i * 90} threshold={0.05}>
               <SkincareProductCard product={p} />
             </ScaleIn>
           ))}
-          {loaded && products.length === 0 && (
+          {loaded && loadError && (
+            <div className="col-span-full flex flex-col items-center gap-4 py-16 text-center">
+              <p className="text-sm text-gray-500">
+                Couldn&apos;t load products — check your connection and try again.
+              </p>
+              <button
+                onClick={() => setRetryTick((t) => t + 1)}
+                className="rounded-full bg-gray-900 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white hover:bg-gray-700 transition"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+          {loaded && !loadError && products.length === 0 && (
             <p className="col-span-full text-center text-gray-300 py-16 text-sm">
               No products found in this collection yet.
             </p>

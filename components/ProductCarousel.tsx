@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
+import { fetchWithRetry } from "@/lib/fetchRetry";
 
 interface ProductImage {
   id: string;
@@ -24,15 +25,35 @@ interface Product {
 
 export default function ProductCarousel() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loadError, setLoadError] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
   const [start, setStart] = useState(0);
   const perPage = 4;
 
+  // fetchWithRetry (not a bare fetch) — mobile/in-app-browser connections
+  // intermittently drop mid-request (see lib/fetchRetry.ts). The previous
+  // bare fetch with a silent .catch(() => {}) meant a failed request left
+  // `products` empty forever with no distinction from "still loading" —
+  // a visitor on a dropped connection would see "Loading products…" stuck
+  // on screen permanently, with no error and no way to recover. This is the
+  // exact failure a real customer's session recording showed on /skincare.
   useEffect(() => {
-    fetch("/api/products")
+    let cancelled = false;
+    setLoadError(false);
+
+    fetchWithRetry("/api/products", { timeoutMs: 10000, retries: 2 })
       .then((r) => r.json())
-      .then(setProducts)
-      .catch(() => {});
-  }, []);
+      .then((data) => {
+        if (cancelled) return;
+        setProducts(data);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoadError(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [retryTick]);
 
   const visible = products.slice(start, start + perPage);
 
@@ -63,7 +84,14 @@ export default function ProductCarousel() {
         className="flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-3 [&::-webkit-scrollbar]:hidden lg:hidden"
         style={{ scrollbarWidth: "none" }}
       >
-        {products.length === 0 ? (
+        {loadError ? (
+          <div className="flex w-full flex-col items-center gap-4 py-16 text-center">
+            <p className="text-sm text-gray-500">Couldn&apos;t load products — check your connection.</p>
+            <button onClick={() => setRetryTick((t) => t + 1)} className="rounded-full bg-gray-900 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white hover:bg-gray-700 transition">
+              Retry
+            </button>
+          </div>
+        ) : products.length === 0 ? (
           <p className="py-16 text-center text-gray-300 text-sm w-full">
             Loading…
           </p>
@@ -113,7 +141,15 @@ export default function ProductCarousel() {
               <ProductCard product={p} />
             </ScaleIn>
           ))}
-          {visible.length === 0 && (
+          {visible.length === 0 && loadError && (
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <p className="text-sm text-gray-500">Couldn&apos;t load products — check your connection.</p>
+              <button onClick={() => setRetryTick((t) => t + 1)} className="rounded-full bg-gray-900 px-6 py-2.5 text-xs uppercase tracking-[0.2em] text-white hover:bg-gray-700 transition">
+                Retry
+              </button>
+            </div>
+          )}
+          {visible.length === 0 && !loadError && (
             <div className="py-16 text-center text-gray-300 text-sm">
               Loading products…
             </div>
