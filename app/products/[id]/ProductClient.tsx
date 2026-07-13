@@ -110,7 +110,7 @@ function BenefitsGrid({ text }: { text: string }) {
       {items.map((item, i) => (
         <motion.div
           key={i}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 1, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.4, delay: i * 0.06 }}
@@ -226,7 +226,7 @@ function PatchTestSteps({ text }: { text: string }) {
       {steps.map((desc, i) => (
         <motion.div
           key={i}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 1, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.4, delay: i * 0.08 }}
@@ -315,7 +315,7 @@ function IngredientSpotlight({ images }: { images: SpotlightImage[] }) {
         return (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.45, delay: i * 0.08 }}
@@ -434,7 +434,7 @@ function BundleIngredientsList({ groups }: { groups: BundleIngredientGroup[] }) 
       {groups.map((g, i) => (
         <motion.div
           key={i}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 1, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.4, delay: i * 0.08 }}
@@ -494,7 +494,7 @@ function HowToUseSteps({ text }: { text: string | null }) {
       {steps.map((step, i) => (
         <motion.div
           key={i}
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 1, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.4, delay: i * 0.08 }}
@@ -516,13 +516,40 @@ function HowToUseSteps({ text }: { text: string | null }) {
 
 // ── Scroll-reveal wrapper — fades/slides a section's content in once, the
 // first time it enters the viewport, instead of everything below the fold
-// sitting static until scrolled to. ─────────────────────────────────────────
+// sitting static until scrolled to.
+//
+// NOT using Framer's `whileInView` directly: that gates opacity entirely on
+// its internal IntersectionObserver ever firing, with no fallback. A real
+// customer's session recording showed this exact pattern (same idea, in
+// hooks/useInView.ts) leaving a whole product section permanently invisible
+// — the observer never fired because a programmatic auto-scroll elsewhere
+// got interrupted by the user touching the screen mid-scroll, so the section
+// never crossed the visibility threshold, so `whileInView` never fired, so
+// it stayed at opacity:0 forever. This wrapper does its own IntersectionObserver
+// with a 2s fallback timer, same fix as hooks/useInView.ts: content can
+// still animate in on scroll for the normal case, but can never stay hidden
+// forever no matter what interrupts the scroll. ─────────────────────────────
 function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setShown(true); },
+      { threshold: 0.1, rootMargin: "-60px 0px" }
+    );
+    obs.observe(el);
+    const fallback = setTimeout(() => setShown(true), 2000);
+    return () => { obs.unobserve(el); clearTimeout(fallback); };
+  }, []);
+
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
+      animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 24 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={className}
     >
@@ -762,7 +789,7 @@ function MostLoved({ products }: { products: Product[] }) {
           {products.slice(0, 6).map((p, i) => (
             <motion.div
               key={p.id}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 1, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, delay: i * 0.06 }}
@@ -778,7 +805,7 @@ function MostLoved({ products }: { products: Product[] }) {
           {products.slice(0, 4).map((p, i) => (
             <motion.div
               key={p.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
