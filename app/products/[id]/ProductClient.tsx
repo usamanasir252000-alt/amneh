@@ -1467,54 +1467,47 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                 Hidden on products already tagged "bundle" in Shopify: a bundle
                 already packages multiple products, so a "buy more" multiplier
                 on top of it doesn't apply. */}
+            {/* Compact 3-up pack selector — a single short row instead of three
+                tall stacked cards, so the image + price + Buy Now + Add to Cart
+                all stay in view without scrolling on small phones, while still
+                surfacing the "buy more, save more" tiers for AOV. */}
             {!product.isBundle && (
-            <div className="mb-4 sm:mb-5 space-y-2.5">
-              <p className="text-xs uppercase tracking-widest text-gray-500 mb-2.5">Choose your pack</p>
-              {BUNDLE_TIERS.map((tier) => {
-                const selected = quantity === tier.qty;
-                const full = product.price * tier.qty;
-                const discounted = Math.round(full * (1 - tier.discountPct / 100));
-                return (
-                  <button
-                    key={tier.qty}
-                    onClick={() => setQuantity(tier.qty)}
-                    className={`w-full flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all duration-200 active:scale-[0.99] ${
-                      selected
-                        ? "border-[#5f3d4e] bg-[#faf1f4] shadow-[0_6px_18px_rgba(95,61,78,0.12)]"
-                        : "border-gray-200 bg-white hover:border-[#4d9ab5]/50"
-                    }`}
-                  >
-                    <span className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-[#5f3d4e]" : "border-gray-300"}`}>
-                      {selected && <span className="h-2.5 w-2.5 rounded-full bg-[#5f3d4e]" />}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-900">
-                          {tier.qty} {tier.qty === 1 ? "Bottle" : "Bottles"}
-                        </span>
-                        {tier.badge && (
-                          <span className="rounded-full bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
-                            {tier.badge}
-                          </span>
-                        )}
-                      </div>
-                      {(tier.discountPct > 0 || tier.freeShipping) && (
-                        <span className="text-[11px] text-[#4d9ab5] font-medium">
-                          {tier.discountPct > 0 && `Save ${tier.discountPct}%`}
-                          {tier.discountPct > 0 && tier.freeShipping && " · "}
-                          {tier.freeShipping && "Free shipping"}
+            <div className="mb-3 sm:mb-4">
+              <p className="text-[11px] uppercase tracking-widest text-gray-500 mb-2">Choose your pack</p>
+              <div className="grid grid-cols-3 gap-2">
+                {BUNDLE_TIERS.map((tier) => {
+                  const selected = quantity === tier.qty;
+                  const full = product.price * tier.qty;
+                  const discounted = Math.round(full * (1 - tier.discountPct / 100));
+                  return (
+                    <button
+                      key={tier.qty}
+                      onClick={() => setQuantity(tier.qty)}
+                      className={`relative flex flex-col items-center rounded-xl border-2 px-1.5 pt-3 pb-2 text-center transition-all duration-200 active:scale-[0.98] ${
+                        selected
+                          ? "border-[#5f3d4e] bg-[#faf1f4] shadow-[0_6px_18px_rgba(95,61,78,0.12)]"
+                          : "border-gray-200 bg-white hover:border-[#4d9ab5]/50"
+                      }`}
+                    >
+                      {tier.badge && (
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] px-1.5 py-0.5 text-[7.5px] font-bold uppercase tracking-wide text-white shadow-sm">
+                          {tier.badge}
                         </span>
                       )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="block text-sm font-bold text-gray-900">PKR {discounted}</span>
-                      {tier.discountPct > 0 && (
-                        <span className="block text-[11px] text-gray-400 line-through">PKR {full}</span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+                      <span className="text-[11px] font-semibold text-gray-900 leading-tight whitespace-nowrap">
+                        {tier.qty} {tier.qty === 1 ? "Bottle" : "Bottles"}
+                      </span>
+                      <span className="mt-1 text-[13px] font-bold text-gray-900 leading-none">PKR {discounted}</span>
+                      <span className="mt-0.5 text-[9px] leading-none text-gray-400 line-through min-h-[11px]">
+                        {tier.discountPct > 0 ? `PKR ${full}` : " "}
+                      </span>
+                      <span className="mt-1 text-[9.5px] font-bold text-[#4d9ab5] leading-tight whitespace-nowrap min-h-[12px]">
+                        {tier.discountPct > 0 ? `Save ${tier.discountPct}%` : " "}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             )}
 
