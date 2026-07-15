@@ -26,14 +26,14 @@ export interface UgcVideo {
 
 export const UGC_VIDEOS: UgcVideo[] = [
   // Example (delete this comment, add real ones):
-   { url: "https://cdn.shopify.com/videos/c/o/v/c0521b53017543379c5d3b0e231e18e9.mp4", startSec: 0, endSec: 20, name: "@creator" },
-   { url: "https://cdn.shopify.com/videos/c/o/v/b6e97c2b58934cf1b4253d415fb26895.mp4", startSec: 4, endSec: 36, name: "@creator" },
-      { url: "https://cdn.shopify.com/videos/c/o/v/21597c37be254a3fbc1df2ed7e07be9d.mp4", startSec: 4, endSec: 28, name: "@creator" },
-         { url: "https://cdn.shopify.com/videos/c/o/v/62549b989d90464aa08a95f2896acea6.mp4", startSec: 0, endSec: 35, name: "@creator" },
+   { url: "https://cdn.shopify.com/videos/c/o/v/c0521b53017543379c5d3b0e231e18e9.mp4", startSec: 0, endSec: 20, name: "@lensofan" },
+   { url: "https://cdn.shopify.com/videos/c/o/v/b6e97c2b58934cf1b4253d415fb26895.mp4", startSec: 4, endSec: 36, name: "@lifewithhibs_" },
+      { url: "https://cdn.shopify.com/videos/c/o/v/21597c37be254a3fbc1df2ed7e07be9d.mp4", startSec: 4, endSec: 28, name: "@looksbyridaa" },
+         { url: "https://cdn.shopify.com/videos/c/o/v/62549b989d90464aa08a95f2896acea6.mp4", startSec: 0, endSec: 35, name: "@kk_fencer_official" },
 
-   { url: "https://cdn.shopify.com/videos/c/o/v/6e44b640a23146c696c04e7de54d952e.mp4", startSec: 6, endSec: 30, name: "@creator" },
-   { url: "https://cdn.shopify.com/videos/c/o/v/803319aa794948c88d59470808f8eb8f.mp4", startSec: 29, endSec: 33, name: "@creator" },
-   { url: "https://cdn.shopify.com/videos/c/o/v/9cbf3833a78d44fca9943668177929ac.mp4", startSec: 18, endSec: 35, name: "@creator" },
+   { url: "https://cdn.shopify.com/videos/c/o/v/6e44b640a23146c696c04e7de54d952e.mp4", startSec: 6, endSec: 30, name: "@fitsandflicksbywish" },
+   { url: "https://cdn.shopify.com/videos/c/o/v/803319aa794948c88d59470808f8eb8f.mp4", startSec: 29, endSec: 33, name: "@soonhraniii" },
+   { url: "https://cdn.shopify.com/videos/c/o/v/9cbf3833a78d44fca9943668177929ac.mp4", startSec: 18, endSec: 35, name: "@zeeeobv" },
 
 
 

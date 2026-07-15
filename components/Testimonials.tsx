@@ -178,8 +178,10 @@ function UgcVideoCard({ video }: { video: UgcVideo }) {
           ref={ref}
           src={video.url}
           // Only starts once the card is near the viewport (see `load`), so
-          // off-screen cards cost nothing until you approach them.
-          preload="auto"
+          // off-screen cards cost nothing until you approach them. "metadata"
+          // (not "auto") streams the trimmed segment via a range request instead
+          // of buffering from byte 0 — less data, faster reveal.
+          preload="metadata"
           poster={video.poster}
           muted={muted}
           loop

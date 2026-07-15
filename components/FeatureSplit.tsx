@@ -17,7 +17,7 @@ export default function FeatureSplit() {
       <div className="md:hidden relative min-h-[78vh] flex flex-col justify-end">
         {/* Full-bleed media — UGC video if configured, else product image */}
         {hasVideo ? (
-          <BackgroundVideo video={FEATURE_VIDEO!} eager />
+          <BackgroundVideo video={FEATURE_VIDEO!} />
         ) : (
           <Image
             src="/c5.webp"
@@ -94,7 +94,7 @@ export default function FeatureSplit() {
         {/* Right: UGC video if configured, else product image */}
         <div ref={imgRef} className="w-7/12 relative bg-[#c9c9c9] overflow-hidden">
           {hasVideo ? (
-            <BackgroundVideo video={FEATURE_VIDEO!} zoom eager />
+            <BackgroundVideo video={FEATURE_VIDEO!} zoom />
           ) : (
             <Image
               src="/c5.webp"

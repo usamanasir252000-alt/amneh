@@ -80,7 +80,9 @@ function TrimVideo({
       <video
         ref={ref}
         src={video.url}
-        preload="auto"
+        // metadata + seek-to-start range-request instead of buffering from 0 —
+        // faster to the trimmed segment, less bandwidth.
+        preload="metadata"
         muted={muted}
         loop
         playsInline

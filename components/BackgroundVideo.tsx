@@ -98,7 +98,12 @@ export default function BackgroundVideo({
         <video
           ref={ref}
           src={video.url}
-          preload="auto"
+          // "metadata" (not "auto"): with a trimmed clip that starts partway in
+          // (e.g. startSec 21), "auto" wastefully buffers from byte 0 up to the
+          // start point before anything shows. "metadata" loads just the header,
+          // then seeking range-requests straight to the segment — far less data,
+          // much faster to first frame. CDN supports range requests.
+          preload="metadata"
           poster={video.poster}
           muted
           loop
