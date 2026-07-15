@@ -3,23 +3,22 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart, CartItem } from "@/context/CartContext";
 import Image from "next/image";
-
-const FREE_SHIPPING_THRESHOLD = 3000;
+import { bundleSavings, FREE_SHIPPING_MIN_QTY } from "@/lib/bundle";
 
 // Free-shipping progress banner — the highest-value spot to surface this,
 // since it's shown exactly when a shopper is deciding whether to add one
-// more item. Bold, can't-miss styling per request.
-function FreeShippingBanner({ subtotal }: { subtotal: number }) {
-  const remaining = FREE_SHIPPING_THRESHOLD - subtotal;
-  const unlocked = remaining <= 0;
-  const pct = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
+// more item. Free shipping unlocks at FREE_SHIPPING_MIN_QTY items (the bundle
+// free-shipping code), so the nudge is quantity-based: one more item does it.
+function FreeShippingBanner({ unlocked, qty }: { unlocked: boolean; qty: number }) {
+  const need = Math.max(0, FREE_SHIPPING_MIN_QTY - qty);
+  const pct = Math.min(100, Math.round((qty / FREE_SHIPPING_MIN_QTY) * 100));
 
   return (
     <div className="px-6 py-3 bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5]">
       <p className="text-center text-[12px] sm:text-[13px] font-bold uppercase tracking-wide text-white">
         {unlocked
           ? "🎉 You've unlocked FREE shipping!"
-          : <>Add <span className="text-amber-300">PKR {Math.ceil(remaining)}</span> more for FREE shipping</>
+          : <>Add <span className="text-amber-300">{need} more item{need === 1 ? "" : "s"}</span> for FREE shipping</>
         }
       </p>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/25">
@@ -45,9 +44,12 @@ export default function CartDrawer() {
     updateQuantity,
     goToCheckout,
     getTotalPrice,
+    getTotalItems,
   } = useCart();
 
   const totalPrice = getTotalPrice();
+  const totalQty = getTotalItems();
+  const savings = bundleSavings(totalQty, totalPrice);
 
   return (
     <AnimatePresence>
@@ -104,7 +106,9 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            {items.length > 0 && <FreeShippingBanner subtotal={totalPrice} />}
+            {items.length > 0 && (
+              <FreeShippingBanner unlocked={savings.freeShipping} qty={totalQty} />
+            )}
 
             {/* Cart Content */}
             <div className="p-6">
@@ -193,18 +197,68 @@ export default function CartDrawer() {
                   </div>
 
                   {/* Summary */}
-                  <div className="space-y-3 border-t border-gray-200 pt-4">
+                  <div className="space-y-2.5 border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Subtotal</span>
                       <span className="font-medium text-gray-900">
-                        PKR {totalPrice.toFixed(2)}
+                        PKR {totalPrice.toFixed(0)}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {totalPrice >= FREE_SHIPPING_THRESHOLD
-                        ? "free shipping applied at checkout"
-                        : "additional discounts calculated at checkout"}
-                    </p>
+
+                    {/* Bundle %-off — only when the cart qualifies (2+ / 3+ items) */}
+                    {savings.pct > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[#4d9ab5] font-medium">
+                          Bundle discount ({savings.pct}% off)
+                        </span>
+                        <span className="font-semibold text-[#4d9ab5]">
+                          − PKR {savings.discountAmount.toFixed(0)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Shipping */}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Shipping</span>
+                      {savings.freeShipping ? (
+                        <span className="font-semibold text-[#4d9ab5]">FREE</span>
+                      ) : (
+                        <span className="text-gray-500">Calculated at checkout</span>
+                      )}
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex justify-between items-baseline border-t border-gray-100 pt-2.5">
+                      <span className="text-sm font-semibold text-gray-900">Total</span>
+                      <span className="text-right">
+                        {savings.discountAmount > 0 && (
+                          <span className="mr-2 text-xs text-gray-400 line-through">
+                            PKR {totalPrice.toFixed(0)}
+                          </span>
+                        )}
+                        <span className="text-lg font-bold text-gray-900">
+                          PKR {savings.discountedSubtotal.toFixed(0)}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Upsell to the next tier, or a "you're saving" confirmation */}
+                    {savings.qtyToNextPct > 0 && savings.nextPct > 0 ? (
+                      <p className="text-xs text-[#5f3d4e] bg-[#faf1f4] rounded-lg px-3 py-2">
+                        Add {savings.qtyToNextPct} more{" "}
+                        {savings.qtyToNextPct === 1 ? "item" : "items"} to save{" "}
+                        <span className="font-bold">{savings.nextPct}%</span> on your order
+                      </p>
+                    ) : savings.pct > 0 ? (
+                      <p className="text-xs text-[#4d9ab5]">
+                        🎉 You&apos;re saving PKR {savings.discountAmount.toFixed(0)}
+                        {savings.freeShipping ? " + free shipping" : ""}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        Discounts &amp; shipping confirmed at checkout
+                      </p>
+                    )}
                   </div>
 
                   {/* Checkout Button */}

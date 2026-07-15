@@ -7,12 +7,17 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const startedAt = Date.now();
-  const { variantId, quantity } = await req.json();
-  console.log("[buy-now] received:", JSON.stringify({ variantId, quantity }));
+  const { variantId, quantity, discountCodes } = await req.json();
+  console.log("[buy-now] received:", JSON.stringify({ variantId, quantity, discountCodes }));
+
+  // Bundle discount codes (%-off + free-shipping) — only forward valid strings.
+  const codes = Array.isArray(discountCodes)
+    ? discountCodes.filter((c: unknown): c is string => typeof c === "string" && c.trim().length > 0)
+    : [];
 
   let cart;
   try {
-    cart = await createCart(variantId, quantity ?? 1);
+    cart = await createCart(variantId, quantity ?? 1, codes);
   } catch (err) {
     console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
     return NextResponse.json({ error: "Could not create cart" }, { status: 502 });

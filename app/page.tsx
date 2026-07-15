@@ -15,6 +15,7 @@ import type { Review } from "@/components/ReviewsModal";
 // become interactive.
 const FullWidthBanner = dynamic(() => import("../components/FullWidthBanner"));
 const SocialFeed = dynamic(() => import("../components/SocialFeed"));
+const Testimonials = dynamic(() => import("@/components/Testimonials"));
 const Footer = dynamic(() => import("../components/Footer"));
 // Modals are closed by default and only ever needed after a click — no reason
 // to server-render or ship their JS until then.
@@ -86,6 +87,7 @@ export default function Home() {
       >
         <FeatureSplit />
         <ProductCarousel />
+        <Testimonials />
         <FullWidthBanner />
         <SocialFeed />
         <Footer />

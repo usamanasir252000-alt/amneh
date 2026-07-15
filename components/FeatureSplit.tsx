@@ -3,24 +3,31 @@
 import Image from 'next/image';
 import { useInView } from '@/hooks/useInView';
 import { RevealText, FadeUp } from '@/components/ui/Reveal';
+import BackgroundVideo from '@/components/BackgroundVideo';
+import { FEATURE_VIDEO } from '@/lib/testimonials';
 
 export default function FeatureSplit() {
   const { ref: imgRef, inView: imgInView } = useInView(0.1);
+  const hasVideo = FEATURE_VIDEO !== null;
 
   return (
     <section id="collections" className="relative w-full overflow-hidden">
 
       {/* ── Mobile layout ─────────────────────────────────────────────── */}
       <div className="md:hidden relative min-h-[78vh] flex flex-col justify-end">
-        {/* Full-bleed image */}
-        <Image
-          src="/c5.webp"
-          alt="Intense Hydration Serum"
-          fill
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        {/* Subtle bottom-only gradient so image stays visible */}
+        {/* Full-bleed media — UGC video if configured, else product image */}
+        {hasVideo ? (
+          <BackgroundVideo video={FEATURE_VIDEO!} eager />
+        ) : (
+          <Image
+            src="/c5.webp"
+            alt="Intense Hydration Serum"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        )}
+        {/* Subtle bottom-only gradient so text stays legible over the media */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
         {/* Text pinned bottom-left */}
@@ -84,19 +91,23 @@ export default function FeatureSplit() {
           </FadeUp>
         </div>
 
-        {/* Right: product image */}
+        {/* Right: UGC video if configured, else product image */}
         <div ref={imgRef} className="w-7/12 relative bg-[#c9c9c9] overflow-hidden">
-          <Image
-            src="/c5.webp"
-            alt="Intense Hydration Serum"
-            fill
-            sizes="58vw"
-            className="object-cover object-center"
-            style={{
-              transform: imgInView ? 'scale(1)' : 'scale(1.06)',
-              transition: 'transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) 100ms',
-            }}
-          />
+          {hasVideo ? (
+            <BackgroundVideo video={FEATURE_VIDEO!} zoom eager />
+          ) : (
+            <Image
+              src="/c5.webp"
+              alt="Intense Hydration Serum"
+              fill
+              sizes="58vw"
+              className="object-cover object-center"
+              style={{
+                transform: imgInView ? 'scale(1)' : 'scale(1.06)',
+                transition: 'transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) 100ms',
+              }}
+            />
+          )}
         </div>
       </div>
 

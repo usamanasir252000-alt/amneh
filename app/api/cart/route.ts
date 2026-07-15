@@ -6,6 +6,7 @@ import {
   addCartLine,
   updateCartLine,
   removeCartLine,
+  applyCartDiscount,
   fetchCart,
   linkCartToCustomer,
   setCartAttributes,
@@ -34,12 +35,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const startedAt = Date.now();
   const body = await request.json();
-  const { action, cartId, variantId, lineId, quantity } = body as {
-    action: "create" | "add" | "update" | "remove" | "link";
+  const { action, cartId, variantId, lineId, quantity, discountCodes } = body as {
+    action: "create" | "add" | "update" | "remove" | "link" | "discount";
     cartId?: string;
     variantId?: string;
     lineId?: string;
     quantity?: number;
+    discountCodes?: string[];
   };
   console.log("[cart] received:", JSON.stringify({ action, cartId, variantId, lineId, quantity }));
 
@@ -143,6 +145,10 @@ export async function POST(request: Request) {
       case "remove":
         if (!cartId || !lineId) throw new Error("cartId and lineId required");
         return NextResponse.json(await removeCartLine(cartId, lineId));
+
+      case "discount":
+        if (!cartId) throw new Error("cartId required");
+        return NextResponse.json(await applyCartDiscount(cartId, discountCodes ?? []));
 
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });

@@ -79,7 +79,7 @@ export default function ShippingPage() {
                 <li className="flex gap-3">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
                   <span>
-                    Orders of <strong className="font-bold text-gray-900">PKR 3,000 or more</strong> qualify for{" "}
+                    Orders of <strong className="font-bold text-gray-900">PKR 2,500 or more</strong> qualify for{" "}
                     <strong className="font-bold text-gray-900">FREE shipping</strong>.
                   </span>
                 </li>

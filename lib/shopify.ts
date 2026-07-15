@@ -49,6 +49,20 @@ export interface ShopifyProduct {
   bundleIngredients: string | null;
   mobileHeroImage: string | null;
   desktopHeroImage: string | null;
+  // Optional per-product UGC/testimonial video, shown as a dismissable popup on
+  // the product page. Sourced from Shopify metafield custom.ugc_video. Value is
+  // a video URL, optionally with a trim range: "url" or "url | startSec | endSec".
+  ugcVideo: string | null;
+  // Optional trim points (seconds) for the UGC popup video, from dedicated
+  // metafields custom.ugc_video_start / custom.ugc_video_end — a simpler way to
+  // trim than the pipe syntax. Override any trim baked into ugcVideo itself.
+  ugcVideoStart: number | null;
+  ugcVideoEnd: number | null;
+  // True when the product is tagged "bundle" in Shopify — i.e. it already
+  // packages multiple products together. Used to suppress the "buy more, save
+  // more" quantity-bundle offer on it (stacking a bundle discount on top of a
+  // product that's already a bundle makes no sense).
+  isBundle: boolean;
 }
 
 export interface ShopifyCartLine {
@@ -153,6 +167,9 @@ function normalizeProduct(node: {
   bundleIngredients?: { value: string } | null;
   mobileHeroImage?: { value: string } | null;
   desktopHeroImage?: { value: string } | null;
+  ugcVideo?: { value: string } | null;
+  ugcVideoStart?: { value: string } | null;
+  ugcVideoEnd?: { value: string } | null;
 }): ShopifyProduct {
   const tags = node.tags ?? [];
   const matchedBadge = tags.find((t) => BADGE_SIGNAL_TAGS.some((b) => t.toLowerCase().includes(b)));
@@ -191,6 +208,10 @@ function normalizeProduct(node: {
     bundleIngredients: node.bundleIngredients?.value ?? null,
     mobileHeroImage: node.mobileHeroImage?.value ?? null,
     desktopHeroImage: node.desktopHeroImage?.value ?? null,
+    ugcVideo: node.ugcVideo?.value ?? null,
+    ugcVideoStart: (() => { const n = parseFloat(node.ugcVideoStart?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
+    ugcVideoEnd: (() => { const n = parseFloat(node.ugcVideoEnd?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
+    isBundle: tags.some((t) => t.trim().toLowerCase() === "bundle"),
   };
 }
 
@@ -310,6 +331,9 @@ export async function getProductByHandle(
         bundleIngredients: metafield(namespace: "custom", key: "bundle_ingredients") { value }
         mobileHeroImage: metafield(namespace: "custom", key: "mobile_hero_image") { value }
         desktopHeroImage: metafield(namespace: "custom", key: "desktop_hero_image") { value }
+        ugcVideo: metafield(namespace: "custom", key: "ugc_video") { value }
+        ugcVideoStart: metafield(namespace: "custom", key: "ugc_video_start") { value }
+        ugcVideoEnd: metafield(namespace: "custom", key: "ugc_video_end") { value }
       }
     }
   `,
@@ -324,7 +348,8 @@ export async function getProductByHandle(
 
 export async function createCart(
   variantId: string,
-  quantity: number
+  quantity: number,
+  discountCodes?: string[]
 ): Promise<ShopifyCart> {
   const data = await shopifyFetch<{
     cartCreate: {
@@ -333,20 +358,51 @@ export async function createCart(
     };
   }>(
     `
-    mutation CartCreate($lines: [CartLineInput!]) {
-      cartCreate(input: { lines: $lines }) {
+    mutation CartCreate($lines: [CartLineInput!], $discountCodes: [String!]) {
+      cartCreate(input: { lines: $lines, discountCodes: $discountCodes }) {
         cart { ${CART_FIELDS} }
         userErrors { field message }
       }
     }
   `,
-    { lines: [{ merchandiseId: variantId, quantity }] }
+    { lines: [{ merchandiseId: variantId, quantity }], discountCodes: discountCodes ?? [] }
   );
 
   if (data.cartCreate.userErrors.length) {
     throw new Error(data.cartCreate.userErrors[0].message);
   }
   return normalizeCart(data.cartCreate.cart);
+}
+
+// Applies (or clears, with []) discount codes on an existing cart. Shopify
+// silently ignores a code whose conditions aren't met (e.g. min quantity),
+// so this never throws on an invalid code — the cart just comes back without
+// it applied.
+export async function applyCartDiscount(
+  cartId: string,
+  discountCodes: string[]
+): Promise<ShopifyCart> {
+  const data = await shopifyFetch<{
+    cartDiscountCodesUpdate: {
+      cart: Parameters<typeof normalizeCart>[0];
+      userErrors: { message: string }[];
+    };
+  }>(
+    `
+    mutation CartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {
+      cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+        cart { ${CART_FIELDS} }
+        userErrors { field message }
+      }
+    }
+  `,
+    { cartId, discountCodes }
+  );
+
+  if (data.cartDiscountCodesUpdate.userErrors.length) {
+    throw new Error(data.cartDiscountCodesUpdate.userErrors[0].message);
+  }
+  return normalizeCart(data.cartDiscountCodesUpdate.cart);
 }
 
 export async function addCartLine(

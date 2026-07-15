@@ -11,10 +11,14 @@ import { fetchWithRetry } from "@/lib/fetchRetry";
 import { logEvent } from "@/lib/clientLog";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
+import { LEFT_FOR_CHECKOUT_KEY } from "@/components/BFCacheReload";
+import ProductUgcVideo from "@/components/ProductUgcVideo";
 import ProductBadge from "@/components/ProductBadge";
-import FreeShippingNote from "@/components/FreeShippingNote";
+import Testimonials from "@/components/Testimonials";
 import { FaWhatsapp } from "react-icons/fa";
 import { waChatLink } from "@/lib/contact";
+import { BUNDLE_TIERS, bundleDiscountCodes } from "@/lib/bundle";
+import { POINTS_PER_ORDER, MIN_ORDER_VALUE } from "@/lib/loyalty";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 type Product = ShopifyProduct;
@@ -166,6 +170,57 @@ function Accordion({ title, icon, children, defaultOpen = false }: { title: stri
       <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
         <div className="overflow-hidden">
           <div className="pb-8">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── FAQ ─────────────────────────────────────────────────────────────────────
+// Answers the questions a first-time buyer of an unknown COD skincare brand
+// actually has before ordering — directly targets the trust/pushback gap the
+// feedback flagged. Edit these freely; they're plain copy.
+const FAQS: { q: string; a: React.ReactNode }[] = [
+  {
+    q: "Is Cash on Delivery available?",
+    a: "Yes — pay in cash when your order arrives at your doorstep, anywhere in Pakistan. You only pay once you have the product in hand.",
+  },
+  {
+    q: "How long will delivery take?",
+    a: "3 to 5 business days across Pakistan. After you order, we send a quick WhatsApp message to confirm, then dispatch — you'll get a tracking update once it's on its way.",
+  },
+  {
+    q: "What if my product arrives damaged?",
+    a: "We replace it free of charge. Just send us a photo on WhatsApp within 7 days of delivery and we'll sort out a replacement, no cost to you.",
+  },
+  {
+    q: "Are these products safe for my skin type?",
+    a: "Our serums are formulated for everyday use across skin types. We recommend a quick patch test first (see the Patch Test section above), and reaching out on WhatsApp if you're unsure which product suits your concern.",
+  },
+  {
+    q: "How is this different from cheaper options online?",
+    a: "Our serums are made in small, fresh batches with clearly listed active ingredients — no mystery formulas. You can see exactly what's in each product and what it does right here on this page, and we stand behind every order with free replacement on any damage.",
+  },
+];
+
+function FaqItem({ q, a }: { q: string; a: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+      >
+        <span className="text-sm font-medium text-gray-800">{q}</span>
+        <span className={`text-gray-400 transition-transform duration-300 flex-shrink-0 ${open ? "rotate-45 text-[#5f3d4e]" : ""}`}>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </span>
+      </button>
+      <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          <p className="px-4 pb-4 text-sm leading-6 text-gray-500">{a}</p>
         </div>
       </div>
     </div>
@@ -782,6 +837,41 @@ function LovedProductCard({ product }: { product: Product }) {
   );
 }
 
+// ── Why Amneh — brand trust band ────────────────────────────────────────────
+// Answers "why choose you over a cheaper/known brand on Amazon?" — the
+// differentiators, brand-level (same for every product). Static copy; edit
+// freely to match real claims.
+const WHY_AMNEH = [
+  { title: "Fresh, Small Batches", desc: "Made in small runs so every bottle is fresh and effective — not sitting in a warehouse for months.", icon: "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" },
+  { title: "Full Ingredient Transparency", desc: "Every active ingredient is listed right on the product — no mystery formulas, nothing to hide.", icon: "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" },
+  { title: "Free Replacement on Damage", desc: "Arrives damaged or wrong? We replace it free — WhatsApp a photo within 7 days. Your money is never at risk.", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" },
+  { title: "Cash on Delivery", desc: "Pay in cash at your doorstep, anywhere in Pakistan. Only pay once the product is in your hands.", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" },
+];
+
+function WhyAmneh() {
+  return (
+    <section className="bg-white py-10 sm:py-14 border-t border-gray-200">
+      <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
+        <SectionHeading
+          title="Why Amneh"
+          icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {WHY_AMNEH.map((item) => (
+            <div key={item.title} className="rounded-2xl bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] border border-[#d6ecf7] p-5 flex flex-col gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
+                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d={item.icon} /></svg>
+              </div>
+              <p className="text-[13px] font-bold uppercase tracking-wide text-gray-900">{item.title}</p>
+              <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 // ── Most Loved — related products from the same category ───────────────────
 // Horizontal snap-scroll on mobile (most visitors are on mobile, so scanning
 // sideways with a thumb is the natural interaction), a static 4-up grid on
@@ -850,7 +940,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   const [activeSectionId, setActiveSectionId] = useState("overview");
   const [reviewStats, setReviewStats] = useState<{ avg: number; count: number } | null>(null);
   const touchStartX = useRef(0);
-  const buyBoxRef = useRef<HTMLDivElement>(null);
+  const addToCartRef = useRef<HTMLButtonElement>(null);
 
   // Real review stats from Judge.me (store-wide published reviews — the same
   // set the homepage reviews modal shows). Drives the star rating + count in
@@ -956,17 +1046,21 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     const performScroll = () => {
       if (cancelled) return;
       const overviewEl = document.getElementById("overview");
-      const buyBoxEl = buyBoxRef.current;
-      if (!overviewEl || !buyBoxEl) return;
+      // Anchor the scroll to the Add to Cart button — stops there so Buy Now
+      // + Add to Cart are on screen, while the WhatsApp link and trust badges
+      // below stay just past the fold (anchoring lower dragged the page all
+      // the way down to the "100% Authentic" cards).
+      const anchorEl = addToCartRef.current;
+      if (!overviewEl || !anchorEl) return;
 
       const NAV_OFFSET = 148; // matches #overview's scroll-mt-[148px]
-      const BOTTOM_PADDING = 16;
+      const BOTTOM_PADDING = 24;
 
       const overviewTop = overviewEl.getBoundingClientRect().top + window.scrollY;
       const clearNavTarget = overviewTop - NAV_OFFSET;
 
-      const buyBoxBottom = buyBoxEl.getBoundingClientRect().bottom + window.scrollY;
-      const showButtonsTarget = buyBoxBottom - (window.innerHeight - BOTTOM_PADDING);
+      const anchorBottom = anchorEl.getBoundingClientRect().bottom + window.scrollY;
+      const showButtonsTarget = anchorBottom - (window.innerHeight - BOTTOM_PADDING);
 
       const target = Math.max(clearNavTarget, showButtonsTarget, 0);
       window.scrollTo({ top: target, behavior: "smooth" });
@@ -1030,7 +1124,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   };
 
   const handleAddToCart = () => {
-    addItem({ variantId: product.variantId, name: product.name, price: product.price, image: product.images[0]?.url ?? "" });
+    addItem({ variantId: product.variantId, name: product.name, price: product.price, image: product.images[0]?.url ?? "", quantity });
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   };
@@ -1094,7 +1188,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
       const res = await fetchWithRetry("/api/buy-now", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: product.variantId, quantity }),
+        body: JSON.stringify({ variantId: product.variantId, quantity, discountCodes: bundleDiscountCodes(quantity, product.price * quantity) }),
         timeoutMs: 15000,
         retries: 1,
         retryOnServerError: false,
@@ -1102,6 +1196,9 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
       const { checkoutUrl } = await res.json();
       if (checkoutUrl) {
         logEvent("buy_now_success", { variantId: product.variantId });
+        // Mark that we're leaving the site for checkout, so returning via Back
+        // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
+        sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
         window.location.href = checkoutUrl;
       } else {
         logEvent("buy_now_failed", { variantId: product.variantId, reason: "no_checkout_url" });
@@ -1303,12 +1400,23 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                   ))}
                 </div>
               )}
+
+              {/* Per-product UGC video popup — tucked into the image's white
+                  space, dismissable, expands to a full player on tap. Only
+                  renders for products that have the custom.ugc_video metafield. */}
+              {product.ugcVideo && (
+                <ProductUgcVideo
+                  raw={product.ugcVideo}
+                  productId={product.id}
+                  start={product.ugcVideoStart}
+                  end={product.ugcVideoEnd}
+                />
+              )}
             </div>
           </motion.div>
 
           {/* Buy box — price, qty, buttons, trust badges */}
           <motion.div
-            ref={buyBoxRef}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.14 }}
@@ -1332,6 +1440,16 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               <span className="text-2xl font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
             </div>
 
+            {/* Product description — the Shopify product description body,
+                answering "what is this / do I need it?" up front. Set it in
+                Shopify Admin → the product → Description. Hidden until filled;
+                preserves line breaks from Shopify. */}
+            {product.description && (
+              <p className="mb-4 sm:mb-5 text-sm leading-6 text-gray-600 whitespace-pre-line">
+                {product.description}
+              </p>
+            )}
+
             {/* Divider + tagline: desktop only, positioned exactly where they
                 sat before (right after price) — skipped on mobile so nothing
                 sits between the photo and the buy buttons. */}
@@ -1342,32 +1460,70 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               </div>
             )}
 
-            {/* Qty */}
-            <div className="flex items-center gap-4 mb-3 sm:mb-5">
-              <p className="text-xs uppercase tracking-widest text-gray-500">Qty</p>
-              <div className="flex items-center rounded-full border border-gray-200 overflow-hidden">
-                <button onClick={() => setQuantity(q => Math.max(1,q-1))} className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-90 transition text-lg">−</button>
-                <span className="w-10 text-center text-sm text-gray-900">
-                  <motion.span key={quantity} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.15 }} className="inline-block">
-                    {quantity}
-                  </motion.span>
-                </span>
-                <button onClick={() => setQuantity(q => q+1)} className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center text-gray-500 hover:bg-gray-50 active:scale-90 transition text-lg">+</button>
-              </div>
+            {/* Bundle tiers — "buy more, save more". Selecting a tier sets the
+                quantity; Add to Bag / Buy Now / WhatsApp all use it. The % is
+                applied at checkout by a Shopify automatic quantity discount
+                (see lib/bundle.ts) — the prices here are the matching display.
+                Hidden on products already tagged "bundle" in Shopify: a bundle
+                already packages multiple products, so a "buy more" multiplier
+                on top of it doesn't apply. */}
+            {!product.isBundle && (
+            <div className="mb-4 sm:mb-5 space-y-2.5">
+              <p className="text-xs uppercase tracking-widest text-gray-500 mb-2.5">Choose your pack</p>
+              {BUNDLE_TIERS.map((tier) => {
+                const selected = quantity === tier.qty;
+                const full = product.price * tier.qty;
+                const discounted = Math.round(full * (1 - tier.discountPct / 100));
+                return (
+                  <button
+                    key={tier.qty}
+                    onClick={() => setQuantity(tier.qty)}
+                    className={`w-full flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all duration-200 active:scale-[0.99] ${
+                      selected
+                        ? "border-[#5f3d4e] bg-[#faf1f4] shadow-[0_6px_18px_rgba(95,61,78,0.12)]"
+                        : "border-gray-200 bg-white hover:border-[#4d9ab5]/50"
+                    }`}
+                  >
+                    <span className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-[#5f3d4e]" : "border-gray-300"}`}>
+                      {selected && <span className="h-2.5 w-2.5 rounded-full bg-[#5f3d4e]" />}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {tier.qty} {tier.qty === 1 ? "Bottle" : "Bottles"}
+                        </span>
+                        {tier.badge && (
+                          <span className="rounded-full bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                            {tier.badge}
+                          </span>
+                        )}
+                      </div>
+                      {(tier.discountPct > 0 || tier.freeShipping) && (
+                        <span className="text-[11px] text-[#4d9ab5] font-medium">
+                          {tier.discountPct > 0 && `Save ${tier.discountPct}%`}
+                          {tier.discountPct > 0 && tier.freeShipping && " · "}
+                          {tier.freeShipping && "Free shipping"}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <span className="block text-sm font-bold text-gray-900">PKR {discounted}</span>
+                      {tier.discountPct > 0 && (
+                        <span className="block text-[11px] text-gray-400 line-through">PKR {full}</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
+            )}
 
-            {/* Add to Bag */}
-            <motion.button whileTap={{ scale: 0.97 }} onClick={handleAddToCart}
-              className={`w-full flex items-center justify-center gap-3 py-4 rounded-full text-sm uppercase tracking-[0.25em] font-medium transition-all duration-300 shadow-[0_10px_30px_rgba(17,24,39,0.18)] hover:shadow-[0_14px_36px_rgba(17,24,39,0.28)] hover:-translate-y-0.5 ${added?"bg-rose-400 text-white":"bg-gray-900 text-white hover:bg-gray-700"}`}>
-              {added
-                ? <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Added to Bag</>
-                : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>Add to Bag</>
-              }
-            </motion.button>
+            {/* ── Buy actions — ONE bold primary, everything else quiet ──── */}
 
-            {/* Buy Now */}
+            {/* PRIMARY: Buy Now → straight to checkout. The one action the
+                whole page drives toward. */}
             <motion.button whileTap={{ scale: 0.97 }} onClick={handleBuyNow} disabled={buyingNow}
-              className="w-full flex items-center justify-center gap-2 py-4 mt-3 rounded-full text-sm uppercase tracking-[0.25em] font-medium bg-gradient-to-r from-[#4d9ab5] to-[#3a7a91] text-white hover:brightness-105 transition-all duration-300 shadow-[0_10px_30px_rgba(77,154,181,0.25)] hover:shadow-[0_14px_36px_rgba(77,154,181,0.35)] hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0">
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-full text-sm uppercase tracking-[0.25em] font-semibold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] text-white hover:brightness-105 transition-all duration-300 shadow-[0_12px_34px_rgba(95,61,78,0.3)] hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0">
               {buyingNow
                 ? <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>Buy Now</>
@@ -1377,21 +1533,40 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               <p className="text-xs text-rose-500 mt-2 text-center">Checkout is taking too long. Please try again.</p>
             )}
 
-            {/* Order on WhatsApp — outlined (vs the solid CTAs above) to keep
-                the visual hierarchy: checkout first, chat as the alternative. */}
-            <motion.a
-              whileTap={{ scale: 0.97 }}
+            {/* SECONDARY: Add to Cart — bold outline. Clearly visible and
+                tappable, but the solid Buy Now above stays the primary. Also
+                the auto-scroll anchor (scroll stops here). */}
+            <motion.button ref={addToCartRef} whileTap={{ scale: 0.98 }} onClick={handleAddToCart}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 mt-3 rounded-full text-sm uppercase tracking-[0.22em] font-semibold border-2 transition-colors duration-200 ${added ? "border-rose-400 text-rose-500 bg-rose-50" : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"}`}>
+              {added
+                ? <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Added to Cart</>
+                : <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>Add to Cart</>
+              }
+            </motion.button>
+
+            {/* TERTIARY: WhatsApp — a small text link, not a button. */}
+            <a
               href={waOrderHref}
               target="_blank"
               rel="noreferrer"
               onClick={handleWhatsAppOrder}
-              className="w-full flex items-center justify-center gap-2.5 py-4 mt-3 rounded-full text-sm uppercase tracking-[0.25em] font-medium border-2 border-[#25D366] text-[#128C7E] hover:bg-[#25D366] hover:text-white transition-all duration-300"
+              className="mt-3 flex items-center justify-center gap-1.5 text-[13px] font-medium text-[#128C7E] hover:underline"
             >
-              <FaWhatsapp className="h-5 w-5" />
-              Order on WhatsApp
-            </motion.a>
+              <FaWhatsapp className="h-4 w-4" />
+              or order on WhatsApp
+            </a>
 
-            <FreeShippingNote className="mt-4" />
+            {/* Quiet reassurance line — free shipping + rewards as small muted
+                text, not big competing pills. */}
+            <div className="mt-4 space-y-1 text-center text-[11px] text-gray-400">
+              <p>Free shipping on orders PKR 2,500+ · Cash on Delivery</p>
+              {product.price * quantity >= MIN_ORDER_VALUE && (
+                <p>
+                  Earn {POINTS_PER_ORDER} points on this order —{" "}
+                  <Link href="/rewards" className="text-[#5f3d4e] underline hover:text-[#4d9ab5]">up to 20% off</Link>
+                </p>
+              )}
+            </div>
 
             <TrustBadges />
           </motion.div>
@@ -1472,7 +1647,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               {[
                 { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
-                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 3,000+</> as React.ReactNode },
+                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 2,500+</> as React.ReactNode },
                 { icon:"M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z", title:"Damage Protection", desc: <><strong className="font-semibold text-gray-700">Damaged, broken, or wrong item? Free replacement</strong> — WhatsApp us a photo within 7 days of delivery. Otherwise all sales are final for hygiene &amp; safety reasons.</> as React.ReactNode },
               ].map(item => (
                 <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
@@ -1497,8 +1672,23 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
             </p>
           </Accordion>
 
+          <Accordion
+            title="FAQs"
+            icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>}
+          >
+            <div className="space-y-2">
+              {FAQS.map((f, i) => (
+                <FaqItem key={i} q={f.q} a={f.a} />
+              ))}
+            </div>
+          </Accordion>
+
         </div>
       </section>
+
+      <WhyAmneh />
+
+      <Testimonials />
 
       <MostLoved products={relatedProducts} />
 

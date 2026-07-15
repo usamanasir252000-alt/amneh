@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
 import BackButton from "@/components/BackButton";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { fbSetAdvancedMatching } from "@/lib/fbpixel";
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
@@ -21,6 +22,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    fbSetAdvancedMatching({ em: email, fn: firstName, ln: lastName });
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {

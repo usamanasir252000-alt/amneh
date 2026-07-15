@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { fbTrack } from "@/lib/fbpixel";
+import { fbTrack, fbSetAdvancedMatching } from "@/lib/fbpixel";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -23,6 +23,20 @@ export default function MetaPixel() {
     }
     fbTrack("PageView");
   }, [pathname]);
+
+  // Advanced Matching for already-logged-in visitors: re-init the pixel with
+  // their email/name on load. Covers returning customers who don't touch the
+  // login form this session. Guests who log in/sign up are covered at the
+  // form (AuthModal + /login + /signup).
+  useEffect(() => {
+    if (!PIXEL_ID) return;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((u) => {
+        if (u?.email) fbSetAdvancedMatching({ em: u.email, fn: u.firstName, ln: u.lastName });
+      })
+      .catch(() => {});
+  }, []);
 
   if (!PIXEL_ID) return null;
 

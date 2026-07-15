@@ -11,6 +11,8 @@ import {
 import { fbTrack } from "@/lib/fbpixel";
 import { fetchWithRetry } from "@/lib/fetchRetry";
 import { logEvent } from "@/lib/clientLog";
+import { bundleDiscountCodes } from "@/lib/bundle";
+import { LEFT_FOR_CHECKOUT_KEY } from "@/components/BFCacheReload";
 
 export interface CartItem {
   lineId: string;
@@ -32,6 +34,7 @@ interface CartContextType {
     name: string;
     price: number;
     image: string;
+    quantity?: number;
   }) => Promise<void>;
   removeItem: (lineId: string) => Promise<void>;
   updateQuantity: (lineId: string, quantity: number) => Promise<void>;
@@ -110,14 +113,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       name: string;
       price: number;
       image: string;
+      quantity?: number;
     }) => {
+      const qty = Math.max(1, item.quantity ?? 1);
       setIsLoading(true);
-      logEvent("add_to_cart_attempt", { variantId: item.variantId, name: item.name, price: item.price });
+      logEvent("add_to_cart_attempt", { variantId: item.variantId, name: item.name, price: item.price, quantity: qty });
       fbTrack("AddToCart", {
         content_ids: [item.variantId],
         content_name: item.name,
         content_type: "product",
-        value: item.price,
+        value: item.price * qty,
         currency: "PKR",
       });
       try {
@@ -125,13 +130,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         let cart;
         if (!existingCartId) {
-          cart = await cartAPI({ action: "create", variantId: item.variantId, quantity: 1 });
+          cart = await cartAPI({ action: "create", variantId: item.variantId, quantity: qty });
         } else {
           cart = await cartAPI({
             action: "add",
             cartId: existingCartId,
             variantId: item.variantId,
-            quantity: 1,
+            quantity: qty,
           });
         }
 
@@ -142,7 +147,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         // If cart is stale/expired, create a new one
         localStorage.removeItem(CART_ID_KEY);
         try {
-          const cart = await cartAPI({ action: "create", variantId: item.variantId, quantity: 1 });
+          const cart = await cartAPI({ action: "create", variantId: item.variantId, quantity: qty });
           syncCart(cart);
           setIsOpen(true);
           logEvent("add_to_cart_success", { variantId: item.variantId, cartId: cart.id, recovered: true });
@@ -223,6 +228,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       num_items: numItems,
       content_ids: items.map((i) => i.variantId),
     });
+    // Apply the bundle discount codes matching the cart's total quantity
+    // (%-off + free shipping, e.g. BUNDLE10 + FREEBUNDLE10 at 3+) so the
+    // "buy more, save more" saving is on the cart before checkout. Capped so
+    // it can never hang the redirect; if it fails they checkout without it.
+    const bundleCodes = bundleDiscountCodes(numItems, value);
+    if (cartId && bundleCodes.length > 0) {
+      try {
+        await Promise.race([
+          cartAPI({ action: "discount", cartId, discountCodes: bundleCodes }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("discount-timeout")), 4000)),
+        ]);
+      } catch {
+        logEvent("bundle_discount_timeout", { cartId, bundleCodes });
+      }
+    }
+
     // Link at navigation time and prefer the fresh checkout URL returned by the
     // server — it carries the authenticated customer session into checkout.
     // Capped with a timeout so a slow link call can NEVER block the redirect
@@ -243,6 +264,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     logEvent("checkout_redirect", { cartId, usedFallbackUrl: url === checkoutUrl });
+    // Mark that we're leaving the site for checkout, so returning via Back
+    // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
+    sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
     window.location.href = url;
   }, [cartId, checkoutUrl, items]);
 

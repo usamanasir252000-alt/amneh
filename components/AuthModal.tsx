@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { fbSetAdvancedMatching } from "@/lib/fbpixel";
 
 type AuthModalMode = "signIn" | "signUp";
 
@@ -48,6 +49,12 @@ export default function AuthModal({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+
+    // Advanced Matching — capture the moment the visitor gives us their real
+    // email (and name on signup), regardless of whether the request succeeds.
+    fbSetAdvancedMatching(
+      mode === "signIn" ? { em: email } : { em: email, fn: firstName, ln: lastName }
+    );
 
     setLoading(true);
     try {

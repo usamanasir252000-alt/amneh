@@ -49,6 +49,41 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <head>
         {/*
+          FIX for "returning from checkout leaves the page stuck/blank".
+          Runs during HTML parse — BEFORE/INDEPENDENT of React hydration —
+          because the failure mode is the returned page never hydrating, so a
+          React-effect handler would never run to recover it.
+
+          On returning from checkout — bfcache restore (event.persisted) OR our
+          "left-for-checkout" flag set on the way out (handleBuyNow for Buy Now,
+          goToCheckout for Add to Cart → checkout) — we force a genuinely fresh
+          load. A plain location.reload() proved UNRELIABLE (it can still be
+          served from the frozen bfcache snapshot, so the page came back stuck
+          intermittently). Instead we navigate to the SAME url with a unique
+          cache-busting query param (_rb=timestamp): a brand-new URL can never
+          be a bfcache hit, so the browser must do a real fetch + hydrate. On
+          that fresh load we strip _rb back off the URL (history.replaceState)
+          so it stays clean. A loop-guard caps busts at 3 per 4s as a backstop.
+          Flag key must match LEFT_FOR_CHECKOUT_KEY in components/BFCacheReload.tsx.
+        */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  var KEY='amneh:left-for-checkout',RLD='amneh:reloadstamps';
+  function g(k){try{return sessionStorage.getItem(k)}catch(e){return null}}
+  function s(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}
+  function d(k){try{sessionStorage.removeItem(k)}catch(e){}}
+  function canBust(){var a=[];try{a=JSON.parse(g(RLD)||'[]')}catch(e){}var t=+new Date();a=a.filter(function(x){return t-x<4000});if(a.length>=3)return false;a.push(t);s(RLD,JSON.stringify(a));return true;}
+  function bust(){try{var u=new URL(window.location.href);u.searchParams.set('_rb',String(+new Date()));window.location.replace(u.toString());}catch(e){window.location.reload();}}
+  try{var cur=new URL(window.location.href);if(cur.searchParams.has('_rb')){cur.searchParams.delete('_rb');history.replaceState(null,'',cur.pathname+(cur.search||'')+cur.hash);}}catch(e){}
+  window.addEventListener('pageshow',function(e){
+    if(e.persisted||g(KEY)){d(KEY);if(canBust())bust();}
+  });
+})();`,
+          }}
+        />
+        {/*
           Cuts DNS/TLS handshake time off the first request to each origin —
           kept to only origins the BROWSER itself actually talks to. Shopify
           product images and Cloudinary uploads never qualify: Shopify images

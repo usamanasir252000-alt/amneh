@@ -9,8 +9,11 @@ import { useState, useEffect, useRef } from "react";
 import BackButton from "@/components/BackButton";
 import ProductBadge from "@/components/ProductBadge";
 import FreeShippingNote from "@/components/FreeShippingNote";
+import Testimonials from "@/components/Testimonials";
+import BackgroundVideo from "@/components/BackgroundVideo";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 import { fetchWithRetry } from "@/lib/fetchRetry";
+import { SKINCARE_HERO_VIDEO } from "@/lib/testimonials";
 
 interface ProductImage {
   id: string;
@@ -210,6 +213,19 @@ export default function SkincarePage() {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
+  // Banner: UGC video on mobile, static banner on desktop. Gated on a real
+  // matchMedia check (not just CSS hiding) so the video file is NEVER
+  // downloaded on desktop — where it's not shown — keeping desktop load fast.
+  // Defaults false so SSR/first paint renders the (fast, priority) image;
+  // mobile swaps to video after mount.
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsMobileViewport(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // fetchWithRetry (not a bare fetch) — mobile/in-app-browser connections
   // intermittently drop mid-request (see lib/fetchRetry.ts). A bare fetch
@@ -286,16 +302,23 @@ export default function SkincarePage() {
     <main className="bg-[#f1efef]">
       <Navbar />
 
-      {/* Category hero banner */}
+      {/* Category hero banner — UGC video on MOBILE (vertical reels fit a
+          tall phone screen); static wide banner on DESKTOP (where a cropped
+          vertical reel would look bad). Video only mounts on mobile, so
+          desktop never downloads it. */}
       <div className="relative mt-[124px] h-[38vh] sm:h-[42vh] min-h-[260px] sm:min-h-[280px] w-full overflow-hidden">
-        <Image
-          src="/off2.webp"
-          alt="amneh skincare"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
-        />
+        {SKINCARE_HERO_VIDEO && isMobileViewport ? (
+          <BackgroundVideo video={SKINCARE_HERO_VIDEO} eager />
+        ) : (
+          <Image
+            src="/off2.webp"
+            alt="amneh skincare"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent" />
         <div className="absolute top-[132px] left-6 z-[60] sm:left-10 lg:left-16">
           <BackButton light />
@@ -380,6 +403,10 @@ export default function SkincarePage() {
           )}
         </div>
       </section>
+
+      {/* Reviews + UGC videos — above the routine banner so social proof
+          comes right after the products, while the visitor is still deciding. */}
+      <Testimonials />
 
       {/* Banner */}
       <div className="relative h-[42vh] sm:h-[50vh] min-h-[300px] sm:min-h-[340px] w-full overflow-hidden">

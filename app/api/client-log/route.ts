@@ -16,6 +16,7 @@ const ALLOWED_EVENTS = new Set([
   "checkout_link_timeout",
   "checkout_redirect",
   "whatsapp_order_click",
+  "bundle_discount_timeout",
 ]);
 
 export async function POST(req: Request) {

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AuthPageShell from "@/components/AuthPageShell";
 import BackButton from "@/components/BackButton";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { fbSetAdvancedMatching } from "@/lib/fbpixel";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    fbSetAdvancedMatching({ em: email });
     setLoading(true);
     try {
       console.log("Attempting login with", { email });
