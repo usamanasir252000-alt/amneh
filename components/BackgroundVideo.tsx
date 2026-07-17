@@ -41,7 +41,7 @@ export default function BackgroundVideo({
         if (e.isIntersecting) setLoad(true);
         setActive(e.isIntersecting);
       },
-      { root: null, rootMargin: "400px", threshold: 0 }
+      { root: null, rootMargin: "400px", threshold: 0 },
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -93,7 +93,9 @@ export default function BackgroundVideo({
 
   return (
     <div ref={wrapRef} className="absolute inset-0">
-      {!ready && <div className="absolute inset-0 bg-gradient-to-br from-[#dff0f8] to-[#fbeef2]" />}
+      {!ready && (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#dff0f8] to-[#fbeef2]" />
+      )}
       {load && (
         <video
           ref={ref}
