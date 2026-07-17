@@ -213,19 +213,10 @@ export default function SkincarePage() {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
-  // Banner: UGC video on mobile, static banner on desktop. Gated on a real
-  // matchMedia check (not just CSS hiding) so the video file is NEVER
-  // downloaded on desktop — where it's not shown — keeping desktop load fast.
-  // Defaults false so SSR/first paint renders the (fast, priority) image;
-  // mobile swaps to video after mount.
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const update = () => setIsMobileViewport(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
+  // Banner mobile/desktop choice is done with CSS breakpoints in the JSX below
+  // (so mobile shows the video from first paint, no desktop-banner flash), and
+  // the video only downloads on mobile because its wrapper is display:none on
+  // desktop — see the banner comment. No JS viewport state needed.
 
   // fetchWithRetry (not a bare fetch) — mobile/in-app-browser connections
   // intermittently drop mid-request (see lib/fetchRetry.ts). A bare fetch
@@ -307,9 +298,22 @@ export default function SkincarePage() {
           vertical reel would look bad). Video only mounts on mobile, so
           desktop never downloads it. */}
       <div className="relative mt-[124px] h-[38vh] sm:h-[42vh] min-h-[260px] sm:min-h-[280px] w-full overflow-hidden">
-        {SKINCARE_HERO_VIDEO && isMobileViewport ? (
-          <BackgroundVideo video={SKINCARE_HERO_VIDEO} eager />
-        ) : (
+        {/* MOBILE: UGC video. Which of the two shows is decided by a CSS
+            breakpoint (lg:hidden / hidden lg:block), NOT by JS — so on a phone
+            the video area is shown from the very FIRST paint and the desktop
+            banner never flashes for a moment before swapping. The video also
+            only DOWNLOADS on mobile: on desktop this wrapper is display:none,
+            so BackgroundVideo's IntersectionObserver never sees it intersect
+            and never fetches the file. On mobile the banner is above the fold,
+            so the observer fires immediately and it loads right away (no
+            `eager` needed). */}
+        {SKINCARE_HERO_VIDEO && (
+          <div className="absolute inset-0 lg:hidden">
+            <BackgroundVideo video={SKINCARE_HERO_VIDEO} />
+          </div>
+        )}
+        {/* DESKTOP: static wide banner. Shown on ALL breakpoints if no video. */}
+        <div className={`absolute inset-0 ${SKINCARE_HERO_VIDEO ? "hidden lg:block" : ""}`}>
           <Image
             src="/off2.webp"
             alt="amneh skincare"
@@ -318,7 +322,7 @@ export default function SkincarePage() {
             priority
             sizes="100vw"
           />
-        )}
+        </div>
         <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent" />
         <div className="absolute top-[132px] left-6 z-[60] sm:left-10 lg:left-16">
           <BackButton light />
