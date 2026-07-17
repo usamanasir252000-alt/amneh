@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { UgcVideo } from "@/lib/testimonials";
 
 // Per-product UGC video, shown as a small dismissable popup tucked into the
-// white space of the product image, that expands to a full player (with sound)
-// on tap. Sourced from the Shopify metafield custom.ugc_video — value is a
+// white space of the product image, that expands to a full player on tap.
+// Always muted (the clips have no audio). Sourced from the Shopify metafield
+// custom.ugc_video — value is a
 // video URL, optionally trimmed: "url" or "url | startSec | endSec".
 
 function parseProductVideo(raw: string): UgcVideo | null {
@@ -194,7 +195,7 @@ export default function ProductUgcVideo({
         )}
       </AnimatePresence>
 
-      {/* Expanded full player (with sound), portaled to body so it's truly fullscreen */}
+      {/* Expanded full player (muted), portaled to body so it's truly fullscreen */}
       {mounted &&
         createPortal(
           <AnimatePresence>

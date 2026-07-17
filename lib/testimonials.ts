@@ -26,68 +26,39 @@ export interface UgcVideo {
 
 export const UGC_VIDEOS: UgcVideo[] = [
   // Example (delete this comment, add real ones):
-  {
-    url: "/video/lensofan.mp4",
-    startSec: 0,
-    endSec: 20,
-    name: "@lensofan",
-  },
-  {
-    url: "/video/lifewithhibs_.mp4",
-    startSec: 4,
-    endSec: 36,
-    name: "@lifewithhibs_",
-  },
-  {
-    url: "/video/testimonial-1.mp4",
-    startSec: 4,
-    endSec: 28,
-    name: "@looksbyridaa",
-  },
-  {
-    url: "/video/kk_fencer_official.mp4",
-    startSec: 0,
-    endSec: 35,
-    name: "@kk_fencer_official",
-  },
+  { url: "/videos/ugc-1.mp4", name: "@lensofan" },
+  { url: "/videos/ugc-2.mp4", name: "@lifewithhibs_" },
+  { url: "/videos/ugc-3.mp4", name: "@looksbyridaa" },
+  { url: "/videos/ugc-4.mp4", name: "@kk_fencer_official" },
 
-  {
-    url: "/video/fitsandflicksbywish.mp4",
-    startSec: 6,
-    endSec: 30,
-    name: "@fitsandflicksbywish",
-  },
-  {
-    url: "/video/soonhraniii.mp4",
-    startSec: 29,
-    endSec: 33,
-    name: "@soonhraniii",
-  },
-  {
-    url: "/video/zeeeobv.mp4",
-    startSec: 18,
-    endSec: 35,
-    name: "@zeeeobv",
-  },
+  { url: "/videos/ugc-5.mp4", name: "@fitsandflicksbywish" },
+  { url: "/videos/ugc-6.mp4", name: "@soonhraniii" },
+  { url: "/videos/ugc-7.mp4", name: "@zeeeobv" },
+
+
+
+
+
 ];
 
 // Homepage "Luminous, Nourishing Skin Care" section (components/FeatureSplit)
 // — set a video here to REPLACE the product image in that section (both the
-// desktop right panel and the mobile full-bleed background). Uses the same
-// no-black-flash trim player (startSec/endSec) as the testimonials videos.
-// Leave as null to keep the static product image.
-export const FEATURE_VIDEO: UgcVideo | null = {
-  url: "/video/kk_fencer_official.mp4",
-  startSec: 22.5,
-  endSec: 34.5,
-};
+// desktop right panel and the mobile full-bleed background). Leave null to
+// keep the static product image.
+//
+// SELF-HOSTED + PRE-TRIMMED: this is the exact 12s segment, cut to start at 0,
+// re-encoded with faststart (moov atom up front) and served from our own
+// /public. The Shopify original was a 6.7 MB full clip trimmed at runtime to
+// start at 22.5s — the browser had to fetch metadata + seek + buffer before
+// anything showed (the "video keeps loading" lag). Now it's a 2.4 MB file that
+// starts at frame 0 and plays before it finishes downloading. Same 720×1280
+// resolution — no quality loss. No startSec/endSec: it IS the segment.
+export const FEATURE_VIDEO: UgcVideo | null = { url: "/videos/feature.mp4" };
 
 // /skincare page top banner — set a video here to REPLACE the static banner
 // image (off2.webp) with a UGC clip. The banner is a wide landscape strip, so
-// a vertical 9:16 reel will crop to fill (centered) — pick a clip whose
-// subject stays roughly centered. Leave null to keep the static banner.
-export const SKINCARE_HERO_VIDEO: UgcVideo | null = {
-  url: "/video/testimonial-1.mp4",
-  startSec: 21,
-  endSec: 28,
-};
+// a vertical 9:16 reel will crop to fill (centered). Leave null to keep the
+// static banner. Self-hosted + pre-trimmed (see FEATURE_VIDEO note above): the
+// 6 MB / seek-to-21s Shopify original is now a 1.2 MB faststart clip that plays
+// from frame 0 — same 720×1280 resolution, near-instant start.
+export const SKINCARE_HERO_VIDEO: UgcVideo | null = { url: "/videos/skincare-hero.mp4" };

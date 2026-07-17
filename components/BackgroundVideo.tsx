@@ -100,12 +100,14 @@ export default function BackgroundVideo({
         <video
           ref={ref}
           src={video.url}
-          // "metadata" (not "auto"): with a trimmed clip that starts partway in
-          // (e.g. startSec 21), "auto" wastefully buffers from byte 0 up to the
-          // start point before anything shows. "metadata" loads just the header,
-          // then seeking range-requests straight to the segment — far less data,
-          // much faster to first frame. CDN supports range requests.
-          preload="metadata"
+          // Eager (above-the-fold hero): "auto" — these are small pre-trimmed
+          // local files that start at frame 0, so downloading the whole thing
+          // right away is cheap and gives an instant start. Lazy (below fold):
+          // "metadata" so it doesn't compete with the initial page load; it only
+          // begins loading once scrolled near, then plays quickly (also frame 0,
+          // faststart). The old "auto on a seek-to-21s Shopify clip" is exactly
+          // what made the hero buffer forever.
+          preload={eager ? "auto" : "metadata"}
           poster={video.poster}
           muted
           loop

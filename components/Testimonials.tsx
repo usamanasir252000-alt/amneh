@@ -75,12 +75,11 @@ function HScrollRow({ children, className = "" }: { children: React.ReactNode; c
 // ── Trimmed UGC video ────────────────────────────────────────────────────
 // Plays ONLY the [startSec, endSec] slice of the source video and loops
 // within it — so a long reel can be shown as just its best 10 seconds
-// without ever editing the file. Muted autoplay (browsers require muted to
-// autoplay); tapping unmutes so a shopper can hear the testimonial.
+// without ever editing the file. Always muted — the trimmed clips have no
+// audio track, so there's no mute/unmute control.
 function UgcVideoCard({ video }: { video: UgcVideo }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
   // Hidden until the video is actually positioned AND rendered at startSec.
   // Without this, seeking to a non-zero start forces the browser to buffer up
   // to that point while the card's background shows through — which looked
@@ -183,29 +182,17 @@ function UgcVideoCard({ video }: { video: UgcVideo }) {
           // of buffering from byte 0 — less data, faster reveal.
           preload="metadata"
           poster={video.poster}
-          muted={muted}
+          muted
           loop
           playsInline
           onLoadedMetadata={seekToStart}
           onSeeked={tryReveal}
           onCanPlay={tryReveal}
           onTimeUpdate={clampToSegment}
-          onClick={() => setMuted((m) => !m)}
-          className={`aspect-[9/16] w-full object-cover cursor-pointer transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+          className={`aspect-[9/16] w-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
         />
       )}
-      {/* Mute/unmute hint */}
-      <button
-        onClick={() => setMuted((m) => !m)}
-        aria-label={muted ? "Unmute" : "Mute"}
-        className="absolute bottom-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
-      >
-        {muted ? (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 9.75 19.5 12m0 0 2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.7-.63-1.77-1.5a54 54 0 0 1 0-4.06c.07-.87.89-1.5 1.77-1.5h2.24Z"/></svg>
-        ) : (
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.7-.63-1.77-1.5a54 54 0 0 1 0-4.06c.07-.87.89-1.5 1.77-1.5h2.24Z"/></svg>
-        )}
-      </button>
+      {/* No mute/unmute control — the trimmed clips have no audio track. */}
       {video.name && (
         <span className="pointer-events-none absolute bottom-3 left-3 z-10 rounded-full bg-black/50 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
           {video.name}
