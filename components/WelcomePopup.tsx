@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 // Shopify doesn't expose a "site-wide settings" field for something like
 // this — upload the video in Admin → Content → Files, open it, copy its
 // cdn.shopify.com URL, and paste it here.
-const POPUP_VIDEO_URL = "/video/welcome-popup.mp4";
+const POPUP_VIDEO_URL = "/video/model_popup.mp4";
 
 const SHOW_DELAY_MS = 2500;
 // If the video hasn't finished buffering by this point (very slow
