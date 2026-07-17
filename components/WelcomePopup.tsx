@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 // Shopify doesn't expose a "site-wide settings" field for something like
 // this — upload the video in Admin → Content → Files, open it, copy its
 // cdn.shopify.com URL, and paste it here.
-const POPUP_VIDEO_URL = "https://cdn.shopify.com/videos/c/o/v/a72890341da645e7b84420b882b43beb.mp4";
+const POPUP_VIDEO_URL = "/video/welcome-popup.mp4";
 
 const SHOW_DELAY_MS = 2500;
 // If the video hasn't finished buffering by this point (very slow
@@ -92,11 +92,17 @@ export default function WelcomePopup() {
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{ pointerEvents: open ? "auto" : "none" }}
       aria-hidden={!open}
-      onClick={(e) => { if (e.target === e.currentTarget) close(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
     >
       <motion.div
         initial={false}
-        animate={{ opacity: open ? 1 : 0, scale: open ? 1 : 0.94, y: open ? 0 : 16 }}
+        animate={{
+          opacity: open ? 1 : 0,
+          scale: open ? 1 : 0.94,
+          y: open ? 0 : 16,
+        }}
         transition={{ duration: 0.35, ease: "easeOut" }}
         // w-fit (not a fixed max-w-sm) — the card shrinks to exactly the
         // video's own rendered width instead of being a wider fixed box the
@@ -110,8 +116,18 @@ export default function WelcomePopup() {
           aria-label="Close"
           className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition hover:bg-black/60 active:scale-90"
         >
-          <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -131,7 +147,12 @@ export default function WelcomePopup() {
           preload="auto"
           onCanPlay={() => setVideoReady(true)}
           className="block"
-          style={{ maxWidth: "100%", maxHeight: "70vh", width: "auto", height: "auto" }}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "70vh",
+            width: "auto",
+            height: "auto",
+          }}
         />
 
         {/* Below the video, not overlaid on it — its own bar, brand blue
