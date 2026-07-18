@@ -1,4 +1,4 @@
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import {
@@ -9,7 +9,6 @@ import {
   applyCartDiscount,
   fetchCart,
   linkCartToCustomer,
-  setCartAttributes,
   CartBuyerIdentityInput,
 } from "@/lib/shopify";
 
@@ -91,26 +90,9 @@ export async function POST(request: Request) {
     }
   }
 
-  // Stash Meta attribution data on the cart (persists to the order) so the
-  // WhatsApp-confirmed Purchase can match back to the ad click. _fbp/_fbc are
-  // first-party cookies sent with this same-origin request; IP/UA come from
-  // this (customer-originated) request's headers.
-  async function storeMetaAttributes(id: string) {
-    try {
-      const cookieStore = await cookies();
-      const ua = request.headers.get("user-agent") || undefined;
-      const attrs: { key: string; value: string }[] = [];
-      const fbp = cookieStore.get("_fbp")?.value;
-      const fbc = cookieStore.get("_fbc")?.value;
-      if (fbp) attrs.push({ key: "_fbp", value: fbp });
-      if (fbc) attrs.push({ key: "_fbc", value: fbc });
-      if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
-      if (ua) attrs.push({ key: "_fb_ua", value: ua });
-      if (attrs.length) await setCartAttributes(id, attrs);
-    } catch (err) {
-      console.error("[meta attrs] failed to store on cart:", err);
-    }
-  }
+  // (storeMetaAttributes used to stash _fbp/_fbc on the cart to feed our own
+  // CAPI Purchase — removed. Shopify's native Meta integration now handles
+  // attribution at checkout.)
 
   try {
     switch (action) {
@@ -123,12 +105,6 @@ export async function POST(request: Request) {
 
       case "link": {
         if (!cartId) throw new Error("cartId required");
-        // Meta attribution never affects checkoutUrl, so it must never block
-        // the redirect. Scheduled via after() — NOT a bare fire-and-forget
-        // promise — because Vercel can freeze/kill the function the instant
-        // the response is sent, aborting any in-flight fetch that isn't
-        // explicitly kept alive.
-        after(() => storeMetaAttributes(cartId));
         const checkoutUrl = await linkCurrentCustomer(cartId);
         return NextResponse.json({ ok: true, checkoutUrl });
       }

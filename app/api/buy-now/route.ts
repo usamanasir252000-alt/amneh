@@ -1,7 +1,7 @@
-import { NextResponse, after } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
-import { createCart, linkCartToCustomer, setCartAttributes, CartBuyerIdentityInput } from "@/lib/shopify";
+import { createCart, linkCartToCustomer, CartBuyerIdentityInput } from "@/lib/shopify";
 
 export const dynamic = "force-dynamic";
 
@@ -31,29 +31,11 @@ export async function POST(req: Request) {
     undefined;
 
   const cookieStore = await cookies();
-  const ua = req.headers.get("user-agent") || undefined;
   const sessionToken = cookieStore.get("session")?.value;
 
-  // Meta attribution tagging never affects which checkoutUrl to send the
-  // buyer to, so it must never block the redirect. Scheduled via after() —
-  // NOT a bare fire-and-forget promise — because Vercel can freeze/kill the
-  // function the instant the response is sent, which aborts any in-flight
-  // fetch that isn't explicitly kept alive (this was surfacing as
-  // "[meta attrs] failed to store on cart: AbortError").
-  after(async () => {
-    try {
-      const attrs: { key: string; value: string }[] = [];
-      const fbp = cookieStore.get("_fbp")?.value;
-      const fbc = cookieStore.get("_fbc")?.value;
-      if (fbp) attrs.push({ key: "_fbp", value: fbp });
-      if (fbc) attrs.push({ key: "_fbc", value: fbc });
-      if (buyerIp) attrs.push({ key: "_fb_ip", value: buyerIp });
-      if (ua) attrs.push({ key: "_fb_ua", value: ua });
-      if (attrs.length) await setCartAttributes(cart.id, attrs);
-    } catch (err) {
-      console.error("[meta attrs] failed to store on cart (buy-now):", err);
-    }
-  });
+  // (Meta _fbp/_fbc cart-attribute stashing used to run here to feed our own
+  // CAPI Purchase — removed. Shopify's native Meta integration now handles
+  // attribution at checkout, so there's nothing to stash.)
 
   // Only logged-in buyers need the extra round-trip: it swaps in the
   // authenticated checkoutUrl so they land on checkout already signed in.

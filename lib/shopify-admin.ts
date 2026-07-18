@@ -421,54 +421,6 @@ export async function findOrderByMessageSid(messageSid: string): Promise<{
   return { id: node.id, name: node.name, tags: node.tags ?? [], email };
 }
 
-// Fetches everything needed to fire the Meta CAPI Purchase for a confirmed
-// order: value/currency, customer email+phone (for matching), and the Meta
-// attribution attributes we stamped on the cart at checkout.
-export async function getOrderConversionData(orderGid: string): Promise<{
-  value: number;
-  currency: string;
-  email: string | null;
-  phone: string | null;
-  fbp: string | null;
-  fbc: string | null;
-  fbIp: string | null;
-  fbUa: string | null;
-} | null> {
-  const q = `
-    query OrderConversion($id: ID!) {
-      order(id: $id) {
-        email
-        phone
-        customer { email phone }
-        shippingAddress { phone }
-        billingAddress { phone }
-        totalPriceSet { shopMoney { amount currencyCode } }
-        customAttributes { key value }
-      }
-    }
-  `;
-  const data = await shopifyAdminFetch<{ order: any }>(q, { id: orderGid });
-  const o = data.order;
-  if (!o) return null;
-  const attrs: Record<string, string> = {};
-  for (const a of o.customAttributes ?? []) attrs[a.key] = a.value;
-  return {
-    value: parseFloat(o.totalPriceSet?.shopMoney?.amount ?? "0"),
-    currency: o.totalPriceSet?.shopMoney?.currencyCode ?? "PKR",
-    email: o.email ?? o.customer?.email ?? null,
-    phone:
-      o.phone ??
-      o.customer?.phone ??
-      o.shippingAddress?.phone ??
-      o.billingAddress?.phone ??
-      null,
-    fbp: attrs["_fbp"] ?? null,
-    fbc: attrs["_fbc"] ?? null,
-    fbIp: attrs["_fb_ip"] ?? null,
-    fbUa: attrs["_fb_ua"] ?? null,
-  };
-}
-
 export async function addOrderTag(orderId: string, tag: string) {
   const m = `
     mutation TagsAdd($id: ID!, $tags: [String!]!) {

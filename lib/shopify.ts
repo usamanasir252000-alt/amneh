@@ -538,28 +538,6 @@ export async function linkCartToCustomer(
   return { checkoutUrl: result.cart?.checkoutUrl ?? null };
 }
 
-// Store key/value metadata on the cart so it persists to the order's
-// note/custom attributes. We use this to stash Meta attribution data
-// (_fbp, _fbc, buyer IP, user agent) captured at checkout, so the
-// WhatsApp-confirmed Purchase can be matched back to the ad click via CAPI.
-export async function setCartAttributes(
-  cartId: string,
-  attributes: { key: string; value: string }[]
-): Promise<void> {
-  if (!attributes.length) return;
-  await shopifyFetch(
-    `
-    mutation CartAttributesUpdate($cartId: ID!, $attributes: [AttributeInput!]!) {
-      cartAttributesUpdate(cartId: $cartId, attributes: $attributes) {
-        cart { id }
-        userErrors { field message }
-      }
-    }
-  `,
-    { cartId, attributes }
-  );
-}
-
 export async function fetchCart(cartId: string): Promise<ShopifyCart | null> {
   const data = await shopifyFetch<{
     cart: Parameters<typeof normalizeCart>[0] | null;
