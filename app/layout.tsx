@@ -54,10 +54,11 @@ export default function RootLayout({
           because the failure mode is the returned page never hydrating, so a
           React-effect handler would never run to recover it.
 
-          On returning from checkout — bfcache restore (event.persisted) OR our
-          "left-for-checkout" flag set on the way out (handleBuyNow for Buy Now,
-          goToCheckout for Add to Cart → checkout) — we force a genuinely fresh
-          load. A plain location.reload() proved UNRELIABLE (it can still be
+          When our "left-for-checkout" flag is present on pageshow (set on the
+          way out by handleBuyNow for Buy Now and goToCheckout for Add to Cart →
+          checkout), we force a genuinely fresh load. We do this ONLY for that
+          flag, not for every bfcache restore — see the pageshow handler note.
+          A plain location.reload() proved UNRELIABLE (it can still be
           served from the frozen bfcache snapshot, so the page came back stuck
           intermittently). Instead we navigate to the SAME url with a unique
           cache-busting query param (_rb=timestamp): a brand-new URL can never
@@ -77,8 +78,14 @@ export default function RootLayout({
   function canBust(){var a=[];try{a=JSON.parse(g(RLD)||'[]')}catch(e){}var t=+new Date();a=a.filter(function(x){return t-x<4000});if(a.length>=3)return false;a.push(t);s(RLD,JSON.stringify(a));return true;}
   function bust(){try{var u=new URL(window.location.href);u.searchParams.set('_rb',String(+new Date()));window.location.replace(u.toString());}catch(e){window.location.reload();}}
   try{var cur=new URL(window.location.href);if(cur.searchParams.has('_rb')){cur.searchParams.delete('_rb');history.replaceState(null,'',cur.pathname+(cur.search||'')+cur.hash);}}catch(e){}
+  // Only force a fresh load when we KNOW the shopper just came back from the
+  // Shopify checkout (the flag set on the way out). We intentionally do NOT
+  // reload on every bfcache restore (e.persisted): normal back-navigation and
+  // app-switching on mobile trigger bfcache constantly, and force-reloading
+  // each time made the site feel slow / like it kept re-loading. A plain
+  // bfcache restore of our OWN pages is instant and fine — leave it alone.
   window.addEventListener('pageshow',function(e){
-    if(e.persisted||g(KEY)){d(KEY);if(canBust())bust();}
+    if(g(KEY)){d(KEY);if(canBust())bust();}
   });
 })();`,
           }}

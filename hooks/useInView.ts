@@ -1,37 +1,50 @@
 import { useEffect, useRef, useState } from 'react';
 
 // Drives every FadeUp/RevealText/ScaleIn reveal-on-scroll animation site-wide.
-// Content using this hook starts at opacity:0 and is only ever made visible
-// by `inView` flipping true — so if the IntersectionObserver never fires for
-// any reason (e.g. a programmatic auto-scroll elsewhere on the page gets
-// interrupted by the user touching the screen mid-scroll, leaving the target
-// element never fully crossing the viewport threshold), that content stays
-// invisible FOREVER with no error, no crash, nothing — just a real customer
-// looking at a blank page where products/headings should be. This happened
-// in production (confirmed via a Clarity session recording + screenshot
-// comparison: everything missing from the broken screen was exactly the
-// stuff wrapped in this hook's animations, nothing else).
 //
-// The fix: a fallback timer forces `inView` true after 2s regardless of
-// whether the observer ever reported an intersection. Fast/normal case is
-// unaffected (the observer still fires almost immediately); worst case,
-// content just becomes visible slightly late instead of never.
-const FALLBACK_MS = 2000;
-
+// FAIL-OPEN BY DEFAULT. `inView` starts TRUE, so the server-rendered HTML and
+// the pre-hydration paint are always VISIBLE. This is the critical property:
+// a Facebook/Instagram in-app browser that stalls or never finishes running JS
+// (very common) can no longer leave content stuck at opacity:0 forever — the
+// worst case is simply "no animation," never "invisible."
+//
+// (The old design did the opposite: content started at opacity:0 and was only
+// revealed by `inView` flipping true from inside a useEffect. If hydration
+// never ran, the effect never ran, and whole sections stayed blank — confirmed
+// in production via a Clarity recording. A 2s fallback timer didn't help,
+// because it too lived inside that same useEffect.)
+//
+// The animation is still applied without any visible flash: on mount we check
+// if the element is BELOW the fold. If it is (off-screen), we hide it and let
+// the IntersectionObserver reveal it as the user scrolls to it — the hide
+// happens off-screen, so there's nothing to see flash. Above-the-fold content
+// is left visible (it shouldn't animate-in anyway). If JS never runs, none of
+// this happens and everything just stays visible.
 export function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Only arm the hide→reveal animation for elements currently below the fold.
+    // Anything already on screen stays visible (no flash, no pointless anim).
+    const rect = el.getBoundingClientRect();
+    const belowFold = rect.top > window.innerHeight;
+    if (!belowFold) return;
+
+    setInView(false);
     const obs = new IntersectionObserver(
-      ([e]) => setInView(e.isIntersecting),
+      ([e]) => { if (e.isIntersecting) setInView(true); },
       { threshold }
     );
     obs.observe(el);
 
-    const fallback = setTimeout(() => setInView(true), FALLBACK_MS);
+    // Safety net in case the observer never reports (e.g. an interrupted
+    // programmatic scroll leaves the element never crossing the threshold):
+    // reveal anyway shortly after. Fast enough not to be noticed.
+    const fallback = setTimeout(() => setInView(true), 800);
 
     return () => {
       obs.unobserve(el);

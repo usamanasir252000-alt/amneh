@@ -597,26 +597,34 @@ function HowToUseSteps({ text }: { text: string | null }) {
 // with a 2s fallback timer, same fix as hooks/useInView.ts: content can
 // still animate in on scroll for the normal case, but can never stay hidden
 // forever no matter what interrupts the scroll. ─────────────────────────────
+// FAIL-OPEN reveal (same principle as hooks/useInView): starts VISIBLE so a
+// stalled/no-JS in-app browser can never leave the section blank. On mount, if
+// the element is below the fold, it hides and animates in on scroll; above-fold
+// content stays visible (no flash). `initial={false}` keeps the entrance state
+// out of the SSR HTML entirely.
 function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
+  const [shown, setShown] = useState(true);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top <= window.innerHeight) return; // already on screen — leave visible
+    setShown(false);
     const obs = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setShown(true); },
       { threshold: 0.1, rootMargin: "-60px 0px" }
     );
     obs.observe(el);
-    const fallback = setTimeout(() => setShown(true), 2000);
+    const fallback = setTimeout(() => setShown(true), 800);
     return () => { obs.unobserve(el); clearTimeout(fallback); };
   }, []);
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 24 }}
+      initial={false}
       animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 24 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
       className={className}
@@ -642,7 +650,7 @@ function TrustBadges() {
       {TRUST_BADGES.map((b, i) => (
         <motion.div
           key={b.label}
-          initial={{ opacity: 0, y: 10 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
           className="flex flex-col items-center gap-2 text-center rounded-xl bg-gradient-to-b from-[#fbf5f7] to-[#f7fbfd] border border-[#f0dde3] py-3 px-1.5"
@@ -1263,7 +1271,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
 
           {/* Title + price */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
             className="order-1 lg:order-none lg:col-start-2 lg:row-start-1 lg:self-start"
@@ -1300,7 +1308,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               size to the image itself instead, so the photo fully fills its
               own card with no leftover space. */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.08 }}
             className="order-2 lg:order-none lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:self-start flex flex-col lg:flex-row gap-3 lg:gap-4"
@@ -1417,7 +1425,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
 
           {/* Buy box — price, qty, buttons, trust badges */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.14 }}
             className="order-3 lg:order-none lg:col-start-2 lg:row-start-2 lg:self-start flex flex-col"

@@ -23,21 +23,31 @@ interface Product {
   images: ProductImage[];
 }
 
-export default function ProductCarousel() {
-  const [products, setProducts] = useState<Product[]>([]);
+export default function ProductCarousel({
+  initialProducts = [],
+}: {
+  // Server-fetched products passed in from the page (server component). When
+  // present they're baked into the SSR HTML, so the carousel shows real
+  // products on first paint — even inside a Facebook/Instagram in-app browser
+  // that stalls or never runs JS. Falls back to the client fetch below only
+  // when the server couldn't provide any (e.g. server fetch errored).
+  initialProducts?: Product[];
+}) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loadError, setLoadError] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
   const [start, setStart] = useState(0);
   const perPage = 4;
 
+  // Client fetch is now only a FALLBACK for when the server didn't supply
+  // products (initialProducts empty). Normally products arrive as props and are
+  // already in the HTML, so this effect no-ops — no redundant round-trip, and
+  // the "Loading…" state is never shown to a normal visitor.
+  //
   // fetchWithRetry (not a bare fetch) — mobile/in-app-browser connections
-  // intermittently drop mid-request (see lib/fetchRetry.ts). The previous
-  // bare fetch with a silent .catch(() => {}) meant a failed request left
-  // `products` empty forever with no distinction from "still loading" —
-  // a visitor on a dropped connection would see "Loading products…" stuck
-  // on screen permanently, with no error and no way to recover. This is the
-  // exact failure a real customer's session recording showed on /skincare.
+  // intermittently drop mid-request (see lib/fetchRetry.ts).
   useEffect(() => {
+    if (initialProducts.length > 0) return;
     let cancelled = false;
     setLoadError(false);
 
@@ -53,7 +63,7 @@ export default function ProductCarousel() {
       });
 
     return () => { cancelled = true; };
-  }, [retryTick]);
+  }, [retryTick, initialProducts.length]);
 
   const visible = products.slice(start, start + perPage);
 
