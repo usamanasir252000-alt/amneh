@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { UgcVideo } from "@/lib/testimonials";
+import { diagEvent, diagTag } from "@/lib/diag";
 
 // Absolute-fill, silent, looping background video that plays ONLY the
 // [startSec, endSec] slice and never shows a black buffering gap. Shared by
@@ -16,10 +17,16 @@ export default function BackgroundVideo({
   video,
   zoom = false,
   eager = false,
+  diagLabel,
 }: {
   video: UgcVideo;
   zoom?: boolean; // desktop scale-in-on-reveal effect
   eager?: boolean; // start fetching immediately on mount (for hero/banner videos)
+  // Opt-in diagnostics. When set (e.g. "skincare-hero"), this instance reports
+  // whether the video actually reached its frame or only revealed via the 3.5s
+  // safety fallback (= it never really loaded, so the grey placeholder was what
+  // the visitor saw). Omitted elsewhere so other instances stay silent.
+  diagLabel?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
@@ -57,6 +64,7 @@ export default function BackgroundVideo({
     if (!v || ready) return;
     if (Math.abs(v.currentTime - start) < 0.3) {
       setReady(true);
+      if (diagLabel) diagEvent(`diag_video_ready_${diagLabel}`);
       if (active) v.play().catch(() => {});
     }
   };
@@ -84,7 +92,13 @@ export default function BackgroundVideo({
     if (!load) return;
     const t = setTimeout(() => {
       setReady((r) => {
-        if (!r && active) ref.current?.play().catch(() => {});
+        if (!r) {
+          // Revealed by the safety timer, not by the video reaching its frame:
+          // the video never genuinely loaded, so the grey gradient placeholder
+          // is what the visitor was looking at until now.
+          if (diagLabel) diagEvent(`diag_video_fallback_reveal_${diagLabel}`);
+          if (active) ref.current?.play().catch(() => {});
+        }
         return true;
       });
     }, 3500);
@@ -116,6 +130,12 @@ export default function BackgroundVideo({
           onSeeked={tryReveal}
           onCanPlay={tryReveal}
           onTimeUpdate={clampToSegment}
+          onError={() => {
+            if (diagLabel) {
+              diagTag(`video_error_${diagLabel}`, video.url);
+              diagEvent(`diag_video_error_${diagLabel}`);
+            }
+          }}
           className="absolute inset-0 h-full w-full object-cover object-center"
           style={{
             opacity: ready ? 1 : 0,

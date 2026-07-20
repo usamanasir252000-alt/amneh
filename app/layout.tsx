@@ -91,6 +91,35 @@ export default function RootLayout({
           }}
         />
         {/*
+          Swallows a noise error that is NOT from our code: in-app browsers
+          (Facebook/Instagram/TikTok/Gmail on iOS) and some browser extensions
+          inject their own JS that probes the iOS WKWebView native bridge
+          (window.webkit.messageHandlers). Outside a real iOS WebView
+          window.webkit is undefined, so their probe throws
+          "undefined is not an object (evaluating 'window.webkit.messageHandlers')".
+          It doesn't affect our site, but it floods Microsoft Clarity's error
+          reports. We register an error listener HERE in <head> so it runs
+          BEFORE Clarity loads (rendered later in <body>) — the capture-phase
+          listener sees the event first and, for this exact message, stops it
+          from propagating to Clarity's own error hook. We only suppress this
+          specific webkit.messageHandlers probe; every other error still surfaces.
+        */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  function isWebkitBridgeNoise(msg){return typeof msg==='string'&&msg.indexOf('webkit.messageHandlers')!==-1;}
+  window.addEventListener('error',function(e){
+    if(isWebkitBridgeNoise(e&&e.message)){e.stopImmediatePropagation();e.preventDefault();return false;}
+  },true);
+  window.addEventListener('unhandledrejection',function(e){
+    var r=e&&e.reason;var msg=r&&r.message?r.message:String(r);
+    if(isWebkitBridgeNoise(msg)){e.stopImmediatePropagation();e.preventDefault();}
+  },true);
+})();`,
+          }}
+        />
+        {/*
           Cuts DNS/TLS handshake time off the first request to each origin —
           kept to only origins the BROWSER itself actually talks to. Shopify
           product images and Cloudinary uploads never qualify: Shopify images

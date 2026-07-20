@@ -14,6 +14,8 @@ import BackgroundVideo from "@/components/BackgroundVideo";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 import { fetchWithRetry } from "@/lib/fetchRetry";
 import { SKINCARE_HERO_VIDEO } from "@/lib/testimonials";
+import { usePageDiagnostics } from "@/hooks/usePageDiagnostics";
+import { diagEvent, diagTag } from "@/lib/diag";
 
 interface ProductImage {
   id: string;
@@ -221,6 +223,19 @@ export default function SkincareClient({
   const [loaded, setLoaded] = useState(initialProducts.length > 0);
   const [loadError, setLoadError] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
+
+  // Diagnostics: proves hydration ran, captures env/connection/fonts, and
+  // audits whether media actually painted. Also tag how the products arrived
+  // (baked into SSR HTML vs. needing the client fallback fetch) — an empty grid
+  // is a top suspect for the "greyed out" look.
+  usePageDiagnostics("skincare");
+  useEffect(() => {
+    diagTag("products_source", initialProducts.length > 0 ? "ssr" : "client-fetch");
+    diagTag("products_count_initial", initialProducts.length);
+    if (initialProducts.length === 0) diagEvent("diag_skincare_no_ssr_products");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Banner mobile/desktop choice is done with CSS breakpoints in the JSX below
   // (so mobile shows the video from first paint, no desktop-banner flash), and
   // the video only downloads on mobile because its wrapper is display:none on
@@ -242,17 +257,29 @@ export default function SkincareClient({
     setLoaded(false);
     setLoadError(false);
 
+    // Diagnostics: time and tag the fallback fetch — this only runs when SSR
+    // supplied no products, i.e. the exact path most likely to leave a blank/
+    // skeleton grid if the connection is flaky.
+    diagEvent("diag_skincare_client_fetch_start");
+    const fetchStart = (() => { try { return performance.now(); } catch { return 0; } })();
+
     fetchWithRetry("/api/products?category=serums", { timeoutMs: 10000, retries: 2 })
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
         setProducts(data);
         setLoaded(true);
+        try { diagTag("products_fetch_ms", Math.round(performance.now() - fetchStart)); } catch {}
+        diagTag("products_count_fetched", Array.isArray(data) ? data.length : "not-array");
+        diagEvent("diag_skincare_client_fetch_ok");
       })
       .catch(() => {
         if (cancelled) return;
         setLoadError(true);
         setLoaded(true);
+        try { diagTag("products_fetch_ms", Math.round(performance.now() - fetchStart)); } catch {}
+        diagTag("products_fetch_result", "error");
+        diagEvent("diag_skincare_client_fetch_fail");
       });
 
     return () => { cancelled = true; };
@@ -321,7 +348,7 @@ export default function SkincareClient({
             `eager` needed). */}
         {SKINCARE_HERO_VIDEO && (
           <div className="absolute inset-0 lg:hidden">
-            <BackgroundVideo video={SKINCARE_HERO_VIDEO} />
+            <BackgroundVideo video={SKINCARE_HERO_VIDEO} diagLabel="skincare-hero" />
           </div>
         )}
         {/* DESKTOP: static wide banner. Shown on ALL breakpoints if no video. */}

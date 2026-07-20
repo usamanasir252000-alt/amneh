@@ -9,6 +9,8 @@ import { useCart } from "@/context/CartContext";
 import { fbTrack } from "@/lib/fbpixel";
 import { fetchWithRetry } from "@/lib/fetchRetry";
 import { logEvent } from "@/lib/clientLog";
+import { usePageDiagnostics } from "@/hooks/usePageDiagnostics";
+import { diagEvent, diagTag } from "@/lib/diag";
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import { LEFT_FOR_CHECKOUT_KEY } from "@/components/BFCacheReload";
@@ -937,6 +939,18 @@ function MostLoved({ products }: { products: Product[] }) {
 // interactive bits below (gallery, add to cart, buy now) need JS.
 export default function ProductClient({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
   const { addItem } = useCart();
+
+  // Diagnostics: proves hydration ran, captures env/connection/fonts, audits
+  // whether the product images actually painted (the grey hero + gallery are
+  // the "greyed out" symptom on this page). Product data itself is SSR-baked,
+  // so a greyed product page is almost always stalled IMAGES, not missing data.
+  usePageDiagnostics("product");
+  useEffect(() => {
+    diagTag("product_handle", product.handle);
+    diagTag("product_images_count", product.images?.length ?? 0);
+    if (!product.images || product.images.length === 0) diagEvent("diag_product_no_images");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity]   = useState(1);
