@@ -51,35 +51,43 @@ export default function CartDrawer() {
   const totalQty = getTotalItems();
   const savings = bundleSavings(totalQty, totalPrice);
 
+  // Open/close is driven by ALWAYS-MOUNTED elements toggling opacity/transform +
+  // pointer-events — NOT AnimatePresence mount/unmount. In Facebook/Instagram
+  // in-app browsers, AnimatePresence exit animations routinely stall (the WebView
+  // throttles animation frames), leaving the backdrop stuck half-faded — a
+  // greyed-out page that also swallows taps, and (because this is a global
+  // layout component) it persists across client-side navigation, so it appears
+  // "on landing" of the next page. CSS transitions snap to their final value even
+  // when frames drop, and pointer-events:none when closed guarantees it can never
+  // block interaction. Same robust pattern as WelcomePopup.
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-            onClick={closeCart}
-          />
+    <>
+      {/* Backdrop */}
+      <div
+        aria-hidden={!isOpen}
+        onClick={closeCart}
+        className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
+          isOpen ? "opacity-100" : "opacity-0"
+        }`}
+        style={{ pointerEvents: isOpen ? "auto" : "none" }}
+      />
 
-          {/* Drawer */}
-          {/* top-9 (not inset-y-0) — the announcement bar sits at z-[70],
-              deliberately above every overlay so it stays visible while
-              they're open (see AnnouncementBar.tsx). A drawer starting at
-              y:0 would have its own z-50 header rendered UNDER that bar,
-              covering the close button. Starting the drawer below the bar
-              instead avoids the stacking conflict entirely, the same way
-              Navbar already offsets itself with top-9. */}
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="fixed top-9 bottom-0 right-0 z-50 w-full max-w-md bg-white overflow-y-auto shadow-2xl"
-          >
+      {/* Drawer */}
+      {/* top-9 (not inset-y-0) — the announcement bar sits at z-[70],
+          deliberately above every overlay so it stays visible while
+          they're open (see AnnouncementBar.tsx). A drawer starting at
+          y:0 would have its own z-50 header rendered UNDER that bar,
+          covering the close button. Starting the drawer below the bar
+          instead avoids the stacking conflict entirely, the same way
+          Navbar already offsets itself with top-9. */}
+      <div
+        aria-hidden={!isOpen}
+        className="fixed top-9 bottom-0 right-0 z-50 w-full max-w-md bg-white overflow-y-auto shadow-2xl transition-transform duration-300 ease-in-out"
+        style={{
+          transform: isOpen ? "translateX(0)" : "translateX(100%)",
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
+      >
             {/* Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -279,9 +287,7 @@ export default function CartDrawer() {
                 </>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
 }
