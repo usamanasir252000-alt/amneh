@@ -17,11 +17,17 @@ export default function BackgroundVideo({
   video,
   zoom = false,
   eager = false,
+  loadDelayMs = 0,
   diagLabel,
 }: {
   video: UgcVideo;
   zoom?: boolean; // desktop scale-in-on-reveal effect
   eager?: boolean; // start fetching immediately on mount (for hero/banner videos)
+  // Wait this long AFTER the panel is in view before fetching the video, so
+  // higher-priority above-the-fold content (e.g. the /skincare product images)
+  // wins the bandwidth first. Safe to use ONLY with a poster set — the poster
+  // covers the delay so the visitor still sees a real image immediately.
+  loadDelayMs?: number;
   // Opt-in diagnostics. When set (e.g. "skincare-hero"), this instance reports
   // whether the video actually reached its frame or only revealed via the 3.5s
   // safety fallback (= it never really loaded, so the grey placeholder was what
@@ -43,16 +49,29 @@ export default function BackgroundVideo({
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
+    let delayTimer: ReturnType<typeof setTimeout> | undefined;
     const obs = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) setLoad(true);
+        if (e.isIntersecting) {
+          // Defer the fetch by loadDelayMs (if set) so higher-priority content
+          // downloads first; the poster covers the gap. Fire once — clear any
+          // pending timer so we never schedule twice.
+          if (loadDelayMs > 0) {
+            if (!delayTimer) delayTimer = setTimeout(() => setLoad(true), loadDelayMs);
+          } else {
+            setLoad(true);
+          }
+        }
         setActive(e.isIntersecting);
       },
       { root: null, rootMargin: "400px", threshold: 0 },
     );
     obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+    return () => {
+      obs.disconnect();
+      if (delayTimer) clearTimeout(delayTimer);
+    };
+  }, [loadDelayMs]);
 
   const seekToStart = () => {
     const v = ref.current;
@@ -107,9 +126,24 @@ export default function BackgroundVideo({
 
   return (
     <div ref={wrapRef} className="absolute inset-0">
-      {!ready && (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#dff0f8] to-[#fbeef2]" />
-      )}
+      {!ready &&
+        (video.poster ? (
+          // Poster = instant real image while the .mp4 downloads. Plain <img>
+          // (not next/image) on purpose: it skips the /_next/image server proxy
+          // so it paints as fast as possible — the whole point on a slow in-app
+          // browser. fetchPriority high because this IS the hero LCP until the
+          // video takes over.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={video.poster}
+            alt=""
+            aria-hidden="true"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#dff0f8] to-[#fbeef2]" />
+        ))}
       {load && (
         <video
           ref={ref}

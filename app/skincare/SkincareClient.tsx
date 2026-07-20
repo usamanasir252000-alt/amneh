@@ -40,7 +40,7 @@ interface Product {
 
 const categories = ["serums"];
 
-function SkincareProductCard({ product }: { product: Product }) {
+function SkincareProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -88,7 +88,7 @@ function SkincareProductCard({ product }: { product: Product }) {
             className="flex h-full w-full transition-transform duration-300 ease-in-out"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
-            {images.map((img) => (
+            {images.map((img, idx) => (
               <div
                 key={img.id}
                 className="relative w-full h-full flex-shrink-0"
@@ -99,6 +99,9 @@ function SkincareProductCard({ product }: { product: Product }) {
                   fill
                   className="object-cover object-center"
                   sizes="48vw"
+                  // Only the first (visible) image of a prioritized card loads
+                  // eagerly; the rest of the carousel stays lazy.
+                  priority={priority && idx === 0}
                 />
               </div>
             ))}
@@ -138,6 +141,7 @@ function SkincareProductCard({ product }: { product: Product }) {
             fill
             className={`object-cover object-center transition-all duration-500 ${hovered ? "scale-105" : "scale-100"} ${hovered && hoverImage ? "opacity-0" : "opacity-100"}`}
             sizes="33vw"
+            priority={priority}
           />
           {hoverImage && (
             <Image
@@ -348,7 +352,11 @@ export default function SkincareClient({
             `eager` needed). */}
         {SKINCARE_HERO_VIDEO && (
           <div className="absolute inset-0 lg:hidden">
-            <BackgroundVideo video={SKINCARE_HERO_VIDEO} diagLabel="skincare-hero" />
+            <BackgroundVideo
+              video={SKINCARE_HERO_VIDEO}
+              diagLabel="skincare-hero"
+              loadDelayMs={1200}
+            />
           </div>
         )}
         {/* DESKTOP: static wide banner. Shown on ALL breakpoints if no video. */}
@@ -423,7 +431,9 @@ export default function SkincareClient({
           {!loaded && Array.from({ length: 6 }, (_, i) => <ProductCardSkeleton key={i} />)}
           {loaded && !loadError && products.map((p, i) => (
             <ScaleIn key={p.id} delay={i * 90} threshold={0.05}>
-              <SkincareProductCard product={p} />
+              {/* First row (2 cols on mobile) gets priority so the products the
+                  auto-scroll lands on paint first, ahead of below-fold media. */}
+              <SkincareProductCard product={p} priority={i < 2} />
             </ScaleIn>
           ))}
           {loaded && loadError && (

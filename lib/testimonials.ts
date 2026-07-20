@@ -61,4 +61,11 @@ export const FEATURE_VIDEO: UgcVideo | null = { url: "/videos/feature.mp4" };
 // static banner. Self-hosted + pre-trimmed (see FEATURE_VIDEO note above): the
 // 6 MB / seek-to-21s Shopify original is now a 1.2 MB faststart clip that plays
 // from frame 0 — same 720×1280 resolution, near-instant start.
-export const SKINCARE_HERO_VIDEO: UgcVideo | null = { url: "/videos/skincare-hero.mp4" };
+// poster = the video's own first frame (extracted with ffmpeg, 40 KB JPG). It
+// paints INSTANTLY as the hero while the .mp4 downloads — so a visitor from a
+// slow Facebook in-app browser sees a real image immediately instead of the
+// grey gradient placeholder they used to stare at for ~5s before bouncing.
+export const SKINCARE_HERO_VIDEO: UgcVideo | null = {
+  url: "/videos/skincare-hero.mp4",
+  poster: "/videos/skincare-hero-poster.jpg",
+};
