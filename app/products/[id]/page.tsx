@@ -26,7 +26,7 @@ export default async function ProductPage(
   // unfiltered and match on `category` ourselves instead of passing it through.
   const allProducts = await getProducts().catch(() => []);
   const relatedProducts = allProducts
-    .filter((p) => p.handle !== product.handle && p.category === product.category)
+    .filter((p) => p.handle && p.handle !== product.handle && p.category === product.category)
     .slice(0, 8);
 
   return <ProductClient product={product} relatedProducts={relatedProducts} />;

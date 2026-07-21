@@ -26,6 +26,20 @@ const nextConfig = {
   // CSP can silently break the Meta Pixel, Google Sign-In, Shopify/Cloudinary
   // images, or the WhatsApp link. That needs its own careful pass with real
   // testing, not a blanket header. These are safe, purely-additive headers.
+  // Meta's ad crawler (meta-externalads) and any catalog/dynamic ad whose feed
+  // still uses Shopify's `/products/{handle}.json` URL shape hit our custom
+  // Next.js storefront — which has no `.json` route — and 404. Redirect those
+  // to the real product page so both the crawler AND any real customer who
+  // clicks such an ad land on the working page instead of a 404.
+  async redirects() {
+    return [
+      {
+        source: "/products/:handle.json",
+        destination: "/products/:handle",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
