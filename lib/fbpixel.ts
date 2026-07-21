@@ -1,15 +1,32 @@
 // Tiny client-side wrapper around the Meta Pixel (window.fbq).
 // No-ops safely if the pixel isn't loaded (env not set / blocked).
+import { phCapture } from "@/lib/posthog";
+
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
   }
 }
 
+// Funnel events also forwarded to PostHog so its dashboard can build the same
+// ProductView → AddToCart → InitiateCheckout funnel and let you watch the
+// replays of shoppers who drop at each step. "PageView" is intentionally
+// excluded — PostHog fires its own $pageview in components/PostHog.tsx, so
+// forwarding it here would double-count. Purchase isn't in this list because
+// it fires from Shopify's checkout (offsite), which no on-site tool can see.
+const PH_FORWARD: Record<string, string> = {
+  ViewContent: "product_viewed",
+  AddToCart: "add_to_cart",
+  InitiateCheckout: "initiate_checkout",
+  Contact: "whatsapp_contact",
+};
+
 export function fbTrack(event: string, params?: Record<string, unknown>): void {
   if (typeof window !== "undefined" && typeof window.fbq === "function") {
     window.fbq("track", event, params);
   }
+  const phEvent = PH_FORWARD[event];
+  if (phEvent) phCapture(phEvent, params);
 }
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;

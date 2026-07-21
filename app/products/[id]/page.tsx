@@ -14,7 +14,16 @@ export default async function ProductPage(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const product = await getProductByHandle(id);
+
+  // Fire both Shopify round-trips CONCURRENTLY. The "Most Loved" catalog fetch
+  // does not depend on the product, so awaiting it after getProductByHandle
+  // just stacked two serial latencies into TTFB — on a slow mobile connection
+  // that delay is enough for an ad click to bounce before the page paints.
+  // Running them in parallel makes TTFB one round-trip instead of two.
+  const [product, allProducts] = await Promise.all([
+    getProductByHandle(id),
+    getProducts().catch(() => []),
+  ]);
 
   if (!product) notFound();
 
@@ -24,7 +33,6 @@ export default async function ProductPage(
   // NOTE: getProducts(category) filters on Shopify TAGS, but `product.category`
   // is derived from productType — the two aren't the same value, so we fetch
   // unfiltered and match on `category` ourselves instead of passing it through.
-  const allProducts = await getProducts().catch(() => []);
   const relatedProducts = allProducts
     .filter((p) => p.handle && p.handle !== product.handle && p.category === product.category)
     .slice(0, 8);

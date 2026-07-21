@@ -7,7 +7,7 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import MicrosoftClarity from "@/components/MicrosoftClarity";
+import PostHog from "@/components/PostHog";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -97,12 +97,12 @@ export default function RootLayout({
           (window.webkit.messageHandlers). Outside a real iOS WebView
           window.webkit is undefined, so their probe throws
           "undefined is not an object (evaluating 'window.webkit.messageHandlers')".
-          It doesn't affect our site, but it floods Microsoft Clarity's error
-          reports. We register an error listener HERE in <head> so it runs
-          BEFORE Clarity loads (rendered later in <body>) — the capture-phase
-          listener sees the event first and, for this exact message, stops it
-          from propagating to Clarity's own error hook. We only suppress this
-          specific webkit.messageHandlers probe; every other error still surfaces.
+          It doesn't affect our site, but it floods analytics/error tooling
+          with noise. We register an error listener HERE in <head> so it runs
+          before any analytics loads (rendered later in <body>) — the
+          capture-phase listener sees the event first and, for this exact
+          message, stops it from propagating. We only suppress this specific
+          webkit.messageHandlers probe; every other error still surfaces.
         */}
         <script
           // eslint-disable-next-line react/no-danger
@@ -134,7 +134,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="preconnect" href="https://www.facebook.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://www.clarity.ms" />
         {/*
           shop.amnehofficial.com is Shopify's checkout domain — a completely
           different origin from this app that the browser has never talked to.
@@ -149,7 +148,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans bg-[#f1efef]`}>
         <MetaPixel />
         <GoogleAnalytics />
-        <MicrosoftClarity />
+        <PostHog />
         {/*
           overflow-x-hidden lives on this wrapper, NOT <body>/<html>. Setting it
           directly on body breaks vertical scrolling entirely in Facebook's

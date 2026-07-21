@@ -4,37 +4,29 @@
 // product images / the product fetch all stalling (typically a flaky in-app
 // browser or a throttled mobile connection).
 //
-// HOW YOU SEE THE DATA: every signal is pushed to Microsoft Clarity as a
-// CUSTOM TAG (`clarity("set", key, value)`) or a SMART EVENT
-// (`clarity("event", name)`). In the Clarity dashboard you can then FILTER /
-// segment sessions by these — e.g. "show me sessions where font_status_6s =
-// loading" or "where diag_imgs_incomplete fired" — and open the recording to
-// see exactly what that visitor saw. Everything is ALSO console.log'd (prefix
-// below) for local dev and remote debugging.
+// HOW YOU SEE THE DATA: every signal is pushed to PostHog — tags as
+// super-properties (`posthog.register`) and events as captured events
+// (`posthog.capture`). In PostHog you can then FILTER / segment sessions and
+// replays by these — e.g. "show me sessions where font_status_final = loading"
+// or "where diag_imgs_incomplete fired" — and open the replay to see exactly
+// what that visitor saw. Everything is ALSO console.log'd (prefix below) for
+// local dev and remote debugging.
 //
-// FULLY GUARDED: if Clarity never loaded (fully stalled JS) or we're on the
+// FULLY GUARDED: if PostHog never loaded (fully stalled JS) or we're on the
 // server, every call is a silent no-op — this instrumentation can never itself
 // break a page.
+
+import { phCapture, phRegister } from "@/lib/posthog";
 
 const PREFIX = "[amneh-diag]";
 
 type TagValue = string | number | boolean | null | undefined;
 
-// Clarity's global is installed by components/MicrosoftClarity.tsx. Before the
-// tag script finishes loading it's a stub that QUEUES calls (c.q) and replays
-// them once loaded, so tags set early aren't lost. If it's genuinely absent
-// (Clarity skipped on localhost, or JS fully stalled) we get null and no-op.
-function clarity(): ((...args: unknown[]) => void) | null {
-  if (typeof window === "undefined") return null;
-  const c = (window as unknown as { clarity?: unknown }).clarity;
-  return typeof c === "function" ? (c as (...args: unknown[]) => void) : null;
-}
-
-/** Set a filterable custom tag on the current Clarity session. */
+/** Set a filterable property on the current PostHog session (super-property). */
 export function diagTag(key: string, value: TagValue): void {
   const v = value === undefined || value === null ? "unknown" : String(value);
   try {
-    clarity()?.("set", key, v);
+    phRegister({ [key]: v });
   } catch {
     /* never let telemetry throw */
   }
@@ -45,10 +37,10 @@ export function diagTag(key: string, value: TagValue): void {
   }
 }
 
-/** Fire a named Clarity smart-event (filterable/segmentable in the dashboard). */
+/** Fire a named PostHog event (filterable/segmentable in the dashboard). */
 export function diagEvent(name: string): void {
   try {
-    clarity()?.("event", name);
+    phCapture(name);
   } catch {
     /* no-op */
   }
