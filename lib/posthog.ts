@@ -21,6 +21,14 @@ export function phRegister(props: Record<string, unknown>): void {
   if (ready()) posthog.register(props);
 }
 
+// Report a caught exception to PostHog Error Tracking. Used by the React error
+// boundaries (app/error.tsx, app/global-error.tsx) so a render crash — which a
+// shopper experiences as a blank/stuck page and a lost sale — is recorded with
+// its page context instead of vanishing into the browser console.
+export function phCaptureException(error: unknown, props?: Record<string, unknown>): void {
+  if (ready()) posthog.captureException(error, props);
+}
+
 // Tie the current session to a known person once they identify themselves
 // (login/signup) — so their replays and funnel steps stitch into one profile
 // instead of a string of anonymous sessions.

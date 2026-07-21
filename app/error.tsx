@@ -6,6 +6,7 @@
 // offers a recovery path instead.
 import { useEffect } from "react";
 import Link from "next/link";
+import { phCaptureException } from "@/lib/posthog";
 
 export default function Error({
   error,
@@ -16,6 +17,8 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error("[app/error] caught:", error);
+    // Report to PostHog Error Tracking (no-ops if PostHog isn't loaded).
+    phCaptureException(error, { boundary: "app/error", digest: error.digest });
   }, [error]);
 
   return (

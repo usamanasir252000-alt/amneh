@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { createCart, linkCartToCustomer, CartBuyerIdentityInput } from "@/lib/shopify";
+import { captureServerException, captureServerEvent, distinctIdFromCookie } from "@/lib/posthog-server";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,22 @@ export async function POST(req: Request) {
     ? discountCodes.filter((c: unknown): c is string => typeof c === "string" && c.trim().length > 0)
     : [];
 
+  // Distinct id from the PostHog cookie, so a failed checkout is attributed to
+  // the SAME shopper/session (and replay) as their on-site activity.
+  const phDistinctId = distinctIdFromCookie(req.headers.get("cookie"));
+
   let cart;
   try {
     cart = await createCart(variantId, quantity ?? 1, codes);
   } catch (err) {
     console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
+    // Surface checkout-blocking failures in PostHog. This is the moment a
+    // high-intent shopper clicked Buy Now and got nothing — a directly
+    // measurable, attributable lost sale, not a guess.
+    await captureServerEvent("checkout_cart_failed", {
+      variantId, quantity: quantity ?? 1, elapsedMs: Date.now() - startedAt, reason: (err as Error)?.message,
+    }, phDistinctId);
+    await captureServerException(err, phDistinctId, { route: "buy-now", stage: "createCart", variantId });
     return NextResponse.json({ error: "Could not create cart" }, { status: 502 });
   }
 
