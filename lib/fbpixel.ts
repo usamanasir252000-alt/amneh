@@ -21,12 +21,57 @@ const PH_FORWARD: Record<string, string> = {
   Contact: "whatsapp_contact",
 };
 
-export function fbTrack(event: string, params?: Record<string, unknown>): void {
-  if (typeof window !== "undefined" && typeof window.fbq === "function") {
-    window.fbq("track", event, params);
+// Storefront funnel events that also get a server-side twin via the Meta
+// Conversions API (see lib/meta-capi.ts + /api/meta/capi). Pixel + CAPI share
+// one event_id so Meta deduplicates them — this is what lifts "event coverage"
+// in Events Manager. Purchase is intentionally absent (Shopify sends it).
+const CAPI_EVENTS = new Set(["ViewContent", "AddToCart", "InitiateCheckout"]);
+
+// Best-effort unique id shared between the pixel event and its CAPI twin.
+function newEventId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
   }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+export function fbTrack(event: string, params?: Record<string, unknown>): void {
+  const capi = CAPI_EVENTS.has(event);
+  // Generate one id up front so the pixel's eventID matches the CAPI event_id.
+  const eventId = capi ? newEventId() : undefined;
+
+  if (typeof window !== "undefined" && typeof window.fbq === "function") {
+    if (eventId) {
+      window.fbq("track", event, params, { eventID: eventId });
+    } else {
+      window.fbq("track", event, params);
+    }
+  }
+
   const phEvent = PH_FORWARD[event];
   if (phEvent) phCapture(phEvent, params);
+
+  // Fire the server twin. keepalive: this often runs right before a navigation
+  // to Shopify checkout (InitiateCheckout / Buy Now), and keepalive lets the
+  // request complete after the page starts unloading. Never awaited, never
+  // throws to the caller.
+  if (capi && eventId && typeof window !== "undefined") {
+    try {
+      fetch("/api/meta/capi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+        body: JSON.stringify({
+          eventName: event,
+          eventId,
+          eventSourceUrl: window.location.href,
+          customData: params,
+        }),
+      }).catch(() => {});
+    } catch {
+      /* never let telemetry break the funnel */
+    }
+  }
 }
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
