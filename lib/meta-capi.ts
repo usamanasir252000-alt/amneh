@@ -20,6 +20,13 @@ const API_VERSION = process.env.META_GRAPH_API_VERSION || "v21.0";
 // arrive live there instead of counting toward production.
 const TEST_EVENT_CODE = process.env.META_CAPI_TEST_EVENT_CODE;
 
+// True only when both credentials are present in the RUNNING environment.
+// Used by the /api/meta/capi health check to confirm prod actually has the
+// vars set (the .env file is local-only; the host needs them separately).
+export function isCapiConfigured(): boolean {
+  return Boolean(PIXEL_ID && ACCESS_TOKEN);
+}
+
 // SHA-256 lowercase-trimmed, per Meta's hashing spec for PII (em/ph/fn/ln).
 function hash(value: string): string {
   return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
@@ -44,6 +51,8 @@ export interface CapiUserData {
   fbp?: string; // _fbp cookie (Meta browser id)
   fbc?: string; // _fbc cookie (click id, from fbclid)
   email?: string; // raw — hashed here, never sent in the clear
+  firstName?: string; // raw — hashed here, never sent in the clear
+  lastName?: string; // raw — hashed here, never sent in the clear
 }
 
 export interface CapiEventInput {
@@ -68,6 +77,10 @@ export async function sendCapiEvent(input: CapiEventInput): Promise<boolean> {
   if (input.userData.fbp) user_data.fbp = input.userData.fbp;
   if (input.userData.fbc) user_data.fbc = input.userData.fbc;
   if (input.userData.email) user_data.em = [hash(input.userData.email)];
+  // fn/ln mirror the browser's advanced matching so the server twin matches as
+  // strongly as the pixel event — lifts Meta's Event Match Quality score.
+  if (input.userData.firstName) user_data.fn = [hash(input.userData.firstName)];
+  if (input.userData.lastName) user_data.ln = [hash(input.userData.lastName)];
 
   const body: Record<string, unknown> = {
     data: [
