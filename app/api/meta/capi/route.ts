@@ -7,9 +7,9 @@ import { sendCapiEvent, isCapiConfigured } from "@/lib/meta-capi";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Only the storefront funnel events get a server twin. Anything else is
-// ignored so a stray/forged client call can't push arbitrary events to Meta.
-const ALLOWED = new Set(["ViewContent", "AddToCart", "InitiateCheckout"]);
+// Only the storefront events get a server twin. Anything else is ignored so a
+// stray/forged client call can't push arbitrary events to Meta.
+const ALLOWED = new Set(["PageView", "ViewContent", "AddToCart", "InitiateCheckout"]);
 
 // Receives the server twin of a storefront pixel event. The browser sends the
 // event name, the SAME event_id it gave fbq (for dedup), the page URL, and the

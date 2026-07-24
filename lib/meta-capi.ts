@@ -1,6 +1,6 @@
 // ── Server-side Meta Conversions API (CAPI) ─────────────────────────────────
 // The storefront is this Next.js app, NOT Shopify — so Shopify's native Meta
-// integration can't see on-site funnel events (ViewContent / AddToCart /
+// integration can't see on-site events (PageView / ViewContent / AddToCart /
 // InitiateCheckout). Those fire as browser pixel events, which iOS/Safari/ad
 // blockers drop heavily, and which land in Events Manager with no server twin —
 // that's why "event coverage" sat at ~34%.
@@ -102,23 +102,25 @@ export async function sendCapiEvent(input: CapiEventInput): Promise<boolean> {
   };
   if (TEST_EVENT_CODE) body.test_event_code = TEST_EVENT_CODE;
 
-  try {
-    const res = await fetch(
-      `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events?access_token=${encodeURIComponent(ACCESS_TOKEN)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-    if (!res.ok) {
+  // One retry on network errors / Meta 5xx — transient Graph API hiccups were
+  // silently dropping events. 4xx is a request problem; retrying can't fix it.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events?access_token=${encodeURIComponent(ACCESS_TOKEN)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
+      if (res.ok) return true;
       const text = await res.text().catch(() => "");
-      console.error("[meta-capi] non-2xx:", res.status, text.slice(0, 500));
-      return false;
+      console.error(`[meta-capi] non-2xx (attempt ${attempt}):`, res.status, text.slice(0, 500));
+      if (res.status < 500) return false;
+    } catch (err) {
+      console.error(`[meta-capi] send failed (attempt ${attempt}):`, (err as Error)?.message);
     }
-    return true;
-  } catch (err) {
-    console.error("[meta-capi] send failed:", (err as Error)?.message);
-    return false;
   }
+  return false;
 }
