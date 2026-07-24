@@ -11,6 +11,12 @@ import ProductBadge from "@/components/ProductBadge";
 import FreeShippingNote from "@/components/FreeShippingNote";
 import Testimonials from "@/components/Testimonials";
 import BackgroundVideo from "@/components/BackgroundVideo";
+import ReviewSideTab from "@/components/ReviewSideTab";
+import dynamic from "next/dynamic";
+import type { Review } from "@/components/ReviewsModal";
+import AddReviewModal from "@/components/AddReviewModal";
+
+const ReviewsModal = dynamic(() => import("@/components/ReviewsModal"), { ssr: false });
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 import { fetchWithRetry } from "@/lib/fetchRetry";
 import { SKINCARE_HERO_VIDEO } from "@/lib/testimonials";
@@ -227,6 +233,35 @@ export default function SkincareClient({
   const [loaded, setLoaded] = useState(initialProducts.length > 0);
   const [loadError, setLoadError] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+  const [addReviewOpen, setAddReviewOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  const loadReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews");
+      if (!res.ok) throw new Error("Failed to fetch reviews");
+      const data = await res.json();
+      const formattedReviews = data.map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        rating: r.rating,
+        text: r.text,
+        date: new Date(r.createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      }));
+      setReviews(formattedReviews);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadReviews();
+  }, []);
 
   // Diagnostics: proves hydration ran, captures env/connection/fonts, and
   // audits whether media actually painted. Also tag how the products arrived
@@ -335,6 +370,18 @@ export default function SkincareClient({
   return (
     <main className="bg-[#f1efef]">
       <Navbar />
+      <ReviewSideTab onClick={() => setReviewsOpen(true)} />
+      <ReviewsModal
+        open={reviewsOpen}
+        onClose={() => setReviewsOpen(false)}
+        onAddReview={() => setAddReviewOpen(true)}
+        reviews={reviews}
+      />
+      <AddReviewModal
+        open={addReviewOpen}
+        onClose={() => setAddReviewOpen(false)}
+        onSuccess={() => loadReviews()}
+      />
 
       {/* Category hero banner — UGC video on MOBILE (vertical reels fit a
           tall phone screen); static wide banner on DESKTOP (where a cropped

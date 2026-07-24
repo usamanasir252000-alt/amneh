@@ -5,15 +5,21 @@ import { FaStar, FaTimes, FaCheck, FaExclamationCircle } from "react-icons/fa";
 import { useState } from "react";
 
 interface AddReviewModalProps {
-  open: boolean;
+  open?: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  onSubmitted?: () => void;
+  productHandle?: string;
+  productName?: string;
 }
 
-export default function AddReviewModal({
-  open,
+export function AddReviewModal({
+  open = true,
   onClose,
   onSuccess,
+  onSubmitted,
+  productHandle,
+  productName,
 }: AddReviewModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +39,7 @@ export default function AddReviewModal({
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, rating, text }),
+        body: JSON.stringify({ name, email, rating, text, ...(productHandle && { productHandle }) }),
       });
 
       if (!response.ok) {
@@ -50,6 +56,7 @@ export default function AddReviewModal({
       setTimeout(() => {
         setSuccess(false);
         onSuccess?.();
+        onSubmitted?.();
         onClose();
       }, 2000);
     } catch (err) {
@@ -94,7 +101,7 @@ export default function AddReviewModal({
                     Share your experience
                   </p>
                   <h2 className="text-2xl font-semibold text-Deep_blue">
-                    Add Your Review
+                    {productName ? `Review ${productName}` : "Add Your Review"}
                   </h2>
                 </div>
 
@@ -210,3 +217,5 @@ export default function AddReviewModal({
     </AnimatePresence>
   );
 }
+
+export default AddReviewModal;

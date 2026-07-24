@@ -6,9 +6,22 @@ const JUDGEME_SHOP_DOMAIN = process.env.JUDGEME_SHOP_DOMAIN!;
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const url = `https://judge.me/api/v1/reviews?api_token=${JUDGEME_PRIVATE_TOKEN}&shop_domain=${JUDGEME_SHOP_DOMAIN}&per_page=50&published=true`;
+    const { searchParams } = new URL(request.url);
+    const productHandle = searchParams.get("productHandle");
+
+    // Judge.me accepts product_external_id (the product handle) to filter by product.
+    // Omit it for store-level reviews, include it for product-specific reviews.
+    const params = new URLSearchParams({
+      api_token: JUDGEME_PRIVATE_TOKEN,
+      shop_domain: JUDGEME_SHOP_DOMAIN,
+      per_page: "50",
+      published: "true",
+    });
+    if (productHandle) params.append("product_external_id", productHandle);
+
+    const url = `https://judge.me/api/v1/reviews?${params.toString()}`;
     const res = await fetch(url, { cache: "no-store" });
 
     if (!res.ok) {
@@ -42,7 +55,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, email, rating, text } = await request.json();
+    const { name, email, rating, text, productHandle } = await request.json();
 
     if (!name || !email || !rating || !text) {
       return NextResponse.json(
@@ -58,18 +71,22 @@ export async function POST(request: Request) {
       );
     }
 
+    const body: Record<string, unknown> = {
+      api_token: JUDGEME_PUBLIC_TOKEN,
+      shop_domain: JUDGEME_SHOP_DOMAIN,
+      platform: "shopify",
+      name,
+      email,
+      rating,
+      body: text,
+    };
+    // If a product handle is provided, link the review to that product in Judge.me.
+    if (productHandle) body.product_external_id = productHandle;
+
     const res = await fetch("https://judge.me/api/v1/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_token: JUDGEME_PUBLIC_TOKEN,
-        shop_domain: JUDGEME_SHOP_DOMAIN,
-        platform: "shopify",
-        name,
-        email,
-        rating,
-        body: text,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();

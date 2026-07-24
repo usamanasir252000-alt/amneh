@@ -17,6 +17,9 @@ import { LEFT_FOR_CHECKOUT_KEY } from "@/components/BFCacheReload";
 import ProductUgcVideo from "@/components/ProductUgcVideo";
 import ProductBadge from "@/components/ProductBadge";
 import Testimonials from "@/components/Testimonials";
+import { ProductReviews } from "@/components/ProductReviews";
+import { InventoryBadge } from "@/components/InventoryBadge";
+import TrustBadgesComponent from "@/components/TrustBadges";
 import { FaWhatsapp } from "react-icons/fa";
 import { waChatLink } from "@/lib/contact";
 import { BUNDLE_TIERS, bundleDiscountCodes } from "@/lib/bundle";
@@ -637,32 +640,8 @@ function Reveal({ children, className }: { children: React.ReactNode; className?
 }
 
 // ── Trust badges ─────────────────────────────────────────────────────────
-const TRUST_BADGES = [
-  { label: "100% Authentic", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
-  { label: "Cash on Delivery", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M4.5 19.5h15a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5h-15A1.5 1.5 0 003 6v12a1.5 1.5 0 001.5 1.5z" },
-  // NOTE: this slot previously said "Dermatologist Tested" — an unverified
-  // claim (a legal/trust liability if not literally true). Replaced with the
-  // damage-replacement promise, which IS true and answers the #1 COD fear.
-  { label: "Free Replacement if Damaged", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
-];
-
 function TrustBadges() {
-  return (
-    <div className="grid grid-cols-3 gap-2 mt-5">
-      {TRUST_BADGES.map((b, i) => (
-        <motion.div
-          key={b.label}
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
-          className="flex flex-col items-center gap-2 text-center rounded-xl bg-gradient-to-b from-[#fbf5f7] to-[#f7fbfd] border border-[#f0dde3] py-3 px-1.5"
-        >
-          <svg className="h-5 w-5 text-[#5f3d4e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d={b.icon}/></svg>
-          <span className="text-[9.5px] font-semibold uppercase tracking-wide text-gray-600 leading-tight">{b.label}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
+  return <TrustBadgesComponent />;
 }
 
 // ── Fullscreen image lightbox ──────────────────────────────────────────────
@@ -1533,6 +1512,11 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
             </div>
             )}
 
+            {/* Inventory urgency badge — always shown to encourage immediate purchase */}
+            <div className="flex justify-center mb-4">
+              <InventoryBadge inventory={product.totalInventory} />
+            </div>
+
             {/* ── Buy actions — ONE bold primary, everything else quiet ──── */}
 
             {/* PRIMARY: Buy Now → straight to checkout. The one action the
@@ -1702,6 +1686,11 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
       </section>
 
       <WhyAmneh />
+
+      {/* Product-specific reviews section (Judge.me) */}
+      <section className="max-w-screen-xl mx-auto px-6 lg:px-10 py-10 sm:py-14 border-t border-gray-200">
+        <ProductReviews productHandle={product.handle} productName={product.name} />
+      </section>
 
       <Testimonials />
 

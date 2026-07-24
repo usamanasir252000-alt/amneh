@@ -63,6 +63,9 @@ export interface ShopifyProduct {
   // more" quantity-bundle offer on it (stacking a bundle discount on top of a
   // product that's already a bundle makes no sense).
   isBundle: boolean;
+  // Total available quantity across all variants. Used to display inventory
+  // urgency ("only 5 left"). Set to -1 if unavailable / untracked.
+  totalInventory: number;
 }
 
 export interface ShopifyCartLine {
@@ -168,7 +171,8 @@ function normalizeProduct(node: {
   priceRange: { minVariantPrice: { amount: string } };
   compareAtPriceRange?: { maxVariantPrice: { amount: string } } | null;
   images: { edges: { node: { id: string; url: string } }[] };
-  variants: { edges: { node: { id: string } }[] };
+  variants: { edges: { node: { id: string; quantityAvailable?: number } }[] };
+  totalInventory?: number;
   ingredients?: { value: string } | null;
   howToUse?: { value: string } | null;
   benefits?: { value: string } | null;
@@ -223,6 +227,7 @@ function normalizeProduct(node: {
     ugcVideoStart: (() => { const n = parseFloat(node.ugcVideoStart?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
     ugcVideoEnd: (() => { const n = parseFloat(node.ugcVideoEnd?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
     isBundle: tags.some((t) => t.trim().toLowerCase() === "bundle"),
+    totalInventory: node.totalInventory ?? -1,
   };
 }
 
@@ -292,7 +297,8 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
             priceRange { minVariantPrice { amount } }
             compareAtPriceRange { maxVariantPrice { amount } }
             images(first: 5) { edges { node { id url } } }
-            variants(first: 1) { edges { node { id } } }
+            variants(first: 100) { edges { node { id quantityAvailable } } }
+            totalInventory
           }
         }
       }
@@ -339,7 +345,8 @@ export async function getProductByHandle(
         priceRange { minVariantPrice { amount } }
         compareAtPriceRange { maxVariantPrice { amount } }
         images(first: 10) { edges { node { id url } } }
-        variants(first: 1) { edges { node { id } } }
+        variants(first: 100) { edges { node { id quantityAvailable } } }
+        totalInventory
         ingredients: metafield(namespace: "custom", key: "ingredients") { value }
         howToUse: metafield(namespace: "custom", key: "how_to_use") { value }
         benefits: metafield(namespace: "custom", key: "benefits") { value }
