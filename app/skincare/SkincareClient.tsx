@@ -177,7 +177,7 @@ function SkincareProductCard({ product, priority = false }: { product: Product; 
           </p>
         )}
         <div className="mt-1 sm:mt-2 flex items-center gap-1.5 sm:gap-2 flex-wrap">
-          <span className="text-[13px] sm:text-[15px] font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
+          <span className="text-[13px] sm:text-[15px] font-bold text-black">PKR {product.price}</span>
           {hasDiscount && (
             <>
               <span className="text-[11px] sm:text-[13px] text-black line-through">PKR {product.compareAtPrice}</span>

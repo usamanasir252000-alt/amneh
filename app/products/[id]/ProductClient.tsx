@@ -800,7 +800,7 @@ function LovedProductCard({ product }: { product: Product }) {
           <p className="text-sm font-semibold text-gray-900 leading-tight truncate mb-2 transition-colors group-hover:text-[#5f3d4e]">{product.name}</p>
         </Link>
         <div className="mb-3 flex items-center gap-2 flex-wrap">
-          <span className="text-base font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
+          <span className="text-base font-bold text-black">PKR {product.price}</span>
           {hasDiscount && (
             <>
               <span className="text-xs text-black line-through">PKR {product.compareAtPrice}</span>
@@ -1279,7 +1279,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                 so this is fine; on mobile it moves to its own row below the
                 image instead (see the block right after Image). */}
             <div className="hidden lg:flex items-baseline gap-2.5 sm:gap-3 flex-wrap">
-              <span className="text-xl sm:text-2xl font-semibold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
+              <span className="text-xl sm:text-2xl font-semibold text-black">PKR {product.price}</span>
               {hasDiscount && (
                 <>
                   <span className="text-base sm:text-lg text-gray-400 line-through">PKR {product.compareAtPrice}</span>
@@ -1438,7 +1438,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                   <span className="text-sm text-gray-400 line-through">PKR {product.compareAtPrice}</span>
                 </>
               )}
-              <span className="text-2xl font-bold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</span>
+              <span className="text-2xl font-bold text-black">PKR {product.price}</span>
             </div>
 
             {/* Product description — the Shopify product description body,
@@ -1708,7 +1708,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
         >
           <div className="flex-1 min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-gray-400 truncate">{product.name}</p>
-            <p className="text-sm font-semibold bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] bg-clip-text text-transparent">PKR {product.price}</p>
+            <p className="text-sm font-semibold text-black">PKR {product.price}</p>
           </div>
           {/* Icon-only, not a full labeled button — keeps this row from
               wrapping on narrow phones while still fitting Buy Now beside it.
