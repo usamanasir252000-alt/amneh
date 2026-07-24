@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { fbTrack, fbSetAdvancedMatching } from "@/lib/fbpixel";
+import { fbTrack, fbSetAdvancedMatching, getExternalId } from "@/lib/fbpixel";
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -23,6 +23,15 @@ export default function MetaPixel() {
     }
     fbTrack("PageView");
   }, [pathname]);
+
+  // Seed the pixel with the first-party external_id (works for everyone,
+  // logged in or guest) so the pixel event and its CAPI twin carry the same
+  // match key. Sent raw on both sides — see lib/meta-capi.ts.
+  useEffect(() => {
+    if (!PIXEL_ID) return;
+    const externalId = getExternalId();
+    if (externalId) fbSetAdvancedMatching({ external_id: externalId });
+  }, []);
 
   // Advanced Matching for already-logged-in visitors: re-init the pixel with
   // their email/name on load. Covers returning customers who don't touch the

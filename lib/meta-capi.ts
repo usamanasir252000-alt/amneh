@@ -50,6 +50,7 @@ export interface CapiUserData {
   userAgent?: string;
   fbp?: string; // _fbp cookie (Meta browser id)
   fbc?: string; // _fbc cookie (click id, from fbclid)
+  externalId?: string; // stable first-party id; sent raw to mirror the pixel
   email?: string; // raw — hashed here, never sent in the clear
   firstName?: string; // raw — hashed here, never sent in the clear
   lastName?: string; // raw — hashed here, never sent in the clear
@@ -76,6 +77,10 @@ export async function sendCapiEvent(input: CapiEventInput): Promise<boolean> {
   if (input.userData.userAgent) user_data.client_user_agent = input.userData.userAgent;
   if (input.userData.fbp) user_data.fbp = input.userData.fbp;
   if (input.userData.fbc) user_data.fbc = input.userData.fbc;
+  // external_id: sent RAW (not through hash()) so it matches the pixel's
+  // advanced-matching external_id byte-for-byte. Meta normalises/hashes both
+  // sides itself; hashing only one side would silently break the match.
+  if (input.userData.externalId) user_data.external_id = input.userData.externalId;
   if (input.userData.email) user_data.em = [hash(input.userData.email)];
   // fn/ln mirror the browser's advanced matching so the server twin matches as
   // strongly as the pixel event — lifts Meta's Event Match Quality score.

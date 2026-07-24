@@ -26,7 +26,15 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  let payload: { eventName?: string; eventId?: string; eventSourceUrl?: string; customData?: Record<string, unknown> };
+  let payload: {
+    eventName?: string;
+    eventId?: string;
+    eventSourceUrl?: string;
+    customData?: Record<string, unknown>;
+    fbp?: string;
+    fbc?: string;
+    externalId?: string;
+  };
   try {
     payload = await req.json();
   } catch {
@@ -46,8 +54,13 @@ export async function POST(req: Request) {
     hdrs.get("x-real-ip") ||
     undefined;
   const userAgent = hdrs.get("user-agent") || undefined;
-  const fbp = cookieStore.get("_fbp")?.value;
-  const fbc = cookieStore.get("_fbc")?.value;
+  // Prefer the values the client resolved (see lib/fbpixel.ts): on a cold ad
+  // landing the pixel often hasn't written _fbp/_fbc yet when the event fires,
+  // so the request cookies are empty. The client reconstructs them (and _fbc
+  // from ?fbclid) and sends them in the body — cookies are only the fallback.
+  const fbp = payload.fbp || cookieStore.get("_fbp")?.value;
+  const fbc = payload.fbc || cookieStore.get("_fbc")?.value;
+  const externalId = payload.externalId || cookieStore.get("_eid")?.value;
 
   // Advanced matching: attach the logged-in shopper's email/name (hashed in
   // the helper) when we have a valid session. Mirroring the browser pixel's
@@ -71,7 +84,7 @@ export async function POST(req: Request) {
     eventName,
     eventId,
     eventSourceUrl,
-    userData: { ip, userAgent, fbp, fbc, email, firstName, lastName },
+    userData: { ip, userAgent, fbp, fbc, externalId, email, firstName, lastName },
     customData,
   });
 
