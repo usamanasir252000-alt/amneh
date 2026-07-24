@@ -2,13 +2,24 @@ import { notFound } from "next/navigation";
 import { getProductByHandle, getProducts } from "@/lib/shopify";
 import ProductClient from "./ProductClient";
 
-// Fetch fresh from Shopify on EVERY request — same as the old client-side
-// fetch, just executed server-side so the price/details are already in the
-// HTML the browser receives. Data is exactly as live as before; only WHERE
-// the fetch happens changed. This is what makes the page work even when a
-// customer's JS never finishes loading/hydrating (slow connection, in-app
-// browser) — the price and details are visible immediately regardless.
-export const dynamic = "force-dynamic";
+// ISR: the rendered page is cached and served instantly, refreshed in the
+// background at most every 2 minutes. This replaced force-dynamic — rendering
+// fresh per request meant every product click paid two live Shopify
+// round-trips before the browser saw a single byte, which is why navigation
+// felt slow. The HTML-first benefit is unchanged (price/details are still in
+// the initial HTML for in-app browsers that never run JS); the data is at most
+// ~2 min stale, and checkout always validates live prices/stock on Shopify.
+// ISR also makes <Link> prefetch effective: product pages are fetched while
+// the shopper is still looking at the grid, so the click is instant.
+export const revalidate = 120;
+
+// Prebuild every product page at deploy so even the first visitor after a
+// release gets the cached version. New products added later still work —
+// they're rendered on demand on first hit, then cached (dynamicParams).
+export async function generateStaticParams() {
+  const products = await getProducts().catch(() => []);
+  return products.filter((p) => p.handle).map((p) => ({ id: p.handle }));
+}
 
 export default async function ProductPage(
   { params }: { params: Promise<{ id: string }> }

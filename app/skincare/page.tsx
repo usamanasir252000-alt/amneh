@@ -7,7 +7,9 @@ import SkincareClient from "./SkincareClient";
 // see real products on first paint instead of a blank/loading page. .catch
 // keeps the page rendering if Shopify is briefly unreachable (the client then
 // falls back to its own retry fetch).
-export const dynamic = "force-dynamic";
+// ISR (not force-dynamic): served from cache instantly, refreshed in the
+// background at most every 2 minutes — same freshness trade-off as the PDP.
+export const revalidate = 120;
 
 export default async function SkincarePage() {
   const products = await getProducts("serums").catch(() => []);

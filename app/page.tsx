@@ -7,7 +7,10 @@ import HomeClient from "./HomeClient";
 // products on first paint instead of a blank/loading page. .catch keeps the page
 // rendering even if Shopify is briefly unreachable (the client carousel then
 // falls back to its own retry fetch).
-export const dynamic = "force-dynamic";
+// ISR (not force-dynamic): the page is served from cache instantly and
+// refreshed in the background at most every 2 minutes — navigating back home
+// from a product no longer re-renders and re-fetches the whole catalog live.
+export const revalidate = 120;
 
 export default async function Home() {
   const products = await getProducts().catch(() => []);

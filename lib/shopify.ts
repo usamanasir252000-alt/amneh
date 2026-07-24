@@ -83,7 +83,7 @@ export interface ShopifyCart {
 async function shopifyFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
-  opts?: { buyerIp?: string }
+  opts?: { buyerIp?: string; revalidate?: number }
 ): Promise<T> {
   const endpoint = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`;
   const headers: Record<string, string> = {
@@ -95,21 +95,32 @@ async function shopifyFetch<T>(
   // customer is associated to the cart but checkout still shows "Sign in".
   if (opts?.buyerIp) headers["Shopify-Storefront-Buyer-IP"] = opts.buyerIp;
 
-  // Hard timeout so a slow/unresponsive Shopify call can't hang the request —
-  // and, downstream, the checkout redirect — indefinitely.
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  // Catalog reads pass `revalidate`: the response lands in Next's data cache,
+  // is shared across requests, and refreshes in the background — this (plus
+  // route-level ISR on the pages) is what makes product navigation instant
+  // instead of paying a live Shopify round-trip per click. Everything else —
+  // cart mutations, per-customer reads — stays no-store; caching those would
+  // leak one shopper's cart into another's.
+  const cached = opts?.revalidate !== undefined;
+
+  // Hard timeout (uncached calls only) so a slow/unresponsive Shopify call
+  // can't hang the request — and, downstream, the checkout redirect —
+  // indefinitely. Cached calls skip the AbortSignal: a signal can opt a fetch
+  // out of Next's data cache, and a slow refresh there only delays a
+  // background revalidation, never a shopper.
+  const controller = cached ? null : new AbortController();
+  const timer = controller ? setTimeout(() => controller.abort(), 8000) : null;
   let res: Response;
   try {
     res = await fetch(endpoint, {
       method: "POST",
       headers,
       body: JSON.stringify({ query, variables }),
-      cache: "no-store",
-      signal: controller.signal,
+      ...(cached ? { next: { revalidate: opts!.revalidate } } : { cache: "no-store" as const }),
+      ...(controller ? { signal: controller.signal } : {}),
     });
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
   }
 
   if (!res.ok) {
@@ -252,6 +263,12 @@ function normalizeCart(cart: {
 
 // ─── Products ────────────────────────────────────────────────────────────────
 
+// How long a cached catalog response may be served before a background
+// refresh. Prices/copy change rarely; 2 minutes of staleness is invisible to
+// shoppers, while the cache is what makes product navigation feel instant.
+// Stock isn't a concern here: availability is enforced by Shopify at checkout.
+const CATALOG_REVALIDATE_SECONDS = 120;
+
 export async function getProducts(category?: string): Promise<ShopifyProduct[]> {
   const queryFilter =
     category && category !== "all"
@@ -281,7 +298,8 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
       }
     }
   `,
-    { first: 50, query: queryFilter }
+    { first: 50, query: queryFilter },
+    { revalidate: CATALOG_REVALIDATE_SECONDS }
   );
 
   const products = data.products.edges.map((e) => normalizeProduct(e.node));
@@ -337,7 +355,8 @@ export async function getProductByHandle(
       }
     }
   `,
-    { handle }
+    { handle },
+    { revalidate: CATALOG_REVALIDATE_SECONDS }
   );
 
   if (!data.product) return null;
