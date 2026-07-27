@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function ProductHighlight() {
   return (
@@ -31,12 +32,12 @@ export default function ProductHighlight() {
               ☁️ <strong>velvet balm</strong> offers instant hydration and doubles as a daily lip mask
             </li>
           </ul>
-          <a
+          <Link
             href="/skincare"
             className="mt-9 inline-flex items-center justify-center border border-gray-900 px-9 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
           >
             shop now
-          </a>
+          </Link>
         </div>
 
       </div>

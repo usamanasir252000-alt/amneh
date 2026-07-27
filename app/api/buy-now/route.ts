@@ -8,8 +8,9 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const startedAt = Date.now();
-  const { variantId, quantity, discountCodes } = await req.json();
-  console.log("[buy-now] received:", JSON.stringify({ variantId, quantity, discountCodes }));
+  const { variantId, quantity, discountCodes, prewarm } = await req.json();
+  const isPrewarm = prewarm === true;
+  console.log("[buy-now] received:", JSON.stringify({ variantId, quantity, discountCodes, prewarm: isPrewarm }));
 
   // Bundle discount codes (%-off + free-shipping) — only forward valid strings.
   const codes = Array.isArray(discountCodes)
@@ -24,12 +25,14 @@ export async function POST(req: Request) {
   try {
     cart = await createCart(variantId, quantity ?? 1, codes);
   } catch (err) {
-    console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
+    console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, prewarm: isPrewarm, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
     // Surface checkout-blocking failures in PostHog. This is the moment a
     // high-intent shopper clicked Buy Now and got nothing — a directly
-    // measurable, attributable lost sale, not a guess.
+    // measurable, attributable lost sale, not a guess. A failed background
+    // prewarm is NOT a lost sale (the click falls back to a live call), so
+    // it's flagged so dashboards can exclude it.
     await captureServerEvent("checkout_cart_failed", {
-      variantId, quantity: quantity ?? 1, elapsedMs: Date.now() - startedAt, reason: (err as Error)?.message,
+      variantId, quantity: quantity ?? 1, elapsedMs: Date.now() - startedAt, reason: (err as Error)?.message, prewarm: isPrewarm,
     }, phDistinctId);
     await captureServerException(err, phDistinctId, { route: "buy-now", stage: "createCart", variantId });
     return NextResponse.json({ error: "Could not create cart" }, { status: 502 });

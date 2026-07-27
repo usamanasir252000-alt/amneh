@@ -27,6 +27,15 @@ select {
   font: inherit;
 }
 
+/* Fire taps immediately on mobile: without this, browsers can hold a tap on
+   interactive elements while deciding whether it's a double-tap zoom. */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 ::selection {
   background: rgba(177, 91, 130, 0.18);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import ProductCard from "./ProductCard";
 import { RevealText, FadeUp, ScaleIn } from "@/components/ui/Reveal";
 import { fetchWithRetry } from "@/lib/fetchRetry";
@@ -200,12 +201,12 @@ export default function ProductCarousel({
       )}
 
       <FadeUp delay={0} duration={600} className="mt-10 flex justify-center px-6">
-        <a
+        <Link
           href="/skincare#serums"
           className="border border-gray-900 px-10 py-3 text-xs uppercase tracking-[0.22em] text-gray-900 hover:bg-gray-900 hover:text-white transition duration-300"
         >
           shop now
-        </a>
+        </Link>
       </FadeUp>
     </section>
   );

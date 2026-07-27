@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -29,7 +29,6 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { getTotalItems, openCart } = useCart();
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -87,7 +86,7 @@ export default function Navbar() {
         <div />
 
         {/* Center: logo */}
-        <a href="/" className="absolute left-1/2 -translate-x-1/2">
+        <Link href="/" className="absolute left-1/2 -translate-x-1/2">
           <img
             src="/logo.svg"
             alt="amneh."
@@ -96,7 +95,7 @@ export default function Navbar() {
             fetchPriority="high"
             className={`h-8 w-auto transition-all duration-300 ${!useDarkNav ? "brightness-0 invert" : ""}`}
           />
-        </a>
+        </Link>
 
         {/* Right: icons */}
         <div
@@ -274,13 +273,13 @@ export default function Navbar() {
         className={`hidden border-t lg:flex items-center justify-center gap-12 py-3 transition-colors duration-300 ${scrolled ? "border-gray-100/80" : "border-white/10"}`}
       >
         {navItems.map((item) => (
-          <a
+          <Link
             key={item.label}
             href={item.href}
             className={`text-[11px] uppercase tracking-[0.22em] transition-all duration-300 hover:opacity-100 ${textColor} opacity-80`}
           >
             {item.label}
-          </a>
+          </Link>
         ))}
       </nav>
 
@@ -295,14 +294,14 @@ export default function Navbar() {
           >
             <div className="flex flex-col divide-y divide-gray-100">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.label}
                   href={item.href}
                   className="px-6 py-3.5 text-sm text-gray-700 hover:bg-gray-50"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
               {user ? (
                 <>

@@ -98,8 +98,11 @@ export async function POST(request: Request) {
     switch (action) {
       case "create": {
         if (!variantId) throw new Error("variantId required");
+        // Don't await customer linking here — its result was discarded anyway,
+        // and goToCheckout / buy-now re-link at navigation time with the fresh
+        // URL. Awaiting it added 1-2 extra Shopify round-trips to the very
+        // first Add-to-Cart of a session.
         const cart = await createCart(variantId, quantity ?? 1);
-        await linkCurrentCustomer(cart.id);
         return NextResponse.json(cart);
       }
 

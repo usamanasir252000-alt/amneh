@@ -943,6 +943,49 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   const touchStartX = useRef(0);
   const addToCartRef = useRef<HTMLButtonElement>(null);
 
+  // Pre-warmed Buy Now checkout — the Shopify cart for the current
+  // variant+quantity is created in the background on page load (and
+  // re-created, debounced, when the quantity changes), so tapping Buy Now
+  // redirects immediately instead of paying the cart-creation round-trip at
+  // click time. `url` is undefined while the request is in flight, a string
+  // on success, and null on failure (the click then falls back to a live call).
+  const prewarmedCheckout = useRef<{
+    key: string;
+    promise: Promise<string | null>;
+    url: string | null | undefined;
+  } | null>(null);
+
+  useEffect(() => {
+    const key = `${product.variantId}:${quantity}`;
+    const existing = prewarmedCheckout.current;
+    if (existing?.key === key && existing.url !== null) return;
+    // Debounced so tapping through quantities doesn't create a cart per tap.
+    const t = window.setTimeout(() => {
+      const promise = fetchWithRetry("/api/buy-now", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          variantId: product.variantId,
+          quantity,
+          discountCodes: bundleDiscountCodes(quantity, product.price * quantity),
+          prewarm: true,
+        }),
+        timeoutMs: 15000,
+        retries: 1,
+        retryOnServerError: false,
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => (d?.checkoutUrl as string | undefined) ?? null)
+        .catch(() => null);
+      const entry = { key, promise, url: undefined as string | null | undefined };
+      promise.then((url) => {
+        entry.url = url;
+      });
+      prewarmedCheckout.current = entry;
+    }, 600);
+    return () => window.clearTimeout(t);
+  }, [product.variantId, product.price, quantity]);
+
   // Real review stats from Judge.me (store-wide published reviews — the same
   // set the homepage reviews modal shows). Drives the star rating + count in
   // the buy box; until this resolves (or if there are zero reviews), no
@@ -1186,17 +1229,31 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     // on a 5xx response: the server may have already created the cart, and we'd
     // rather show a retry button than risk a duplicate.
     try {
-      const res = await fetchWithRetry("/api/buy-now", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId: product.variantId, quantity, discountCodes: bundleDiscountCodes(quantity, product.price * quantity) }),
-        timeoutMs: 15000,
-        retries: 1,
-        retryOnServerError: false,
-      });
-      const { checkoutUrl } = await res.json();
+      // Use the pre-warmed checkout when it matches the current selection:
+      // already resolved → redirect with zero network wait; still in flight →
+      // await it (it's the same request a live call would make). Only a
+      // missing/failed prewarm pays the full round-trip here.
+      const key = `${product.variantId}:${quantity}`;
+      const pre = prewarmedCheckout.current;
+      let checkoutUrl: string | null = null;
+      let usedPrewarm = false;
+      if (pre?.key === key) {
+        checkoutUrl = pre.url !== undefined ? pre.url : await pre.promise;
+        usedPrewarm = checkoutUrl != null;
+      }
+      if (!checkoutUrl) {
+        const res = await fetchWithRetry("/api/buy-now", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ variantId: product.variantId, quantity, discountCodes: bundleDiscountCodes(quantity, product.price * quantity) }),
+          timeoutMs: 15000,
+          retries: 1,
+          retryOnServerError: false,
+        });
+        ({ checkoutUrl } = await res.json());
+      }
       if (checkoutUrl) {
-        logEvent("buy_now_success", { variantId: product.variantId });
+        logEvent("buy_now_success", { variantId: product.variantId, prewarmed: usedPrewarm });
         // Mark that we're leaving the site for checkout, so returning via Back
         // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
         sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
