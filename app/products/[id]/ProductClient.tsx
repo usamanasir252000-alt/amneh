@@ -128,7 +128,7 @@ function BenefitsGrid({ text }: { text: string }) {
     });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {items.map((item, i) => (
         <motion.div
           key={i}
@@ -154,33 +154,6 @@ function BenefitsGrid({ text }: { text: string }) {
   );
 }
 
-// ── Accordion (for shipping) ───────────────────────────────────────────────
-function Accordion({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className="border-t border-gray-200">
-      <button onClick={() => setOpen(o => !o)} className="flex items-center justify-between w-full py-5 text-left group active:scale-[0.99] transition-transform">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center flex-shrink-0 shadow-sm transition-transform duration-300 group-hover:scale-105">
-            {icon}
-          </div>
-          <span className="text-[11px] font-bold uppercase tracking-[0.35em] text-gray-900">{title}</span>
-        </div>
-        <span className={`text-gray-400 transition-transform duration-300 ${open ? "rotate-45 text-[#5f3d4e]" : ""}`}>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </span>
-      </button>
-      <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-        <div className="overflow-hidden">
-          <div className="pb-8">{children}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── FAQ ─────────────────────────────────────────────────────────────────────
 // Answers the questions a first-time buyer of an unknown COD skincare brand
 // actually has before ordering — directly targets the trust/pushback gap the
@@ -200,11 +173,7 @@ const FAQS: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "Are these products safe for my skin type?",
-    a: "Our serums are formulated for everyday use across skin types. We recommend a quick patch test first (see the Patch Test section above), and reaching out on WhatsApp if you're unsure which product suits your concern.",
-  },
-  {
-    q: "How is this different from cheaper options online?",
-    a: "Our serums are made in small, fresh batches with clearly listed active ingredients — no mystery formulas. You can see exactly what's in each product and what it does right here on this page, and we stand behind every order with free replacement on any damage.",
+    a: "Our serums are formulated for everyday use across skin types. We recommend a quick patch test first (see the Patch Test tab), and reaching out on WhatsApp if you're unsure which product suits your concern.",
   },
 ];
 
@@ -295,7 +264,7 @@ function PatchTestSteps({ text }: { text: string }) {
   });
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4">
       {steps.map((desc, i) => (
         <motion.div
           key={i}
@@ -563,7 +532,7 @@ function HowToUseSteps({ text }: { text: string | null }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {steps.map((step, i) => (
         <motion.div
           key={i}
@@ -583,6 +552,171 @@ function HowToUseSteps({ text }: { text: string | null }) {
           <p className="text-sm text-gray-500 leading-6">{step.desc}</p>
         </motion.div>
       ))}
+    </div>
+  );
+}
+
+// ── Shipping & Returns panel ───────────────────────────────────────────────
+function ShippingReturns() {
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
+          { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 2,500+</> as React.ReactNode },
+          { icon:"M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z", title:"Damage Protection", desc: <><strong className="font-semibold text-gray-700">Damaged, broken, or wrong item? Free replacement</strong> — WhatsApp us a photo within 7 days of delivery. Otherwise all sales are final for hygiene &amp; safety reasons.</> as React.ReactNode },
+        ].map(item => (
+          <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-5 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
+              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-gray-900 mb-1.5">{item.title}</p>
+              <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-xs text-gray-400">
+        Damaged or wrong items are replaced free — report within 7 days of delivery. Otherwise all
+        sales are final for hygiene reasons. Full details in our{" "}
+        <Link href="/returns" className="underline text-gray-600 hover:text-gray-900 transition">Return Policy</Link>{" "}
+        and{" "}
+        <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.
+      </p>
+    </>
+  );
+}
+
+// ── Product details — tabbed instead of six stacked sections ────────────────
+// These six blocks (how to use, when to use, patch test, benefits, shipping,
+// FAQs) used to each be a full-width section stacked vertically, which made
+// the page enormously tall — a shopper scrolling for the reviews had to swipe
+// past all of it and lost their place. Same content, now one fixed-height
+// panel: a vertical tab rail on desktop (uses the horizontal space instead of
+// the vertical), horizontally-scrollable pill tabs on mobile. The page loses
+// roughly five viewport-heights and nothing is buried behind a "read more".
+const DETAIL_TAB_ICONS: Record<string, string> = {
+  usage:    "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  benefits: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z",
+  patch:    "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z",
+  shipping: "M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12",
+  faq:      "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z",
+};
+
+interface DetailTab { id: string; label: string; hint: string; body: React.ReactNode }
+
+function ProductDetailsTabs({ howToUse, whenToUse, patchTest, benefits }: {
+  howToUse: string | null; whenToUse: string | null; patchTest: string | null; benefits: string | null;
+}) {
+  const tabs: DetailTab[] = [
+    ...(howToUse || whenToUse ? [{
+      id: "usage",
+      label: "How to Use",
+      hint: whenToUse ? `Best used ${whenToUse.toLowerCase()}` : "Your daily routine, step by step",
+      body: (
+        <>
+          {whenToUse && <div className="mb-6"><WhenToUse value={whenToUse} /></div>}
+          <HowToUseSteps text={howToUse} />
+        </>
+      ),
+    }] : []),
+    ...(benefits ? [{
+      id: "benefits",
+      label: "Key Benefits",
+      hint: "What this actually does for your skin",
+      body: <BenefitsGrid text={benefits} />,
+    }] : []),
+    ...(patchTest ? [{
+      id: "patch",
+      label: "Patch Test",
+      hint: "Two minutes before your first full use",
+      body: <PatchTestSteps text={patchTest} />,
+    }] : []),
+    {
+      id: "shipping",
+      label: "Shipping & Returns",
+      hint: "Delivery times, cost and damage cover",
+      body: <ShippingReturns />,
+    },
+    {
+      id: "faq",
+      label: "FAQs",
+      hint: "The questions we get asked most",
+      body: <div className="space-y-2 max-w-3xl">{FAQS.map((f, i) => <FaqItem key={i} q={f.q} a={f.a} />)}</div>,
+    },
+  ];
+
+  const [activeId, setActiveId] = useState(tabs[0].id);
+  const active = tabs.find(t => t.id === activeId) ?? tabs[0];
+
+  return (
+    <div className="lg:grid lg:grid-cols-[268px_1fr] lg:gap-12">
+      {/* Tab rail — wraps onto as many rows as it needs on mobile, a vertical
+          list on desktop. Deliberately NOT a horizontal scroll strip: the last
+          two tabs (Shipping & Returns, FAQs) sat off the right edge with no
+          visual cue, so nobody found them. Wrapping keeps every tab on screen
+          at the cost of one extra row. */}
+      <div
+        role="tablist"
+        aria-label="Product details"
+        className="flex flex-wrap gap-2 lg:flex-nowrap lg:flex-col lg:gap-1.5 lg:sticky lg:top-[236px] lg:self-start"
+      >
+        {tabs.map(tab => {
+          const on = tab.id === active.id;
+          return (
+            <button
+              key={tab.id}
+              role="tab"
+              aria-selected={on}
+              onClick={() => setActiveId(tab.id)}
+              className={`group relative flex-shrink-0 flex items-center gap-2 lg:gap-3 rounded-full lg:rounded-2xl px-3.5 py-2.5 lg:px-4 lg:py-3.5 lg:w-full text-left transition-all duration-300 active:scale-[0.97] ${
+                on
+                  ? "bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5] text-white shadow-[0_10px_26px_rgba(95,61,78,0.22)]"
+                  : "bg-white text-gray-500 border border-gray-200 hover:border-[#4d9ab5]/40 hover:text-gray-800 lg:bg-transparent lg:border-transparent lg:hover:bg-white"
+              }`}
+            >
+              <svg
+                className={`h-3.5 w-3.5 lg:h-4 lg:w-4 flex-shrink-0 transition-colors ${on ? "text-white" : "text-[#4d9ab5]"}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d={DETAIL_TAB_ICONS[tab.id]} />
+              </svg>
+              <span className="text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.08em] lg:tracking-[0.16em] whitespace-nowrap lg:whitespace-normal">
+                {tab.label}
+              </span>
+              <svg
+                className={`hidden lg:block ml-auto h-3.5 w-3.5 flex-shrink-0 transition-all duration-300 ${on ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-1 group-hover:opacity-40 group-hover:translate-x-0"}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Panel. min-h keeps the tab rail from jumping as you switch between a
+          short tab (When to Use) and a tall one (Key Benefits). */}
+      <div className="mt-7 lg:mt-0 lg:min-h-[420px]">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={active.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            <div className="mb-6 hidden lg:block">
+              <h3 className="text-lg font-semibold text-gray-900">{active.label}</h3>
+              <p className="text-sm text-gray-400 mt-1">{active.hint}</p>
+            </div>
+            {active.body}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -823,41 +957,6 @@ function LovedProductCard({ product }: { product: Product }) {
         </button>
       </div>
     </div>
-  );
-}
-
-// ── Why Amneh — brand trust band ────────────────────────────────────────────
-// Answers "why choose you over a cheaper/known brand on Amazon?" — the
-// differentiators, brand-level (same for every product). Static copy; edit
-// freely to match real claims.
-const WHY_AMNEH = [
-  { title: "Fresh, Small Batches", desc: "Made in small runs so every bottle is fresh and effective — not sitting in a warehouse for months.", icon: "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" },
-  { title: "Full Ingredient Transparency", desc: "Every active ingredient is listed right on the product — no mystery formulas, nothing to hide.", icon: "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" },
-  { title: "Free Replacement on Damage", desc: "Arrives damaged or wrong? We replace it free — WhatsApp a photo within 7 days. Your money is never at risk.", icon: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" },
-  { title: "Cash on Delivery", desc: "Pay in cash at your doorstep, anywhere in Pakistan. Only pay once the product is in your hands.", icon: "M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M4.5 19.5h15a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5h-15A1.5 1.5 0 0 0 3 6v12a1.5 1.5 0 0 0 1.5 1.5Z" },
-];
-
-function WhyAmneh() {
-  return (
-    <section className="bg-white py-10 sm:py-14 border-t border-gray-200">
-      <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
-        <SectionHeading
-          title="Why Amneh"
-          icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"/></svg>}
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {WHY_AMNEH.map((item) => (
-            <div key={item.title} className="rounded-2xl bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] border border-[#d6ecf7] p-5 flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
-                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d={item.icon} /></svg>
-              </div>
-              <p className="text-[13px] font-bold uppercase tracking-wide text-gray-900">{item.title}</p>
-              <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </Reveal>
-    </section>
   );
 }
 
@@ -1125,9 +1224,10 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
   const sections = [
     { id: "overview", label: "Overview" },
     ...(product.ingredients ? [{ id: "ingredients", label: "Ingredients" }] : []),
-    ...(product.howToUse ? [{ id: "how-to-use", label: "How to Use" }] : []),
-    ...(product.whenToUse ? [{ id: "when-to-use", label: "When to Use" }] : []),
-    { id: "more-info", label: "More Info" },
+    // How to Use / When to Use / Patch Test / Benefits / Shipping / FAQs all
+    // live inside the one tabbed #details section now, so the nav has a single
+    // entry for them instead of one per block.
+    { id: "details", label: "Details" },
   ];
 
   // Scroll-spy: highlights whichever section's heading is nearest the top of
@@ -1403,18 +1503,32 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
                     className={`object-cover transition-opacity duration-500 ease-out ${activeImage===i+1?"opacity-100":"opacity-0"}`}
                     sizes="100vw" />
                 ))}
-                {/* Swipe hints — subtle, non-interactive chevrons on whichever
-                    edge(s) still have more photos to see; disappear once
-                    there's nothing further in that direction. */}
+                {/* Prev/next photo — shown on whichever edge(s) still have more
+                    photos to see. These were previously pointer-events-none
+                    "swipe hint" decoration: they looked like buttons, so people
+                    tapped them, and the tap fell through to the wrapper and
+                    opened the lightbox instead of changing the photo. Now they
+                    are real buttons, and stopPropagation keeps the wrapper's
+                    open-lightbox click from also firing. */}
                 {images.length > 1 && activeImage > 0 && (
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white pointer-events-none">
+                  <button
+                    type="button"
+                    aria-label="Previous image"
+                    onClick={(e) => { e.stopPropagation(); goToImage(-1); }}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white active:scale-90 transition-transform"
+                  >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-                  </span>
+                  </button>
                 )}
                 {images.length > 1 && activeImage < images.length - 1 && (
-                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white pointer-events-none">
+                  <button
+                    type="button"
+                    aria-label="Next image"
+                    onClick={(e) => { e.stopPropagation(); goToImage(1); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white active:scale-90 transition-transform"
+                  >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-                  </span>
+                  </button>
                 )}
               </div>
               <div className="hidden lg:block relative">
@@ -1648,101 +1762,21 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
         </section>
       )}
 
-      {/* ── How to Use (always visible) ─────────────────────────────────────── */}
-      {product.howToUse && (
-        <section id="how-to-use" className="bg-gradient-to-b from-[#e8f4fa] to-[#fbf1f4] py-10 sm:py-14 scroll-mt-[196px] lg:scroll-mt-[240px]">
-          <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
-            <SectionHeading
-              title="How to Use"
-              icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>}
-            />
-            <HowToUseSteps text={product.howToUse} />
-          </Reveal>
-        </section>
-      )}
-
-      {/* ── When to Use (always visible) ────────────────────────────────────── */}
-      {product.whenToUse && (
-        <section id="when-to-use" className="bg-white py-10 sm:py-14 border-t border-gray-200 scroll-mt-[196px] lg:scroll-mt-[240px]">
-          <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
-            <SectionHeading
-              title="When to Use"
-              icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>}
-            />
-            <WhenToUse value={product.whenToUse} />
-          </Reveal>
-        </section>
-      )}
-
-      {/* ── Patch Test, Key Benefits, Shipping & Returns — accordions ───────── */}
-      <section id="more-info" className="bg-white border-t border-gray-200 scroll-mt-[196px] lg:scroll-mt-[240px]">
-        <div className="max-w-screen-xl mx-auto px-6 lg:px-10 pt-4 pb-16 sm:pb-24">
-
-          {product.patchTest && (
-            <Accordion
-              title="Patch Test"
-              icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>}
-            >
-              <PatchTestSteps text={product.patchTest} />
-            </Accordion>
-          )}
-
-          {product.benefits && (
-            <Accordion
-              title="Key Benefits"
-              icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>}
-            >
-              <BenefitsGrid text={product.benefits} />
-            </Accordion>
-          )}
-
-          <Accordion
-            title="Shipping & Returns"
-            icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/></svg>}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              {[
-                { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
-                { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 2,500+</> as React.ReactNode },
-                { icon:"M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z", title:"Damage Protection", desc: <><strong className="font-semibold text-gray-700">Damaged, broken, or wrong item? Free replacement</strong> — WhatsApp us a photo within 7 days of delivery. Otherwise all sales are final for hygiene &amp; safety reasons.</> as React.ReactNode },
-              ].map(item => (
-                <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-6 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5] flex items-center justify-center shadow-sm">
-                    <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={item.icon}/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-gray-900 mb-1.5">{item.title}</p>
-                    <p className="text-sm text-gray-500 leading-6">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400">
-              Damaged or wrong items are replaced free — report within 7 days of delivery. Otherwise all
-              sales are final for hygiene reasons. Full details in our{" "}
-              <Link href="/returns" className="underline text-gray-600 hover:text-gray-900 transition">Return Policy</Link>{" "}
-              and{" "}
-              <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.
-            </p>
-          </Accordion>
-
-          <Accordion
-            title="FAQs"
-            icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>}
-          >
-            <div className="space-y-2">
-              {FAQS.map((f, i) => (
-                <FaqItem key={i} q={f.q} a={f.a} />
-              ))}
-            </div>
-          </Accordion>
-
-        </div>
+      {/* ── Product details — one tabbed panel (see ProductDetailsTabs) ─────── */}
+      <section id="details" className="bg-gradient-to-b from-[#f7fbfd] to-white border-t border-gray-200 py-10 sm:py-14 scroll-mt-[196px] lg:scroll-mt-[240px]">
+        <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
+          <SectionHeading
+            title="Product Details"
+            icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>}
+          />
+          <ProductDetailsTabs
+            howToUse={product.howToUse}
+            whenToUse={product.whenToUse}
+            patchTest={product.patchTest}
+            benefits={product.benefits}
+          />
+        </Reveal>
       </section>
-
-      <WhyAmneh />
 
       {/* Product-specific reviews section (Judge.me) */}
       <section className="max-w-screen-xl mx-auto px-6 lg:px-10 py-10 sm:py-14 border-t border-gray-200">

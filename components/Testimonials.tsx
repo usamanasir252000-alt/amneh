@@ -11,14 +11,18 @@ interface Review {
   text: string;
 }
 
-// ── Horizontal scroller with a "there's more →" affordance ─────────────────
+// ── Horizontal scroller with working prev/next arrows ──────────────────────
 // A bare overflow-x row gives no signal that it scrolls — a shopper on mobile
 // can easily assume what's on screen is all there is. This wraps the row with:
-//   • a right-edge fade + a gently nudging chevron that says "swipe for more",
-//   • a matching left-edge fade once you've started scrolling,
-// both of which fade out automatically at the corresponding end — and never
-// appear at all if the content already fits (nothing to scroll to). The cue is
-// pointer-events-none so it never steals a tap from a card (e.g. tap-to-unmute).
+//   • edge fades that say "there's more this way",
+//   • a real arrow button on each edge, which advances the row by one card.
+// All of it hides automatically at the corresponding end, and never appears at
+// all if the content already fits (nothing to scroll to).
+//
+// The arrows used to be `pointer-events-none` decoration — they looked exactly
+// like buttons but swallowed nothing and did nothing, so tapping one appeared
+// broken and only swiping worked. They're <button>s now. Only the fades stay
+// pointer-events-none, so they can't steal a tap from a card underneath.
 function HScrollRow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
@@ -34,11 +38,32 @@ function HScrollRow({ children, className = "" }: { children: React.ReactNode; c
     update();
     el.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
+    // Cards can arrive/resize after mount (async reviews, video metadata), which
+    // changes scrollWidth without firing scroll or resize — without this the
+    // arrows would stay stuck at their initial "nothing to scroll" state.
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    Array.from(el.children).forEach((c) => ro.observe(c));
     return () => {
       el.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      ro.disconnect();
     };
-  }, []);
+  }, [children]);
+
+  // One card per click, matched to the snap points so a click always lands on a
+  // card edge rather than mid-card. Falls back to ~80% of the viewport width if
+  // the row is somehow empty.
+  const nudge = (dir: 1 | -1) => {
+    const el = ref.current;
+    if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + 16 : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
+  };
+
+  const arrowBase =
+    "absolute top-1/2 z-20 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#5f3d4e] shadow-[0_4px_14px_rgba(95,61,78,0.25)] backdrop-blur-sm transition-opacity duration-300 active:scale-90 hover:bg-white";
 
   return (
     <div className="relative">
@@ -53,21 +78,36 @@ function HScrollRow({ children, className = "" }: { children: React.ReactNode; c
       <div
         className={`pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#faf1f4] to-transparent transition-opacity duration-300 ${atStart ? "opacity-0" : "opacity-100"}`}
       />
-
-      {/* Right fade + nudging chevron — "more this way", hidden at the end */}
+      {/* Right fade — hidden at the end */}
       <div
         className={`pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#faf1f4] to-transparent transition-opacity duration-300 ${atEnd ? "opacity-0" : "opacity-100"}`}
       />
-      <motion.div
-        aria-hidden
-        animate={atEnd ? { opacity: 0 } : { opacity: 1, x: [0, 5, 0] }}
-        transition={atEnd ? { duration: 0.3 } : { x: { duration: 1.2, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 0.3 } }}
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#5f3d4e] shadow-[0_4px_14px_rgba(95,61,78,0.25)] backdrop-blur-sm"
+
+      <button
+        type="button"
+        onClick={() => nudge(-1)}
+        aria-label="Previous"
+        className={`${arrowBase} left-3 ${atStart ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* Nudges gently while there's more to see, so it still reads as "swipe
+          this way" and not just a static control. */}
+      <motion.button
+        type="button"
+        onClick={() => nudge(1)}
+        aria-label="Next"
+        animate={atEnd ? { x: 0 } : { x: [0, 5, 0] }}
+        transition={atEnd ? { duration: 0.3 } : { x: { duration: 1.2, repeat: Infinity, ease: "easeInOut" } }}
+        className={`${arrowBase} right-3 ${atEnd ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
-      </motion.div>
+      </motion.button>
     </div>
   );
 }
