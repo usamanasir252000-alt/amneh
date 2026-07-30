@@ -868,6 +868,80 @@ function Lightbox({
   );
 }
 
+// ── Before/after comparison slider ──────────────────────────────────────────
+// Draggable divider (mouse, touch, or pen — Pointer Events cover all three)
+// revealing a "before" photo underneath an "after" photo, Behance-style.
+// Sourced from metafields custom.before_image / custom.after_image.
+function BeforeAfterSlider({ beforeUrl, afterUrl }: { beforeUrl: string; afterUrl: string }) {
+  const [percent, setPercent] = useState(50);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+
+  const updateFromClientX = (clientX: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    setPercent(Math.min(100, Math.max(0, pct)));
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    draggingRef.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    updateFromClientX(e.clientX);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!draggingRef.current) return;
+    updateFromClientX(e.clientX);
+  };
+  const stopDragging = () => { draggingRef.current = false; };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") setPercent((p) => Math.max(0, p - 5));
+    else if (e.key === "ArrowRight") setPercent((p) => Math.min(100, p + 5));
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full max-w-2xl mx-auto aspect-[4/5] sm:aspect-[16/10] rounded-2xl overflow-hidden select-none touch-none cursor-ew-resize"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={stopDragging}
+      onPointerCancel={stopDragging}
+    >
+      <Image src={afterUrl} alt="After" fill className="object-cover pointer-events-none" sizes="(min-width: 640px) 42rem, 100vw" draggable={false} />
+      <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white">After</span>
+
+      <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - percent}% 0 0)` }}>
+        <Image src={beforeUrl} alt="Before" fill className="object-cover pointer-events-none" sizes="(min-width: 640px) 42rem, 100vw" draggable={false} />
+        <span className="absolute bottom-3 left-3 z-10 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white">Before</span>
+      </div>
+
+      <div
+        className="absolute inset-y-0 z-20 flex items-center justify-center"
+        style={{ left: `${percent}%`, transform: "translateX(-50%)" }}
+      >
+        <div className="absolute inset-y-0 w-0.5 bg-white/90 shadow-[0_0_6px_rgba(0,0,0,0.3)]" />
+        <div
+          role="slider"
+          tabIndex={0}
+          aria-label="Drag to compare before and after"
+          aria-valuenow={Math.round(percent)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          onKeyDown={onKeyDown}
+          className="relative h-10 w-10 rounded-full bg-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#4d9ab5]"
+        >
+          <svg className="h-4 w-4 text-[#5f3d4e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7l-5 5 5 5M16 7l5 5-5 5" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Sticky scroll-spy section nav ──────────────────────────────────────────
 function SectionNav({ sections, activeId, onJump }: { sections: { id: string; label: string }[]; activeId: string; onJump: (id: string) => void }) {
   if (sections.length < 2) return null;
@@ -1223,6 +1297,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
 
   const sections = [
     { id: "overview", label: "Overview" },
+    ...(product.beforeImage && product.afterImage ? [{ id: "results", label: "Results" }] : []),
     ...(product.ingredients ? [{ id: "ingredients", label: "Ingredients" }] : []),
     // How to Use / When to Use / Patch Test / Benefits / Shipping / FAQs all
     // live inside the one tabbed #details section now, so the nav has a single
@@ -1744,6 +1819,20 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
       </div>
 
       <SectionNav sections={sections} activeId={activeSectionId} onJump={jumpToSection} />
+
+      {/* ── Before/after (drag to compare) ──────────────────────────────────── */}
+      {product.beforeImage && product.afterImage && (
+        <section id="results" className="bg-white py-10 sm:py-14 border-t border-gray-200 scroll-mt-[196px] lg:scroll-mt-[240px]">
+          <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
+            <SectionHeading
+              title="Real Results"
+              icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7l-5 5 5 5M16 7l5 5-5 5" /></svg>}
+            />
+            <p className="text-center text-sm text-gray-500 -mt-2 mb-6">Drag to compare</p>
+            <BeforeAfterSlider beforeUrl={product.beforeImage} afterUrl={product.afterImage} />
+          </Reveal>
+        </section>
+      )}
 
       {/* ── Ingredients (always visible) ────────────────────────────────────── */}
       {(product.ingredients || product.bundleIngredients) && (

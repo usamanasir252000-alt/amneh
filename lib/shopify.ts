@@ -49,6 +49,11 @@ export interface ShopifyProduct {
   bundleIngredients: string | null;
   mobileHeroImage: string | null;
   desktopHeroImage: string | null;
+  // Before/after comparison photos, shown as a draggable slider above the
+  // ingredients section. Sourced from metafields custom.before_image /
+  // custom.after_image; the slider only renders when both are present.
+  beforeImage: string | null;
+  afterImage: string | null;
   // Optional per-product UGC/testimonial video, shown as a dismissable popup on
   // the product page. Sourced from Shopify metafield custom.ugc_video. Value is
   // a video URL, optionally with a trim range: "url" or "url | startSec | endSec".
@@ -182,6 +187,8 @@ function normalizeProduct(node: {
   bundleIngredients?: { value: string } | null;
   mobileHeroImage?: { value: string } | null;
   desktopHeroImage?: { value: string } | null;
+  beforeImage?: { value: string } | null;
+  afterImage?: { value: string } | null;
   ugcVideo?: { value: string } | null;
   ugcVideoStart?: { value: string } | null;
   ugcVideoEnd?: { value: string } | null;
@@ -223,6 +230,8 @@ function normalizeProduct(node: {
     bundleIngredients: node.bundleIngredients?.value ?? null,
     mobileHeroImage: node.mobileHeroImage?.value ?? null,
     desktopHeroImage: node.desktopHeroImage?.value ?? null,
+    beforeImage: node.beforeImage?.value ?? null,
+    afterImage: node.afterImage?.value ?? null,
     ugcVideo: node.ugcVideo?.value ?? null,
     ugcVideoStart: (() => { const n = parseFloat(node.ugcVideoStart?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
     ugcVideoEnd: (() => { const n = parseFloat(node.ugcVideoEnd?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
@@ -356,6 +365,8 @@ export async function getProductByHandle(
         bundleIngredients: metafield(namespace: "custom", key: "bundle_ingredients") { value }
         mobileHeroImage: metafield(namespace: "custom", key: "mobile_hero_image") { value }
         desktopHeroImage: metafield(namespace: "custom", key: "desktop_hero_image") { value }
+        beforeImage: metafield(namespace: "custom", key: "before_image") { value }
+        afterImage: metafield(namespace: "custom", key: "after_image") { value }
         ugcVideo: metafield(namespace: "custom", key: "ugc_video") { value }
         ugcVideoStart: metafield(namespace: "custom", key: "ugc_video_start") { value }
         ugcVideoEnd: metafield(namespace: "custom", key: "ugc_video_end") { value }
