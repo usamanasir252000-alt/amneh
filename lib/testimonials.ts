@@ -24,20 +24,23 @@ export interface UgcVideo {
   poster?: string; // optional thumbnail image URL shown before play
 }
 
+// Each video ships with a `poster` — its own first frame as a ~25 KB JPG that
+// paints instantly while the .mp4 downloads. Regenerate both together when
+// swapping a clip:
+//   ffmpeg -i in.mp4 -vf "scale=540:960:flags=lanczos" -r 30 -c:v libx264 \
+//     -preset slow -crf 27 -profile:v main -pix_fmt yuv420p \
+//     -movflags +faststart -an public/videos/ugc-N.mp4
+//   ffmpeg -i in.mp4 -vf "scale=540:960:flags=lanczos" -frames:v 1 -q:v 5 \
+//     public/videos/ugc-N-poster.jpg
+// (540×960 is plenty — the cards render at most ~240 CSS px wide.)
 export const UGC_VIDEOS: UgcVideo[] = [
-  // Example (delete this comment, add real ones):
-  { url: "/videos/ugc-1.mp4", name: "@lensofan" },
-  { url: "/videos/ugc-2.mp4", name: "@lifewithhibs_" },
-  { url: "/videos/ugc-3.mp4", name: "@looksbyridaa" },
-  { url: "/videos/ugc-4.mp4", name: "@kk_fencer_official" },
-
-  { url: "/videos/ugc-5.mp4", name: "@fitsandflicksbywish" },
-  { url: "/videos/ugc-6.mp4", name: "@soonhraniii" },
-  { url: "/videos/ugc-7.mp4", name: "@zeeeobv" },
-
-
-
-
+  { url: "/videos/ugc-1.mp4", poster: "/videos/ugc-1-poster.jpg", name: "@lensofan" },
+  { url: "/videos/ugc-2.mp4", poster: "/videos/ugc-2-poster.jpg", name: "@lifewithhibs_" },
+  { url: "/videos/ugc-3.mp4", poster: "/videos/ugc-3-poster.jpg", name: "@looksbyridaa" },
+  { url: "/videos/ugc-4.mp4", poster: "/videos/ugc-4-poster.jpg", name: "@kk_fencer_official" },
+  { url: "/videos/ugc-5.mp4", poster: "/videos/ugc-5-poster.jpg", name: "@fitsandflicksbywish" },
+  { url: "/videos/ugc-6.mp4", poster: "/videos/ugc-6-poster.jpg", name: "@soonhraniii" },
+  { url: "/videos/ugc-7.mp4", poster: "/videos/ugc-7-poster.jpg", name: "@zeeeobv" },
 
 ];
 

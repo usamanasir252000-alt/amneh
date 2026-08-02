@@ -48,11 +48,17 @@ function TrimVideo({
   const tryReveal = () => {
     const v = ref.current;
     if (!v || ready) return;
-    if (Math.abs(v.currentTime - start) < 0.3) {
-      setReady(true);
-      v.play().catch(() => {});
-    }
+    if (v.currentTime >= start - 0.3) setReady(true);
   };
+
+  // Kick playback immediately on mount (muted autoplay is allowed). play() is
+  // what forces the browser to buffer past preload="metadata" and fire the
+  // frame events that reveal the video — waiting for canplay BEFORE calling
+  // play() deadlocked on some browsers: the spinner timed out and the card
+  // stayed blank.
+  useEffect(() => {
+    ref.current?.play().catch(() => {});
+  }, []);
   const clampToSegment = () => {
     const v = ref.current;
     if (!v) return;
@@ -90,6 +96,7 @@ function TrimVideo({
         onLoadedMetadata={seekToStart}
         onSeeked={tryReveal}
         onCanPlay={tryReveal}
+        onPlaying={tryReveal}
         onTimeUpdate={clampToSegment}
         onClick={onClick}
         className={`${className ?? ""} transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
@@ -125,6 +132,12 @@ export default function ProductUgcVideo({
   const [dismissed, setDismissed] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // PERF: gate the popup (and therefore its <video>) until the page — hero
+  // image included — has finished loading. This clip is a 3-7 MB Shopify CDN
+  // file; fetching it eagerly on mount raced the product photo for bandwidth
+  // and made the image take 10s+ on mobile connections. The popup simply
+  // animates in a beat after the page settles instead.
+  const [pageLoaded, setPageLoaded] = useState(false);
   const KEY = `amneh:ugc-dismissed:${productId}`;
 
   useEffect(() => {
@@ -133,6 +146,19 @@ export default function ProductUgcVideo({
     try { closed = sessionStorage.getItem(KEY) === "1"; } catch {}
     if (!closed) setDismissed(false);
   }, [KEY]);
+
+  useEffect(() => {
+    const show = () => setPageLoaded(true);
+    if (document.readyState === "complete") {
+      const t = setTimeout(show, 300);
+      return () => clearTimeout(t);
+    }
+    window.addEventListener("load", show, { once: true });
+    // Fallback: never wait forever if some slow third-party asset stalls the
+    // load event.
+    const t = setTimeout(show, 6000);
+    return () => { clearTimeout(t); window.removeEventListener("load", show); };
+  }, []);
 
   // Lock body scroll while expanded.
   useEffect(() => {
@@ -153,7 +179,7 @@ export default function ProductUgcVideo({
     <>
       {/* Mini floating popup — tucked bottom-left over the image's white space */}
       <AnimatePresence>
-        {mounted && !dismissed && !expanded && (
+        {mounted && pageLoaded && !dismissed && !expanded && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

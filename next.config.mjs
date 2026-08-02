@@ -42,6 +42,16 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // /public assets are served with max-age=0 by default, so every visit
+      // revalidates the multi-MB UGC clips. They're versioned by filename
+      // (swap a clip → new ugc-N file or new poster), so cache them hard —
+      // a returning shopper (or a back-navigation) replays them from disk.
+      {
+        source: "/videos/:file*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
       {
         source: "/:path*",
         headers: [

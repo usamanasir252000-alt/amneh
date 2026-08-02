@@ -117,21 +117,25 @@ function HScrollRow({ children, className = "" }: { children: React.ReactNode; c
 // within it — so a long reel can be shown as just its best 10 seconds
 // without ever editing the file. Always muted — the trimmed clips have no
 // audio track, so there's no mute/unmute control.
+//
+// LOADING MODEL: the poster JPG (the clip's own first frame, ~25 KB) renders
+// unconditionally as a plain <img> under the video — it paints the instant the
+// section appears, so there is never a spinner-over-gradient wait. The <video>
+// mounts only near the viewport and fades in over the poster once it's
+// actually PLAYING. The old version instead hid everything behind a spinner
+// until a canplay/seeked event, then force-revealed after 4s — but with
+// preload="metadata" those events often never fire before play(), so the
+// spinner would stop and leave a blank card ("loader stops but no video").
 function UgcVideoCard({ video }: { video: UgcVideo }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLVideoElement>(null);
-  // Hidden until the video is actually positioned AND rendered at startSec.
-  // Without this, seeking to a non-zero start forces the browser to buffer up
-  // to that point while the card's background shows through — which looked
-  // like a black screen "waiting" for `startSec` seconds before playback.
+  // True once the video has genuinely rendered a frame at/past startSec —
+  // gates only the poster→video crossfade, never what the shopper sees first.
   const [ready, setReady] = useState(false);
-  // PERF: don't download/decode until the card is near the viewport, and only
-  // PLAY while it's actually visible. Before this, all 7 cards used
-  // preload="auto" AND every one called play() — so opening the page fetched 7
-  // full Shopify videos and ran 7 decoders at once, janking the whole site.
-  // `load` (near viewport) gates the <video> mounting at all; `active` (mostly
-  // on screen) gates play/pause. Once loaded it stays mounted so scrolling back
-  // doesn't re-buffer — only playback toggles.
+  // PERF: `load` (near viewport) gates mounting the <video> at all, so
+  // off-screen cards cost zero bandwidth; `active` (≥50% on screen) gates
+  // play/pause so ~1 decoder runs at a time. Once mounted it stays mounted, so
+  // scrolling back doesn't re-buffer.
   const [load, setLoad] = useState(false);
   const [active, setActive] = useState(false);
   const start = video.startSec ?? 0;
@@ -156,46 +160,31 @@ function UgcVideoCard({ video }: { video: UgcVideo }) {
 
   const seekToStart = () => {
     const v = ref.current;
-    if (v) v.currentTime = start;
+    if (v && start > 0) v.currentTime = start;
   };
 
-  // Reveal only once the video is genuinely sitting at `start` with a frame
-  // ready — so the first thing shown is the startSec frame, never a black
-  // buffering gap. Play only if the card is currently on screen.
+  // Crossfade poster→video only once a real frame at `start` is showing.
   const tryReveal = () => {
     const v = ref.current;
     if (!v || ready) return;
-    if (Math.abs(v.currentTime - start) < 0.3) {
-      setReady(true);
-      if (active) v.play().catch(() => {});
-    }
+    if (v.currentTime >= start - 0.3) setReady(true);
   };
 
-  // Play/pause as the card enters/leaves the screen (once it's loaded + ready).
+  // Play/pause with visibility. Crucially, play() is NOT gated on `ready`:
+  // calling play() is what forces the browser to buffer past `metadata` and
+  // fire the frame events that set `ready` — gating it the other way round
+  // deadlocked (the old blank-card bug).
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    if (active && ready) v.play().catch(() => {});
-    else if (!active) v.pause();
-  }, [active, ready]);
-
-  // Safety net: never leave a permanent spinner if media events don't fire —
-  // reveal ~4s after we START loading (not on mount), and only auto-play if
-  // the card is on screen at that point.
-  useEffect(() => {
-    if (!load) return;
-    const t = setTimeout(() => {
-      setReady((r) => {
-        if (!r && active) ref.current?.play().catch(() => {});
-        return true;
-      });
-    }, 4000);
-    return () => clearTimeout(t);
-  }, [load, active]);
+    if (active) v.play().catch(() => {});
+    else v.pause();
+  }, [active, load]);
 
   const clampToSegment = () => {
     const v = ref.current;
     if (!v) return;
+    tryReveal();
     const end = video.endSec ?? v.duration;
     if (v.currentTime >= end || v.currentTime < start - 0.05) {
       v.currentTime = start;
@@ -205,21 +194,28 @@ function UgcVideoCard({ video }: { video: UgcVideo }) {
 
   return (
     <div ref={wrapRef} className="relative w-[62vw] max-w-[240px] sm:w-[240px] flex-shrink-0 snap-start overflow-hidden rounded-2xl bg-gradient-to-br from-[#dff0f8] to-[#fbeef2] shadow-[0_14px_36px_rgba(95,61,78,0.14)] aspect-[9/16]">
-      {/* Soft brand placeholder + subtle spinner while the start frame loads —
-          replaces the old black flash. */}
-      {!ready && (
-        <div className="absolute inset-0 z-[1] flex items-center justify-center">
-          <span className="h-6 w-6 rounded-full border-2 border-[#5f3d4e]/30 border-t-[#5f3d4e] animate-spin" />
-        </div>
+      {/* Poster: always rendered, paints instantly, sits under the video. */}
+      {video.poster ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={video.poster}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        !ready && (
+          <div className="absolute inset-0 z-[1] flex items-center justify-center">
+            <span className="h-6 w-6 rounded-full border-2 border-[#5f3d4e]/30 border-t-[#5f3d4e] animate-spin" />
+          </div>
+        )
       )}
       {load && (
         <video
           ref={ref}
           src={video.url}
-          // Only starts once the card is near the viewport (see `load`), so
-          // off-screen cards cost nothing until you approach them. "metadata"
-          // (not "auto") streams the trimmed segment via a range request instead
-          // of buffering from byte 0 — less data, faster reveal.
+          // "metadata" keeps the initial fetch tiny; the play() call above is
+          // what pulls the actual stream once the card is on screen.
           preload="metadata"
           poster={video.poster}
           muted
@@ -228,8 +224,9 @@ function UgcVideoCard({ video }: { video: UgcVideo }) {
           onLoadedMetadata={seekToStart}
           onSeeked={tryReveal}
           onCanPlay={tryReveal}
+          onPlaying={tryReveal}
           onTimeUpdate={clampToSegment}
-          className={`aspect-[9/16] w-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+          className={`relative aspect-[9/16] w-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
         />
       )}
       {/* No mute/unmute control — the trimmed clips have no audio track. */}
