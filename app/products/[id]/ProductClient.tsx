@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -587,6 +587,85 @@ function ShippingReturns() {
         <Link href="/shipping" className="underline text-gray-600 hover:text-gray-900 transition">Shipping Policy</Link>.
       </p>
     </>
+  );
+}
+
+// ── Estimated delivery timeline ────────────────────────────────────────────
+// A concrete "order today, delivered by <date>" answer right under the buy
+// buttons — vague "3-5 business days" copy lives in the Shipping tab, but a
+// real date range is what removes hesitation for a first-time COD buyer.
+// Couriers here run Mon-Sat, so only Sundays are skipped when counting days.
+function addBusinessDays(from: Date, days: number): Date {
+  const d = new Date(from);
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0) added++;
+  }
+  return d;
+}
+
+const fmtShort = (d: Date) =>
+  d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+function EstimatedDelivery() {
+  const today = new Date();
+  const shipped = addBusinessDays(today, 1);
+  const deliveredFrom = addBusinessDays(today, 3);
+  const deliveredTo = addBusinessDays(today, 5);
+
+  const steps = [
+    {
+      label: "Order Placed",
+      date: `Today, ${fmtShort(today)}`,
+      icon: "M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z",
+    },
+    {
+      label: "Shipped",
+      date: fmtShort(shipped),
+      icon: "M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12",
+    },
+    {
+      label: "Delivered",
+      date: `${fmtShort(deliveredFrom)} – ${fmtShort(deliveredTo)}`,
+      icon: "M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75",
+    },
+  ];
+
+  return (
+    <div className="mt-4 rounded-2xl border border-[#d6ecf7] bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] px-3 py-4">
+      <p className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-3">
+        Order today, get it by{" "}
+        <span className="text-[#5f3d4e]" suppressHydrationWarning>{fmtShort(deliveredTo)}</span>
+      </p>
+      <div className="flex items-start">
+        {steps.map((step, i) => {
+          const last = i === steps.length - 1;
+          return (
+            <Fragment key={step.label}>
+              <div className="flex flex-col items-center text-center flex-shrink-0 w-[88px]">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${
+                  last
+                    ? "bg-gradient-to-br from-[#5f3d4e] to-[#4d9ab5]"
+                    : "bg-white border-2 border-[#4d9ab5]/40"
+                }`}>
+                  <svg className={`h-[18px] w-[18px] ${last ? "text-white" : "text-[#4d9ab5]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={step.icon} />
+                  </svg>
+                </div>
+                <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wide text-gray-900 leading-tight">{step.label}</p>
+                <p className={`mt-0.5 text-[10.5px] leading-tight ${last ? "font-bold text-[#5f3d4e]" : "text-gray-500"}`} suppressHydrationWarning>
+                  {step.date}
+                </p>
+              </div>
+              {!last && (
+                <div className="flex-1 mt-[17px] mx-1 border-t-2 border-dashed border-[#4d9ab5]/40" />
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1800,6 +1879,10 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
               <FaWhatsapp className="h-4 w-4" />
               or order on WhatsApp
             </a>
+
+            {/* Estimated delivery timeline — concrete dates beat "3-5 business
+                days" for a hesitant first-time COD buyer. */}
+            <EstimatedDelivery />
 
             {/* Quiet reassurance line — free shipping + rewards as small muted
                 text, not big competing pills. */}
