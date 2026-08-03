@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
-import { addOrderTag, waSidTag, awardLoyaltyForOrder } from '@/lib/shopify-admin';
+import { addOrderTag, getOrderTags, waSidTag, awardLoyaltyForOrder } from '@/lib/shopify-admin';
 import { sendOrderConfirmation, formatPhone } from '@/lib/whatsapp';
 
 // NOTE: The Meta CAPI Purchase event is NO LONGER fired here. Shopify's native
@@ -48,6 +48,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, loyalty: true });
   }
 
+  // Only orders/create triggers the WhatsApp prompt. Any other topic pointed
+  // at this URL (orders/updated, etc.) must not re-send the message.
+  if (topic !== 'orders/create') {
+    console.log('[Shopify Webhook] Ignoring topic:', topic);
+    return NextResponse.json({ ok: true, skipped: topic });
+  }
+
   // (Meta CAPI Purchase used to fire here — removed; Shopify's native Meta
   // integration now owns Purchase reporting. See the note at the top.)
 
@@ -91,34 +98,54 @@ export async function POST(req: NextRequest) {
     (item: any) => `${item.title} × ${item.quantity}`
   );
 
-  // Tag the order in Shopify so we can look it up when the customer replies
-  try {
-    await addOrderTag(shopifyGid, 'wa-pending');
-  } catch (err) {
-    console.error('[Shopify] Failed to tag order:', err);
-  }
-
-  // Send WhatsApp confirmation request to customer (buttons if template SID is set)
-  try {
-    const msg = await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount, items });
-    // Stamp this prompt's Twilio SID onto the order so a reply to THIS specific
-    // message resolves to THIS order — even if the customer has several open.
-    const sid = msg?.sid;
-    console.log('[WhatsApp] sent prompt for', orderNumber, '→ sid:', sid ?? 'MISSING',
-      '| response keys:', msg ? Object.keys(msg).join(',') : 'no-response');
-    if (sid) {
-      try {
-        await addOrderTag(shopifyGid, waSidTag(sid));
-        console.log('[Shopify] tagged', orderNumber, 'with', waSidTag(sid));
-      } catch (err) {
-        console.error('[Shopify] Failed to tag order with message SID:', err);
+  // Do the slow work (Shopify tags + Twilio send) AFTER responding. Shopify
+  // drops the connection and RETRIES the whole delivery if we don't return a
+  // 2xx within ~5s — the old await-everything-then-respond flow is exactly
+  // what caused duplicate WhatsApp prompts (order #1112 got two).
+  after(async () => {
+    // Idempotency: a retried/duplicate delivery carries the ORIGINAL payload,
+    // so the wa-pending tag we added won't be in `order.tags` — check live.
+    try {
+      const tags = await getOrderTags(shopifyGid);
+      if (tags.includes('wa-pending')) {
+        console.log('[Shopify Webhook] Duplicate delivery for', orderNumber, '— prompt already sent, skipping');
+        return;
       }
-    } else {
-      console.error('[WhatsApp] No SID on Twilio response — reply matching will fall back to latest order');
+    } catch (err) {
+      // If the tag lookup fails we still send — a missed prompt is worse than
+      // a rare duplicate.
+      console.error('[Shopify] Failed to read order tags (sending anyway):', err);
     }
-  } catch (err) {
-    console.error('[WhatsApp] Failed to send message:', err);
-  }
+
+    // Tag the order in Shopify so we can look it up when the customer replies
+    try {
+      await addOrderTag(shopifyGid, 'wa-pending');
+    } catch (err) {
+      console.error('[Shopify] Failed to tag order:', err);
+    }
+
+    // Send WhatsApp confirmation request to customer (buttons if template SID is set)
+    try {
+      const msg = await sendOrderConfirmation(phone, { name: customerName, orderNumber, amount, items });
+      // Stamp this prompt's Twilio SID onto the order so a reply to THIS specific
+      // message resolves to THIS order — even if the customer has several open.
+      const sid = msg?.sid;
+      console.log('[WhatsApp] sent prompt for', orderNumber, '→ sid:', sid ?? 'MISSING',
+        '| response keys:', msg ? Object.keys(msg).join(',') : 'no-response');
+      if (sid) {
+        try {
+          await addOrderTag(shopifyGid, waSidTag(sid));
+          console.log('[Shopify] tagged', orderNumber, 'with', waSidTag(sid));
+        } catch (err) {
+          console.error('[Shopify] Failed to tag order with message SID:', err);
+        }
+      } else {
+        console.error('[WhatsApp] No SID on Twilio response — reply matching will fall back to latest order');
+      }
+    } catch (err) {
+      console.error('[WhatsApp] Failed to send message:', err);
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }

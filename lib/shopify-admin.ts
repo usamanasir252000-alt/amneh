@@ -421,6 +421,18 @@ export async function findOrderByMessageSid(messageSid: string): Promise<{
   return { id: node.id, name: node.name, tags: node.tags ?? [], email };
 }
 
+export async function getOrderTags(orderId: string): Promise<string[]> {
+  const q = `
+    query OrderTags($id: ID!) {
+      order(id: $id) { tags }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ order: { tags: string[] } | null }>(q, {
+    id: orderId,
+  });
+  return data.order?.tags ?? [];
+}
+
 export async function addOrderTag(orderId: string, tag: string) {
   const m = `
     mutation TagsAdd($id: ID!, $tags: [String!]!) {
