@@ -57,8 +57,19 @@ export default function AnnouncementBar() {
       setCopies(Math.max(2, Math.ceil(window.innerWidth / w) + 1));
     };
     measure();
+    // The first measure can run before the web font is in — bold + wide
+    // letter-spacing renders wider in the real font, and a stale (short) width
+    // makes the loop skip slightly at every restart. Re-measure once fonts
+    // settle.
+    let disposed = false;
+    document.fonts?.ready?.then(() => {
+      if (!disposed) measure();
+    });
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => {
+      disposed = true;
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   const duration = trackWidth > 0 ? trackWidth / PIXELS_PER_SECOND : undefined;
@@ -66,8 +77,12 @@ export default function AnnouncementBar() {
   return (
     <div className="fixed inset-x-0 top-0 z-[70] flex h-9 items-center overflow-hidden bg-[#5f3d4e] text-white">
       {/* Hidden measuring copy — off-screen, never visible, used only to
-          read one message set's natural rendered width. */}
-      <div ref={measureRef} className="absolute opacity-0 pointer-events-none flex shrink-0 items-center" aria-hidden="true">
+          read one message set's natural rendered width. whitespace-nowrap is
+          load-bearing: without it, a message set wider than the viewport wraps
+          inside this absolutely-positioned div, the measured width comes up
+          short, and the marquee loops back before the text finishes scrolling
+          (messages visibly cut off). */}
+      <div ref={measureRef} className="absolute whitespace-nowrap opacity-0 pointer-events-none flex shrink-0 items-center" aria-hidden="true">
         <MessageSet />
       </div>
 
