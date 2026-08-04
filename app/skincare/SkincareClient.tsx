@@ -399,10 +399,14 @@ export default function SkincareClient({
             `eager` needed). */}
         {SKINCARE_HERO_VIDEO && (
           <div className="absolute inset-0 lg:hidden">
+            {/* waitForWindowLoad (not a fixed delay): the page auto-scrolls to
+                the product grid, so the grid images are what the shopper is
+                actually looking at — let ALL of them finish before the video
+                starts competing for bandwidth. Poster covers the wait. */}
             <BackgroundVideo
               video={SKINCARE_HERO_VIDEO}
               diagLabel="skincare-hero"
-              loadDelayMs={1200}
+              waitForWindowLoad
             />
           </div>
         )}

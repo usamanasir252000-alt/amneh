@@ -124,7 +124,12 @@ async function shopifyFetch<T>(
       method: "POST",
       headers,
       body: JSON.stringify({ query, variables }),
-      ...(cached ? { next: { revalidate: opts!.revalidate } } : { cache: "no-store" as const }),
+      // "catalog" tag lets the Shopify products/update webhook purge these
+      // entries the moment a product changes (see api/webhooks/shopify) — the
+      // 120s revalidate then only matters as a fallback when no webhook fires.
+      ...(cached
+        ? { next: { revalidate: opts!.revalidate, tags: ["catalog"] } }
+        : { cache: "no-store" as const }),
       ...(controller ? { signal: controller.signal } : {}),
     });
   } finally {

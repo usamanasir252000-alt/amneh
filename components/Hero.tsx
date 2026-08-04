@@ -8,18 +8,41 @@ const heroImages = ["/f4.webp", "/c13.webp", "/f2.webp"];
 
 export default function Hero() {
   const [activeIdx, setActiveIdx] = useState(0);
+  // The 2nd/3rd slides are full-screen images stacked (invisibly) in the
+  // viewport, so without this gate the browser downloads all three the moment
+  // the page hydrates — starving the product carousel images below of
+  // bandwidth. Mount them only after the window load event (fallback timer in
+  // case `load` is held up), and start rotating only once they exist so the
+  // cross-fade never lands on an unmounted slide.
+  const [restReady, setRestReady] = useState(false);
 
   useEffect(() => {
+    if (document.readyState === "complete") {
+      setRestReady(true);
+      return;
+    }
+    const onLoad = () => setRestReady(true);
+    window.addEventListener("load", onLoad, { once: true });
+    const fallback = setTimeout(() => setRestReady(true), 3500);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      clearTimeout(fallback);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!restReady) return;
     const timer = setInterval(() => {
       setActiveIdx((i) => (i + 1) % heroImages.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [restReady]);
 
   return (
     <section className="relative h-[100svh] w-full overflow-hidden">
       {/* Hero images — all stacked, cross-fade + slow Ken Burns zoom */}
       {heroImages.map((src, i) => {
+        if (i > 0 && !restReady) return null;
         const isActive = i === activeIdx;
         return (
           <motion.div

@@ -18,6 +18,7 @@ export default function BackgroundVideo({
   zoom = false,
   eager = false,
   loadDelayMs = 0,
+  waitForWindowLoad = false,
   diagLabel,
 }: {
   video: UgcVideo;
@@ -28,6 +29,13 @@ export default function BackgroundVideo({
   // wins the bandwidth first. Safe to use ONLY with a poster set — the poster
   // covers the delay so the visitor still sees a real image immediately.
   loadDelayMs?: number;
+  // Don't fetch the video until the window `load` event has fired — i.e. every
+  // image on the page is done downloading. A fixed loadDelayMs guesses how long
+  // the important content needs; this waits for it exactly (same trick that
+  // keeps the PDP popup video from competing with product images). Falls back
+  // to a timer in case `load` is held up indefinitely. Poster required, same as
+  // loadDelayMs.
+  waitForWindowLoad?: boolean;
   // Opt-in diagnostics. When set (e.g. "skincare-hero"), this instance reports
   // whether the video actually reached its frame or only revealed via the 3.5s
   // safety fallback (= it never really loaded, so the grey placeholder was what
@@ -44,7 +52,26 @@ export default function BackgroundVideo({
   // the first thing a visitor sees are ready instantly instead of loading in.
   const [load, setLoad] = useState(eager);
   const [active, setActive] = useState(eager);
+  // True once the window load event has fired (or immediately when
+  // waitForWindowLoad is off). Gates the video fetch, never the poster.
+  const [winReady, setWinReady] = useState(!waitForWindowLoad);
   const start = video.startSec ?? 0;
+
+  useEffect(() => {
+    if (!waitForWindowLoad) return;
+    if (document.readyState === "complete") {
+      setWinReady(true);
+      return;
+    }
+    const onLoad = () => setWinReady(true);
+    window.addEventListener("load", onLoad, { once: true });
+    // Safety: a stalled straggler image must not block the video forever.
+    const fallback = setTimeout(() => setWinReady(true), 6000);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      clearTimeout(fallback);
+    };
+  }, [waitForWindowLoad]);
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -52,7 +79,11 @@ export default function BackgroundVideo({
     let delayTimer: ReturnType<typeof setTimeout> | undefined;
     const obs = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) {
+        // winReady gates the FETCH only (visibility tracking still runs).
+        // Re-created when winReady flips, and observe() re-fires with the
+        // current intersection, so a panel already in view starts loading the
+        // moment the window finishes.
+        if (e.isIntersecting && winReady) {
           // Defer the fetch by loadDelayMs (if set) so higher-priority content
           // downloads first; the poster covers the gap. Fire once — clear any
           // pending timer so we never schedule twice.
@@ -71,7 +102,7 @@ export default function BackgroundVideo({
       obs.disconnect();
       if (delayTimer) clearTimeout(delayTimer);
     };
-  }, [loadDelayMs]);
+  }, [loadDelayMs, winReady]);
 
   const seekToStart = () => {
     const v = ref.current;

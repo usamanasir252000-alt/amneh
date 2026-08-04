@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import crypto from 'crypto';
 import { addOrderTag, getOrderTags, waSidTag, awardLoyaltyForOrder } from '@/lib/shopify-admin';
 import { sendOrderConfirmation, formatPhone } from '@/lib/whatsapp';
@@ -39,6 +40,28 @@ export async function POST(req: NextRequest) {
   // the two paths idempotent, so an order can never be counted twice.
   // The WhatsApp confirmation prompt is sent on the order-creation topic (below).
   const topic = req.headers.get('x-shopify-topic') || '';
+
+  // Product changed in Shopify admin (price, images, copy, stock…): purge BOTH
+  // cache layers so the storefront reflects it within seconds instead of
+  // waiting out two stacked 120s stale-while-revalidate windows.
+  //  - revalidateTag("catalog") drops the cached Storefront API responses
+  //    (lib/shopify.ts tags every catalog read with it);
+  //  - revalidatePath drops the pre-rendered HTML for every page that shows
+  //    product data, so the next visit re-renders with the fresh fetch.
+  // Requires a "Product update" (and ideally create/delete) webhook in Shopify
+  // pointed at this same endpoint.
+  if (topic.startsWith('products/')) {
+    // { expire: 0 } = hard-expire, no stale-while-revalidate: the very next
+    // visit blocks on a fresh Shopify fetch instead of getting the old price
+    // one more time.
+    revalidateTag('catalog', { expire: 0 });
+    revalidatePath('/');
+    revalidatePath('/skincare');
+    revalidatePath('/products/[id]', 'page');
+    console.log('[Shopify Webhook] Catalog cache purged for topic:', topic);
+    return NextResponse.json({ ok: true, revalidated: true });
+  }
+
   if (topic === 'orders/paid') {
     try {
       await awardLoyaltyForOrder(String(order.id));
