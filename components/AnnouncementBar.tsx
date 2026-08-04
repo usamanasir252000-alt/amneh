@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 // navbar, which is why the navbar starts at top-9 and page content offsets
 // account for this 36px bar).
 const MESSAGES = [
-  "15% OFF ON ALL PRODUCTS",
+  "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
   "FREE SHIPPING ON ORDERS Above PKR 2,500",
-  "15% OFF ON ALL PRODUCTS",
+  "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
   "LIMITED TIME ONLY",
 ];
 

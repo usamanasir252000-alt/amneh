@@ -22,7 +22,6 @@ const Footer = dynamic(() => import("../components/Footer"));
 // to server-render or ship their JS until then.
 const ReviewsModal = dynamic(() => import("@/components/ReviewsModal"), { ssr: false });
 const AddReviewModal = dynamic(() => import("@/components/AddReviewModal"), { ssr: false });
-const WelcomePopup = dynamic(() => import("@/components/WelcomePopup"), { ssr: false });
 
 // Client half of the homepage. Products are fetched SERVER-side in app/page.tsx
 // and passed in here, so the carousel renders real products into the SSR HTML
@@ -65,7 +64,6 @@ export default function HomeClient({ initialProducts }: { initialProducts: Shopi
 
   return (
     <main>
-      <WelcomePopup />
       <Navbar />
       <div className="relative">
         <Hero />
