@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 // account for this 36px bar).
 const MESSAGES = [
   "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
-  "FREE SHIPPING ON ORDERS Above PKR 2,500",
+  "FREE SHIPPING ON EVERY ORDER 🇵🇰",
   "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
   "LIMITED TIME ONLY",
 ];

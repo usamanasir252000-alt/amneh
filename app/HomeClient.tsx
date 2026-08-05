@@ -7,6 +7,7 @@ import Hero from "../components/Hero";
 import FeatureSplit from "../components/FeatureSplit";
 import ProductCarousel from "../components/ProductCarousel";
 import ReviewSideTab from "@/components/ReviewSideTab";
+import FreeShippingNote from "@/components/FreeShippingNote";
 import type { Review } from "@/components/ReviewsModal";
 import type { ShopifyProduct } from "@/lib/shopify";
 
@@ -88,6 +89,11 @@ export default function HomeClient({ initialProducts }: { initialProducts: Shopi
         className="flex flex-col"
         style={{ gap: "0px", background: "#f1efef", paddingTop: "0px" }}
       >
+        {/* Sale-period free-shipping reassurance, directly under the hero —
+            same pill used on the PDP and the /skincare grid. */}
+        <div className="px-6 pt-6">
+          <FreeShippingNote className="w-fit mx-auto" />
+        </div>
         <FeatureSplit />
         <ProductCarousel initialProducts={initialProducts} />
         <Testimonials />

@@ -3,32 +3,18 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart, CartItem } from "@/context/CartContext";
 import Image from "next/image";
-import { bundleSavings, FREE_SHIPPING_MIN_QTY } from "@/lib/bundle";
+import { bundleSavings } from "@/lib/bundle";
 
-// Free-shipping progress banner — the highest-value spot to surface this,
-// since it's shown exactly when a shopper is deciding whether to add one
-// more item. Free shipping unlocks at FREE_SHIPPING_MIN_QTY items (the bundle
-// free-shipping code), so the nudge is quantity-based: one more item does it.
-function FreeShippingBanner({ unlocked, qty }: { unlocked: boolean; qty: number }) {
-  const need = Math.max(0, FREE_SHIPPING_MIN_QTY - qty);
-  const pct = Math.min(100, Math.round((qty / FREE_SHIPPING_MIN_QTY) * 100));
-
+// Free-shipping banner — the highest-value spot to surface this, since it's
+// shown exactly when a shopper is deciding whether to check out. For the
+// Azadi sale shipping is free on every order with no threshold, so this is a
+// flat confirmation rather than the old "add N more items" progress nudge.
+function FreeShippingBanner() {
   return (
     <div className="px-6 py-3 bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5]">
       <p className="text-center text-[12px] sm:text-[13px] font-bold uppercase tracking-wide text-white">
-        {unlocked
-          ? "🎉 You've unlocked FREE shipping!"
-          : <>Add <span className="text-amber-300">{need} more item{need === 1 ? "" : "s"}</span> for FREE shipping</>
-        }
+        🎉 FREE shipping on your order
       </p>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/25">
-        <motion.div
-          className="h-full rounded-full bg-white"
-          initial={false}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        />
-      </div>
     </div>
   );
 }
@@ -114,7 +100,7 @@ export default function CartDrawer() {
             </div>
 
             {items.length > 0 && (
-              <FreeShippingBanner unlocked={savings.freeShipping} qty={totalQty} />
+              <FreeShippingBanner />
             )}
 
             {/* Cart Content */}
@@ -227,11 +213,7 @@ export default function CartDrawer() {
                     {/* Shipping */}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Shipping</span>
-                      {savings.freeShipping ? (
-                        <span className="font-semibold text-[#4d9ab5]">FREE</span>
-                      ) : (
-                        <span className="text-gray-500">Calculated at checkout</span>
-                      )}
+                      <span className="font-semibold text-[#4d9ab5]">FREE</span>
                     </div>
 
                     {/* Total */}
@@ -258,12 +240,11 @@ export default function CartDrawer() {
                       </p>
                     ) : savings.pct > 0 ? (
                       <p className="text-xs text-[#4d9ab5]">
-                        🎉 You&apos;re saving PKR {savings.discountAmount.toFixed(0)}
-                        {savings.freeShipping ? " + free shipping" : ""}
+                        🎉 You&apos;re saving PKR {savings.discountAmount.toFixed(0)} + free shipping
                       </p>
                     ) : (
                       <p className="text-xs text-gray-500">
-                        Discounts &amp; shipping confirmed at checkout
+                        Free shipping applied · discounts confirmed at checkout
                       </p>
                     )}
                   </div>

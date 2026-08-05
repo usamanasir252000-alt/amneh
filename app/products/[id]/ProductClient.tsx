@@ -563,7 +563,7 @@ function ShippingReturns() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon:"M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", title:"Delivery Time", desc:"3 to 5 business days across Pakistan" as React.ReactNode },
-          { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <>PKR 200 flat rate — <strong className="font-bold text-[#5f3d4e]">FREE</strong> on orders PKR 2,500+</> as React.ReactNode },
+          { icon:"M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z", title:"Shipping Cost", desc: <><strong className="font-bold text-[#5f3d4e]">FREE</strong> on every order — no minimum</> as React.ReactNode },
           { icon:"M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.031 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z", title:"Damage Protection", desc: <><strong className="font-semibold text-gray-700">Damaged, broken, or wrong item? Free replacement</strong> — WhatsApp us a photo within 7 days of delivery. Otherwise all sales are final for hygiene &amp; safety reasons.</> as React.ReactNode },
         ].map(item => (
           <div key={item.title} className="bg-gradient-to-b from-[#f7fbfd] to-[#fbf5f7] rounded-2xl p-5 border border-[#d6ecf7] flex flex-col gap-4 transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(95,61,78,0.08)]">
@@ -1887,7 +1887,7 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
             {/* Quiet reassurance line — free shipping + rewards as small muted
                 text, not big competing pills. */}
             <div className="mt-4 space-y-1 text-center text-[11px] text-gray-400">
-              <p>Free shipping on orders PKR 2,500+ · Cash on Delivery</p>
+              <p>Free shipping on every order · Cash on Delivery</p>
               {product.price * quantity >= MIN_ORDER_VALUE && (
                 <p>
                   Earn {POINTS_PER_ORDER} points on this order —{" "}
