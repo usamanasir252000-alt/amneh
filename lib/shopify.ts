@@ -313,6 +313,11 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
             images(first: 5) { edges { node { id url } } }
             variants(first: 100) { edges { node { id quantityAvailable } } }
             totalInventory
+            # Needed by the bundle PDP, which shows the before/after of each
+            # product inside the bundle — it reads them off this catalog list
+            # rather than paying one extra round-trip per bundle member.
+            beforeImage: metafield(namespace: "custom", key: "before_image") { value }
+            afterImage: metafield(namespace: "custom", key: "after_image") { value }
           }
         }
       }

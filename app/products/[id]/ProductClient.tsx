@@ -1021,6 +1021,63 @@ function BeforeAfterSlider({ beforeUrl, afterUrl }: { beforeUrl: string; afterUr
   );
 }
 
+// ── Results gallery — one slider, switched by product ───────────────────────
+// A regular product has exactly one before/after, so this renders just the
+// slider and looks identical to before. A bundle has one per product inside
+// it; stacking three full-size sliders would have made "Real Results" the
+// tallest section on the page, so they share a single slider frame and a row
+// of pills switches between them. Footprint for a 3-product bundle is one
+// slider + ~40px of pills, instead of three sliders.
+interface ResultEntry { name: string; beforeUrl: string; afterUrl: string }
+
+// "Intense Hydration Serum" → "Intense Hydration". Every product here is a
+// serum, so the word carries no information in a pill and costs the width
+// that keeps all three visible without scrolling on a small phone. Only
+// stripped when something is left to label the pill with.
+function shortResultLabel(name: string) {
+  const stripped = name.replace(/\s+serum$/i, "").trim();
+  return stripped.length > 0 ? stripped : name;
+}
+
+function ResultsGallery({ entries }: { entries: ResultEntry[] }) {
+  const [active, setActive] = useState(0);
+  if (entries.length === 0) return null;
+
+  const current = entries[Math.min(active, entries.length - 1)];
+
+  return (
+    <>
+      {entries.length > 1 && (
+        <div className="mb-4 flex justify-start sm:justify-center gap-2 overflow-x-auto scrollbar-hide -mx-6 px-6 sm:mx-0 sm:px-0">
+          {entries.map((entry, i) => (
+            <button
+              key={entry.name}
+              onClick={() => setActive(i)}
+              aria-pressed={active === i}
+              className={`flex-shrink-0 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 active:scale-95 ${
+                active === i
+                  ? "border-transparent bg-[#5f3d4e] text-white shadow-[0_6px_16px_rgba(95,61,78,0.25)]"
+                  : "border-[#5f3d4e]/25 bg-white text-[#5f3d4e] hover:bg-[#5f3d4e]/5"
+              }`}
+            >
+              {shortResultLabel(entry.name)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* key resets the divider to the middle when switching products —
+          without it the new pair inherits wherever the last one was dragged,
+          which reads as a broken image on a hard-left/right handle. */}
+      <BeforeAfterSlider key={current.name} beforeUrl={current.beforeUrl} afterUrl={current.afterUrl} />
+
+      {entries.length > 1 && (
+        <p className="mt-3 text-center text-xs text-gray-500">{current.name}</p>
+      )}
+    </>
+  );
+}
+
 // ── Sticky scroll-spy section nav ──────────────────────────────────────────
 function SectionNav({ sections, activeId, onJump }: { sections: { id: string; label: string }[]; activeId: string; onJump: (id: string) => void }) {
   if (sections.length < 2) return null;
@@ -1168,7 +1225,7 @@ function MostLoved({ products }: { products: Product[] }) {
 // A customer on a slow/flaky connection (mobile data, in-app browser) sees the
 // real product immediately even if React never finishes hydrating — only the
 // interactive bits below (gallery, add to cart, buy now) need JS.
-export default function ProductClient({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
+export default function ProductClient({ product, relatedProducts = [], bundleResults = [] }: { product: Product; relatedProducts?: Product[]; bundleResults?: ResultEntry[] }) {
   const { addItem } = useCart();
 
   // Diagnostics: proves hydration ran, captures env/connection/fonts, audits
@@ -1374,9 +1431,18 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
     };
   }, [product.id]);
 
+  // A bundle carries no before/after of its own — it borrows one per product
+  // inside it (resolved server-side in page.tsx). Everything downstream, the
+  // nav entry included, keys off this one list so both cases behave the same.
+  const resultEntries: ResultEntry[] = bundleResults.length > 0
+    ? bundleResults
+    : product.beforeImage && product.afterImage
+      ? [{ name: product.name, beforeUrl: product.beforeImage, afterUrl: product.afterImage }]
+      : [];
+
   const sections = [
     { id: "overview", label: "Overview" },
-    ...(product.beforeImage && product.afterImage ? [{ id: "results", label: "Results" }] : []),
+    ...(resultEntries.length > 0 ? [{ id: "results", label: "Results" }] : []),
     ...(product.ingredients ? [{ id: "ingredients", label: "Ingredients" }] : []),
     // How to Use / When to Use / Patch Test / Benefits / Shipping / FAQs all
     // live inside the one tabbed #details section now, so the nav has a single
@@ -1904,15 +1970,17 @@ export default function ProductClient({ product, relatedProducts = [] }: { produ
       <SectionNav sections={sections} activeId={activeSectionId} onJump={jumpToSection} />
 
       {/* ── Before/after (drag to compare) ──────────────────────────────────── */}
-      {product.beforeImage && product.afterImage && (
+      {resultEntries.length > 0 && (
         <section id="results" className="bg-white py-10 sm:py-14 border-t border-gray-200 scroll-mt-[196px] lg:scroll-mt-[240px]">
           <Reveal className="max-w-screen-xl mx-auto px-6 lg:px-10">
             <SectionHeading
               title="Real Results"
               icon={<svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7l-5 5 5 5M16 7l5 5-5 5" /></svg>}
             />
-            <p className="text-center text-sm text-gray-500 -mt-2 mb-6">Drag to compare</p>
-            <BeforeAfterSlider beforeUrl={product.beforeImage} afterUrl={product.afterImage} />
+            <p className="text-center text-sm text-gray-500 -mt-2 mb-6">
+              {resultEntries.length > 1 ? "Pick a product, then drag to compare" : "Drag to compare"}
+            </p>
+            <ResultsGallery entries={resultEntries} />
           </Reveal>
         </section>
       )}

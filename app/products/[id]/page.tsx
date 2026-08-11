@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProductByHandle, getProducts } from "@/lib/shopify";
+import { getProductByHandle, getProducts, type ShopifyProduct } from "@/lib/shopify";
 import ProductClient from "./ProductClient";
 
 // ISR: the rendered page is cached and served instantly, refreshed in the
@@ -48,5 +48,51 @@ export default async function ProductPage(
     .filter((p) => p.handle && p.handle !== product.handle && p.category === product.category)
     .slice(0, 8);
 
-  return <ProductClient product={product} relatedProducts={relatedProducts} />;
+  return (
+    <ProductClient
+      product={product}
+      relatedProducts={relatedProducts}
+      bundleResults={buildBundleResults(product, allProducts)}
+    />
+  );
+}
+
+// ── Before/after for each product inside a bundle ──────────────────────────
+// A bundle has no before/after of its own — the proof lives on the individual
+// serums. Membership comes from the bundle's own `custom.bundle_ingredients`
+// metafield (the same one that drives the ingredient lists): one line per
+// product, "Product Name | ingredients", so the name before the pipe is the
+// member. We match those names against the catalog by title and carry each
+// member's before/after through. If the metafield is missing or nothing
+// matches (e.g. a name was retyped and no longer matches a product title),
+// fall back to every non-bundle product that has a before/after — better to
+// show the proof in a slightly different order than to show none at all.
+function buildBundleResults(
+  product: ShopifyProduct,
+  allProducts: ShopifyProduct[],
+): { name: string; beforeUrl: string; afterUrl: string }[] {
+  if (!product.isBundle) return [];
+
+  const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const withResults = allProducts.filter((p) => p.beforeImage && p.afterImage && !p.isBundle);
+  const toEntry = (p: ShopifyProduct) => ({
+    name: p.name,
+    beforeUrl: p.beforeImage!,
+    afterUrl: p.afterImage!,
+  });
+
+  const memberNames = (product.bundleIngredients ?? "")
+    .split("\n")
+    .map((line) => {
+      const pipeIdx = line.indexOf("|");
+      return normalize(pipeIdx === -1 ? line : line.slice(0, pipeIdx));
+    })
+    .filter(Boolean);
+
+  const matched = memberNames
+    .map((name) => withResults.find((p) => normalize(p.name) === name))
+    .filter((p): p is ShopifyProduct => Boolean(p))
+    .map(toEntry);
+
+  return matched.length > 0 ? matched : withResults.map(toEntry);
 }
