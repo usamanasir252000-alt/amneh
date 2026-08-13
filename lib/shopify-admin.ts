@@ -371,6 +371,21 @@ export async function findOrderByPhone(phone: string): Promise<{
   return { id: target.id, name: target.name, tags: target.tags ?? [], email };
 }
 
+export async function findCustomerByPhone(phone: string): Promise<{ id: string } | null> {
+  const q = `
+    query FindCustomerByPhone($query: String!) {
+      customers(first: 1, query: $query) {
+        edges { node { id } }
+      }
+    }
+  `;
+  const data = await shopifyAdminFetch<{ customers: { edges: { node: any }[] } }>(q, {
+    query: `phone:${phone}`,
+  });
+  const node = data.customers.edges[0]?.node;
+  return node ? { id: node.id } : null;
+}
+
 // Tag we stamp on each order carrying the Twilio SID of its WhatsApp prompt,
 // so an inbound reply (which reports OriginalRepliedMessageSid) maps back to
 // the EXACT order the customer tapped — even with multiple orders open.

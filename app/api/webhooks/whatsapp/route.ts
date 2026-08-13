@@ -2,8 +2,10 @@ import { NextRequest } from 'next/server';
 import {
   findOrderByPhone,
   findOrderByMessageSid,
+  findCustomerByPhone,
   addOrderTag,
   removeOrderTag,
+  tagCustomer,
   cancelShopifyOrder,
   awardLoyaltyForOrder,
 } from '@/lib/shopify-admin';
@@ -39,6 +41,23 @@ export async function POST(req: NextRequest) {
   if (!phone) return emptyTwiml();
 
   console.log('[WhatsApp Reply] from:', from, '→ phone:', phone, '→ body:', body, '→ repliedSid:', repliedSid || 'none');
+
+  // ── STOP (marketing opt-out) ─────────────────────────────────────────────
+  // Independent of any order — tag the Shopify customer so future marketing
+  // sends can filter them out (e.g. query customers with -tag:wa-opted-out).
+  if (body === 'STOP' || body === 'UNSUBSCRIBE') {
+    try {
+      const customer = await findCustomerByPhone(phone);
+      if (customer) {
+        await tagCustomer(customer.id, ['wa-opted-out']);
+      } else {
+        console.warn('[WhatsApp Reply] STOP received but no Shopify customer found for phone:', phone);
+      }
+    } catch (err) {
+      console.error('[Shopify] Failed to tag customer as opted-out:', err);
+    }
+    return twiml("You've been unsubscribed and won't receive further marketing messages from amneh.");
+  }
 
   // Prefer the exact order tied to the replied-to message; only if there's no
   // reply context (or no match) do we fall back to the customer's latest order.
