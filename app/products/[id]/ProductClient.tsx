@@ -1289,6 +1289,15 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
       const entry = { key, promise, url: undefined as string | null | undefined };
       promise.then((url) => {
         entry.url = url;
+        // Hit the checkout URL once, quietly, well before the user taps Buy
+        // Now. Reports show checkout blanks out for 20s+ on a brand-new cart
+        // token but a manual reload of the SAME url always fixes it — i.e.
+        // Shopify's checkout is slow/flaky on the cold first hit for a token.
+        // This makes that first hit happen here in the background, so the
+        // real navigation on click is effectively the "reload" that works.
+        if (url) {
+          fetch(url, { mode: "no-cors", credentials: "include" }).catch(() => {});
+        }
       });
       prewarmedCheckout.current = entry;
     }, 600);

@@ -21,9 +21,19 @@ export async function POST(req: Request) {
   // the SAME shopper/session (and replay) as their on-site activity.
   const phDistinctId = distinctIdFromCookie(req.headers.get("cookie"));
 
+  // Buyer's real IP — passed to Shopify on cart creation (not just the later
+  // customer-link call) so the checkout session it issues is tied to the
+  // actual buyer, not to our server's egress IP. A mismatch here is what
+  // Shopify support flagged as the likely cause of the 401 on
+  // private_access_tokens and the cascade of failed checkout asset loads.
+  const buyerIp =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("x-real-ip") ||
+    undefined;
+
   let cart;
   try {
-    cart = await createCart(variantId, quantity ?? 1, codes);
+    cart = await createCart(variantId, quantity ?? 1, codes, buyerIp);
   } catch (err) {
     console.error("[buy-now] createCart failed:", JSON.stringify({ variantId, quantity, prewarm: isPrewarm, elapsedMs: Date.now() - startedAt, error: (err as Error)?.message }));
     // Surface checkout-blocking failures in PostHog. This is the moment a
@@ -37,13 +47,6 @@ export async function POST(req: Request) {
     await captureServerException(err, phDistinctId, { route: "buy-now", stage: "createCart", variantId });
     return NextResponse.json({ error: "Could not create cart" }, { status: 502 });
   }
-
-  // Buyer's real IP — required by Shopify to carry the logged-in session into
-  // checkout on server-side calls (see Shopify-Storefront-Buyer-IP header).
-  const buyerIp =
-    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    req.headers.get("x-real-ip") ||
-    undefined;
 
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get("session")?.value;

@@ -396,7 +396,8 @@ export async function getProductByHandle(
 export async function createCart(
   variantId: string,
   quantity: number,
-  discountCodes?: string[]
+  discountCodes?: string[],
+  buyerIp?: string
 ): Promise<ShopifyCart> {
   const data = await shopifyFetch<{
     cartCreate: {
@@ -412,7 +413,8 @@ export async function createCart(
       }
     }
   `,
-    { lines: [{ merchandiseId: variantId, quantity }], discountCodes: discountCodes ?? [] }
+    { lines: [{ merchandiseId: variantId, quantity }], discountCodes: discountCodes ?? [] },
+    { buyerIp }
   );
 
   if (data.cartCreate.userErrors.length) {

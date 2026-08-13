@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         // and goToCheckout / buy-now re-link at navigation time with the fresh
         // URL. Awaiting it added 1-2 extra Shopify round-trips to the very
         // first Add-to-Cart of a session.
-        const cart = await createCart(variantId, quantity ?? 1);
+        const cart = await createCart(variantId, quantity ?? 1, undefined, buyerIp);
         return NextResponse.json(cart);
       }
 
