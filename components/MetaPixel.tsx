@@ -21,10 +21,38 @@ export default function MetaPixel() {
 
   useEffect(() => {
     if (!PIXEL_ID) return;
+
     if (!booted.current) {
       booted.current = true;
-      loadMetaPixel();
+      // Defer the initial boot (which appends the ~107KB fbevents.js script
+      // tag) until the window `load` event, i.e. after the page's own
+      // content has finished downloading — same reasoning as gtag.js's
+      // lazyOnload switch in GoogleAnalytics.tsx: on a slow connection, this
+      // ~107KB fetch was competing with the page itself for bandwidth right
+      // when a visitor is waiting for their click to resolve. A fixed
+      // fallback timer covers the case where `load` is held up indefinitely
+      // (e.g. a stalled below-the-fold video) — the boot must still happen.
+      let done = false;
+      const boot = () => {
+        if (done) return;
+        done = true;
+        loadMetaPixel();
+        lastTracked.current = pathname;
+        fbTrack("PageView");
+      };
+      if (document.readyState === "complete") {
+        boot();
+      } else {
+        window.addEventListener("load", boot, { once: true });
+        const fallback = setTimeout(boot, 4000);
+        return () => {
+          window.removeEventListener("load", boot);
+          clearTimeout(fallback);
+        };
+      }
+      return;
     }
+
     // Guard against double-fires for the same path (React StrictMode runs
     // effects twice in dev; remounts must not double-count a PageView).
     if (lastTracked.current === pathname) return;

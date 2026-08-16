@@ -4,8 +4,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useCart } from "@/context/CartContext";
-import AuthModal from "@/components/AuthModal";
+
+// Dynamically imported: AuthModal (+ its GoogleSignInButton) never renders
+// until a shopper actually clicks "Sign in", but a static import still ships
+// its JS in Navbar's bundle on every page — paid for by the ~99% of visits
+// that never open it. ssr:false is safe here since the modal is entirely
+// interaction-gated (ref: `open` prop), never part of first paint.
+const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
 
 interface NavUser {
   id: string;

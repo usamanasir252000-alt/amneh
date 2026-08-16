@@ -41,9 +41,18 @@ export default function GoogleAnalytics() {
 
   return (
     <>
+      {/*
+        lazyOnload (not afterInteractive): gtag.js is ~150KB gzipped, and
+        afterInteractive fetches it right after hydration — competing for
+        bandwidth with the page's own JS/images at the exact moment a visitor
+        on a slow connection is waiting for the click they just made to
+        resolve. lazyOnload defers the fetch until the browser is idle, so it
+        no longer eats into that window. Costs a delayed page_view on a very
+        slow connection — acceptable trade for a faster-feeling page.
+      */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${BOOTSTRAP_ID}`}
-        strategy="afterInteractive"
+        strategy="lazyOnload"
       />
       <Script id="ga4-init" strategy="afterInteractive">
         {`window.dataLayer = window.dataLayer || [];
