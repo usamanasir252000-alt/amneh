@@ -5,6 +5,7 @@ import { phCapture } from "@/lib/posthog";
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
@@ -28,6 +29,17 @@ const PH_FORWARD: Record<string, string> = {
 // pixel-only PageView keeps the dataset-level coverage diagnostic flagged.
 // Purchase is intentionally absent (Shopify sends it).
 const CAPI_EVENTS = new Set(["PageView", "ViewContent", "AddToCart", "InitiateCheckout"]);
+
+// Same funnel events, forwarded to GA4/Google Ads (gtag) using its standard
+// ecommerce event names. Purchase is intentionally absent here too — same
+// reason as the CAPI set above: it fires from Shopify's offsite checkout,
+// which nothing on this domain can observe. Real Purchase conversions for
+// Google Ads should come from Shopify's native Google & YouTube channel.
+const GA_FORWARD: Record<string, string> = {
+  ViewContent: "view_item",
+  AddToCart: "add_to_cart",
+  InitiateCheckout: "begin_checkout",
+};
 
 // Best-effort unique id shared between the pixel event and its CAPI twin.
 function newEventId(): string {
@@ -159,6 +171,19 @@ export function fbTrack(event: string, params?: Record<string, unknown>): void {
 
   const phEvent = PH_FORWARD[event];
   if (phEvent) phCapture(phEvent, params);
+
+  const gaEvent = GA_FORWARD[event];
+  if (gaEvent && typeof window !== "undefined" && typeof window.gtag === "function") {
+    // Reshape the Meta-style content_ids/content_name into GA4's expected
+    // `items` array when present, so the same call site works for both pixels
+    // without every caller needing to know two different param shapes.
+    const { content_ids, content_name, ...rest } = (params ?? {}) as Record<string, unknown>;
+    const items =
+      Array.isArray(content_ids) && content_ids.length
+        ? [{ item_id: content_ids[0], item_name: content_name }]
+        : undefined;
+    window.gtag("event", gaEvent, items ? { ...rest, items } : rest);
+  }
 
   // Fire the server twin. This often runs right before a navigation to Shopify
   // checkout (InitiateCheckout / Buy Now). sendBeacon is the browser API built

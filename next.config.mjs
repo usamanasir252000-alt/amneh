@@ -3,6 +3,16 @@ const nextConfig = {
   images: {
     qualities: [75, 90, 100],
     formats: ["image/avif", "image/webp"],
+    // Next's default is 60s, so every optimized-image variant (each size ×
+    // format combo) gets re-resized from scratch roughly once a minute. Some
+    // source files from Shopify are multi-MB screenshots/PNGs, and resizing
+    // those live measured 3-37s before the result lands back in cache — that
+    // was surfacing as random pages taking "an awfully long time" to load,
+    // hitting whichever visitor's request happened to land right after the
+    // cache expired. These URLs already carry Shopify's `?v=<timestamp>` on
+    // every file, so a cached resize is safe to keep for a year — a changed
+    // image gets a new `v` and busts the cache on its own.
+    minimumCacheTTL: 31536000,
     // Next's default imageSizes tops out at 384, then jumps straight to
     // deviceSizes' 640 — any image whose real rendered width falls in that
     // 384-640px gap (product-card thumbnails on this site commonly render
