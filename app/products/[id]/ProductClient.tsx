@@ -1962,7 +1962,7 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
             {/* Quiet reassurance line — free shipping + rewards as small muted
                 text, not big competing pills. */}
             <div className="mt-4 space-y-1 text-center text-[11px] text-gray-400">
-              <p>Free shipping on every order · Cash on Delivery</p>
+              <p>Free shipping on orders above PKR 2,500 · Cash on Delivery</p>
               {product.price * quantity >= MIN_ORDER_VALUE && (
                 <p>
                   Earn {POINTS_PER_ORDER} points on this order —{" "}

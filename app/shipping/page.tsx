@@ -75,13 +75,14 @@ export default function ShippingPage() {
                 <li className="flex gap-3">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
                   <span>
-                    <strong className="font-bold text-gray-900">FREE shipping on every order</strong> — no
-                    minimum spend, anywhere in Pakistan.
+                    <strong className="font-bold text-gray-900">FREE shipping on orders above PKR 2,500</strong> —
+                    anywhere in Pakistan.
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-                  There are no delivery or handling charges added at checkout.
+                  Orders below PKR 2,500 are charged a flat delivery fee, shown
+                  at checkout before you confirm.
                 </li>
               </ul>
             </section>

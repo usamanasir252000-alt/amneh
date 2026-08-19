@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 // navbar, which is why the navbar starts at top-9 and page content offsets
 // account for this 36px bar).
 const MESSAGES = [
-  "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
-  "FREE SHIPPING ON EVERY ORDER 🇵🇰",
-  "AZADI SALE 🇵🇰- 14% OFF ON ALL PRODUCTS",
-  "LIMITED TIME ONLY",
+  "FREE SHIPPING ON ORDERS ABOVE PKR 2,500",
+  "CASH ON DELIVERY AVAILABLE",
+  "FREE SHIPPING ON ORDERS ABOVE PKR 2,500",
+  "DELIVERY IN 3-5 BUSINESS DAYS",
 ];
 
 // Constant scroll speed regardless of screen width or how much text is in

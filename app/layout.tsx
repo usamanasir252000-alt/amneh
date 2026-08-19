@@ -8,8 +8,6 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import PostHog from "@/components/PostHog";
-import SaleTheme from "@/components/SaleTheme";
-import { isSaleThemeActive, SALE_THEME_CLASS } from "@/lib/saleTheme";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,13 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // Sale-theme class server-side for a flash-free first paint; SaleTheme (in
-    // <body>) re-checks on the client so cached HTML can't show the wrong
-    // colors past the deadline. See lib/saleTheme.ts.
-    <html
-      lang="en"
-      className={`scroll-smooth${isSaleThemeActive() ? ` ${SALE_THEME_CLASS}` : ""}`}
-    >
+    <html lang="en" className="scroll-smooth">
       <head>
         {/*
           FIX for "returning from checkout leaves the page stuck/blank".
@@ -154,7 +146,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://shop.amnehofficial.com" />
       </head>
       <body className={`${inter.variable} font-sans bg-[#f1efef]`}>
-        <SaleTheme />
         <MetaPixel />
         <GoogleAnalytics />
         <PostHog />

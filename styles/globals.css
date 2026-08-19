@@ -84,32 +84,3 @@ body.pdp-sticky-bar-visible .whatsapp-fab {
   transform: translateY(-72px);
 }
 
-/* ── Azadi sale theme ─────────────────────────────────────────────────────
-   Active only while <html> carries .azadi-theme (date-gated by
-   lib/saleTheme.ts — through 15 Aug 2026 PKT, then it drops off on its own).
-   Recolors the primary CTAs and the announcement banner to the sale green
-   without touching the components: the selectors piggyback on the exact
-   Tailwind utility classes those elements already use, so deleting this block
-   (or the class) restores the original colors everywhere at once. */
-.azadi-theme .bg-\[\#5f3d4e\] {
-  background-color: #01411C; /* announcement banner + PDP dots */
-}
-.azadi-theme .hover\:bg-\[\#5f3d4e\]:hover {
-  background-color: #01411C;
-}
-.azadi-theme .bg-gray-900 {
-  background-color: #01411C; /* solid dark CTAs (add to cart, retry, shop) */
-}
-.azadi-theme .hover\:bg-gray-900:hover {
-  background-color: #01411C; /* outline CTAs that fill dark on hover */
-}
-.azadi-theme .hover\:bg-gray-700:hover {
-  background-color: #0a5c2e; /* hover shade: #01411C lifted just enough to register */
-}
-/* Buy Now buttons are normally a plum→blue gradient — during the sale they
-   go SOLID theme green like every other CTA. Matching BOTH stop classes on
-   the same element keeps this from touching any other gradient. */
-.azadi-theme .from-\[\#5f3d4e\].to-\[\#4d9ab5\] {
-  background-image: none;
-  background-color: #01411C;
-}

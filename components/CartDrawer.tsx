@@ -3,17 +3,22 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart, CartItem } from "@/context/CartContext";
 import Image from "next/image";
-import { bundleSavings } from "@/lib/bundle";
+import { bundleSavings, AUTO_FREE_SHIPPING_THRESHOLD } from "@/lib/bundle";
 
 // Free-shipping banner — the highest-value spot to surface this, since it's
-// shown exactly when a shopper is deciding whether to check out. For the
-// Azadi sale shipping is free on every order with no threshold, so this is a
-// flat confirmation rather than the old "add N more items" progress nudge.
-function FreeShippingBanner() {
+// shown exactly when a shopper is deciding whether to check out. Confirms it
+// once the cart qualifies (subtotal over the threshold, or the quantity-based
+// bundle code — see lib/bundle.ts), otherwise nudges with the exact amount
+// still needed, which is the version that actually lifts AOV.
+function FreeShippingBanner({ qualified, remaining }: { qualified: boolean; remaining: number }) {
   return (
     <div className="px-6 py-3 bg-gradient-to-r from-[#5f3d4e] to-[#4d9ab5]">
       <p className="text-center text-[12px] sm:text-[13px] font-bold uppercase tracking-wide text-white">
-        🎉 FREE shipping on your order
+        {qualified ? (
+          <>🎉 FREE shipping on your order</>
+        ) : (
+          <>Add PKR {remaining.toFixed(0)} more for FREE shipping</>
+        )}
       </p>
     </div>
   );
@@ -100,7 +105,10 @@ export default function CartDrawer() {
             </div>
 
             {items.length > 0 && (
-              <FreeShippingBanner />
+              <FreeShippingBanner
+                qualified={savings.freeShipping}
+                remaining={Math.max(0, AUTO_FREE_SHIPPING_THRESHOLD - totalPrice)}
+              />
             )}
 
             {/* Cart Content */}
@@ -240,11 +248,14 @@ export default function CartDrawer() {
                       </p>
                     ) : savings.pct > 0 ? (
                       <p className="text-xs text-[#4d9ab5]">
-                        🎉 You&apos;re saving PKR {savings.discountAmount.toFixed(0)} + free shipping
+                        🎉 You&apos;re saving PKR {savings.discountAmount.toFixed(0)}
+                        {savings.freeShipping ? " + free shipping" : ""}
                       </p>
                     ) : (
                       <p className="text-xs text-gray-500">
-                        Free shipping applied · discounts confirmed at checkout
+                        {savings.freeShipping
+                          ? "Free shipping applied · discounts confirmed at checkout"
+                          : "Shipping & discounts confirmed at checkout"}
                       </p>
                     )}
                   </div>

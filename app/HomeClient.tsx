@@ -89,8 +89,8 @@ export default function HomeClient({ initialProducts }: { initialProducts: Shopi
         className="flex flex-col"
         style={{ gap: "0px", background: "#f1efef", paddingTop: "0px" }}
       >
-        {/* Sale-period free-shipping reassurance, directly under the hero —
-            same pill used on the PDP and the /skincare grid. */}
+        {/* Free-shipping reassurance, directly under the hero — same pill
+            used on the PDP and the /skincare grid. */}
         <div className="px-6 pt-6">
           <FreeShippingNote className="w-fit mx-auto" />
         </div>
