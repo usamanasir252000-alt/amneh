@@ -410,27 +410,46 @@ export default function SkincareClient({
             />
           </div>
         )}
-        {/* DESKTOP: static wide banner. Shown on ALL breakpoints if no video. */}
-        <div className={`absolute inset-0 ${SKINCARE_HERO_VIDEO ? "hidden lg:block" : ""}`}>
-          <Image
-            src="/off2.webp"
-            alt="amneh skincare"
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="100vw"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent" />
+        {/* DESKTOP: plain white banner. Was the "15% OFF" artwork (/off2.webp)
+            — swapped to flat white now that the sale is over, so the page
+            makes no discount claim. Shown on ALL breakpoints if no video. */}
+        <div className={`absolute inset-0 bg-white ${SKINCARE_HERO_VIDEO ? "hidden lg:block" : ""}`} />
+        {/* Legibility scrim — only over the video, never over the white
+            banner (it would just grey the white out). */}
+        {SKINCARE_HERO_VIDEO && (
+          <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent lg:hidden" />
+        )}
+        {/* Back button flips light→dark at the same breakpoint the background
+            flips video→white; `light` is a plain boolean, so this is two
+            instances rather than one responsive class. */}
         <div className="absolute top-[132px] left-6 z-[60] sm:left-10 lg:left-16">
-          <BackButton light />
+          {SKINCARE_HERO_VIDEO ? (
+            <>
+              <span className="lg:hidden">
+                <BackButton light />
+              </span>
+              <span className="hidden lg:block">
+                <BackButton />
+              </span>
+            </>
+          ) : (
+            <BackButton />
+          )}
         </div>
         <div className="relative z-10 flex h-full items-end px-6 pb-8 sm:px-10 sm:pb-10 lg:px-16">
           <div>
-            <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-white/70 mb-2">
+            <p
+              className={`text-[10px] sm:text-xs uppercase tracking-[0.35em] mb-2 ${
+                SKINCARE_HERO_VIDEO ? "text-white/70 lg:text-gray-500" : "text-gray-500"
+              }`}
+            >
               collection
             </p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-white">
+            <h1
+              className={`text-3xl sm:text-4xl lg:text-5xl font-bold uppercase tracking-tight ${
+                SKINCARE_HERO_VIDEO ? "text-white lg:text-gray-900" : "text-gray-900"
+              }`}
+            >
               Skincare
             </h1>
           </div>
