@@ -1,15 +1,35 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
+import { pageMetadata, SITE_URL } from "@/lib/seo";
+import {
+  graph,
+  webPageNode,
+  breadcrumbNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = {
-  title: "Terms of Service — amneh.",
-  description: "Terms and conditions for using the amneh. website.",
-};
+export const metadata = pageMetadata({
+  title: "Terms of Service",
+  description:
+    "The terms and conditions for using the Amneh website and placing an order.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
+  const data = graph([
+    webPageNode({
+      path: "/terms",
+      name: "Terms of Service",
+      description:
+        "The terms and conditions for using the Amneh website and placing an order.",
+    }),
+    breadcrumbNode([{ name: "Terms of Service", path: "/terms" }], `${SITE_URL}/terms`),
+  ]);
+
   return (
     <>
+      <JsonLd data={data} />
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-[148px] pb-20">
         <div className="max-w-2xl mx-auto px-6">

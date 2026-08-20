@@ -71,6 +71,13 @@ export interface ShopifyProduct {
   // Total available quantity across all variants. Used to display inventory
   // urgency ("only 5 left"). Set to -1 if unavailable / untracked.
   totalInventory: number;
+  // ISO timestamp of the product's last change in Shopify. Powers <lastmod> in
+  // app/sitemap.ts. Google only honours lastmod when it is "consistently and
+  // verifiably accurate", so this has to be the product's REAL modification
+  // time — emitting the build date for every URL teaches Google to distrust the
+  // field across the whole site. Null when Shopify doesn't return it, in which
+  // case the sitemap omits lastmod for that URL rather than inventing one.
+  updatedAt: string | null;
 }
 
 export interface ShopifyCartLine {
@@ -183,6 +190,7 @@ function normalizeProduct(node: {
   images: { edges: { node: { id: string; url: string } }[] };
   variants: { edges: { node: { id: string; quantityAvailable?: number } }[] };
   totalInventory?: number;
+  updatedAt?: string;
   ingredients?: { value: string } | null;
   howToUse?: { value: string } | null;
   benefits?: { value: string } | null;
@@ -242,6 +250,7 @@ function normalizeProduct(node: {
     ugcVideoEnd: (() => { const n = parseFloat(node.ugcVideoEnd?.value ?? ""); return Number.isFinite(n) ? n : null; })(),
     isBundle: tags.some((t) => t.trim().toLowerCase() === "bundle"),
     totalInventory: node.totalInventory ?? -1,
+    updatedAt: node.updatedAt ?? null,
   };
 }
 
@@ -313,6 +322,7 @@ export async function getProducts(category?: string): Promise<ShopifyProduct[]> 
             images(first: 5) { edges { node { id url } } }
             variants(first: 100) { edges { node { id quantityAvailable } } }
             totalInventory
+            updatedAt
             # Needed by the bundle PDP, which shows the before/after of each
             # product inside the bundle — it reads them off this catalog list
             # rather than paying one extra round-trip per bundle member.
@@ -366,6 +376,7 @@ export async function getProductByHandle(
         images(first: 10) { edges { node { id url } } }
         variants(first: 100) { edges { node { id quantityAvailable } } }
         totalInventory
+        updatedAt
         ingredients: metafield(namespace: "custom", key: "ingredients") { value }
         howToUse: metafield(namespace: "custom", key: "how_to_use") { value }
         benefits: metafield(namespace: "custom", key: "benefits") { value }

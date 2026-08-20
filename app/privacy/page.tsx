@@ -1,15 +1,35 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
+import { pageMetadata, SITE_URL } from "@/lib/seo";
+import {
+  graph,
+  webPageNode,
+  breadcrumbNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = {
-  title: "Privacy Policy — amneh.",
-  description: "How amneh. collects, uses, and protects your personal data.",
-};
+export const metadata = pageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How Amneh collects, uses, and protects your personal data when you shop with us.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
+  const data = graph([
+    webPageNode({
+      path: "/privacy",
+      name: "Privacy Policy",
+      description:
+        "How Amneh collects, uses, and protects your personal data when you shop with us.",
+    }),
+    breadcrumbNode([{ name: "Privacy Policy", path: "/privacy" }], `${SITE_URL}/privacy`),
+  ]);
+
   return (
     <>
+      <JsonLd data={data} />
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-[148px] pb-20">
         <div className="max-w-2xl mx-auto px-6">
@@ -35,10 +55,10 @@ export default function PrivacyPage() {
                 amneh. is a beauty brand based in Pakistan. We operate the
                 website at{" "}
                 <a
-                  href="https://amneh.pk"
+                  href="https://www.amnehofficial.com"
                   className="underline underline-offset-2 text-gray-800"
                 >
-                  amneh.pk
+                  amnehofficial.com
                 </a>
                 . This policy explains how we collect, use, and protect your
                 personal information when you shop with us.

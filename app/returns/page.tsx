@@ -2,15 +2,37 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
 import { waChatLink, WHATSAPP_DISPLAY } from "@/lib/contact";
+import { pageMetadata, SITE_URL } from "@/lib/seo";
+import {
+  graph,
+  webPageNode,
+  breadcrumbNode,
+  returnPolicyNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = {
-  title: "Returns & Refunds — amneh.",
-  description: "amneh. returns, no-refund policy, and goodwill compensation for genuine cases.",
-};
+export const metadata = pageMetadata({
+  title: "Returns & Refunds",
+  description:
+    "Amneh returns, our no-refund policy, and the goodwill compensation we offer for genuine cases.",
+  path: "/returns",
+});
 
 export default function ReturnsPage() {
+  const data = graph([
+    webPageNode({
+      path: "/returns",
+      name: "Returns & Refunds",
+      description:
+        "Amneh returns, our no-refund policy, and the goodwill compensation we offer for genuine cases.",
+    }),
+    returnPolicyNode(),
+    breadcrumbNode([{ name: "Returns & Refunds", path: "/returns" }], `${SITE_URL}/returns`),
+  ]);
+
   return (
     <>
+      <JsonLd data={data} />
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-[148px] pb-20">
         <div className="max-w-2xl mx-auto px-6">

@@ -1,5 +1,15 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProductByHandle, getProducts, type ShopifyProduct } from "@/lib/shopify";
+import { SITE_URL, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from "@/lib/seo";
+import {
+  graph,
+  productNode,
+  returnPolicyNode,
+  shippingDetailsNode,
+  breadcrumbNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 import ProductClient from "./ProductClient";
 
 // ISR: the rendered page is cached and served instantly, refreshed in the
@@ -19,6 +29,59 @@ export const revalidate = 120;
 export async function generateStaticParams() {
   const products = await getProducts().catch(() => []);
   return products.filter((p) => p.handle).map((p) => ({ id: p.handle }));
+}
+
+// Per-product title/description/share image. Before this, every product page
+// inherited the generic site title, so ~all of them competed in search as
+// duplicate-looking "Amneh | Best Skincare Brand in Pakistan" entries and shared
+// one logo as their WhatsApp/Facebook preview image.
+//
+// This re-calls getProductByHandle, but that costs nothing extra: Next dedupes
+// the identical fetch within a render pass, and the response is already covered
+// by the "catalog" cache tag + ISR, so it is served from cache alongside the
+// page body rather than as a second live Shopify round-trip.
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductByHandle(id).catch(() => null);
+
+  // Unknown handle → the page itself calls notFound(). Return noindex metadata
+  // so a crawler that reached a dead product URL doesn't bank the 404 shell.
+  if (!product) {
+    return { title: "Product Not Found", robots: { index: false, follow: true } };
+  }
+
+  const url = `${SITE_URL}/products/${product.handle}`;
+
+  // Prefer the marketing tagline, fall back to the Shopify description, then to
+  // the site default. Descriptions are collapsed to a single line and clipped to
+  // ~160 characters — past that Google truncates mid-sentence in the SERP.
+  const raw = product.tagline || product.description || DEFAULT_DESCRIPTION;
+  const description = raw.replace(/\s+/g, " ").trim().slice(0, 158);
+
+  const image = product.images?.[0]?.url || DEFAULT_OG_IMAGE;
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      url,
+      siteName: SITE_NAME,
+      type: "website",
+      locale: "en_PK",
+      images: [image],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      images: [image],
+    },
+  };
 }
 
 export default async function ProductPage(
@@ -48,12 +111,31 @@ export default async function ProductPage(
     .filter((p) => p.handle && p.handle !== product.handle && p.category === product.category)
     .slice(0, 8);
 
+  // Product + Offer is what puts price and in-stock status directly in the
+  // search result. The return/shipping nodes are included in the graph so the
+  // Offer's @id references resolve within this document rather than dangling.
+  const data = graph([
+    productNode(product),
+    returnPolicyNode(),
+    shippingDetailsNode(),
+    breadcrumbNode(
+      [
+        { name: "Skincare", path: "/skincare" },
+        { name: product.name, path: `/products/${product.handle}` },
+      ],
+      `${SITE_URL}/products/${product.handle}`
+    ),
+  ]);
+
   return (
-    <ProductClient
-      product={product}
-      relatedProducts={relatedProducts}
-      bundleResults={buildBundleResults(product, allProducts)}
-    />
+    <>
+      <JsonLd data={data} />
+      <ProductClient
+        product={product}
+        relatedProducts={relatedProducts}
+        bundleResults={buildBundleResults(product, allProducts)}
+      />
+    </>
   );
 }
 

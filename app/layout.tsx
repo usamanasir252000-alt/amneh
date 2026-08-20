@@ -8,6 +8,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import PostHog from "@/components/PostHog";
+import { SITE_URL, SITE_NAME, TITLE_SUFFIX, DEFAULT_DESCRIPTION } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,9 +17,41 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Amneh | Best Skincare Brand in Pakistan",
-  description:
-    "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+  // metadataBase makes every relative URL in metadata — og:image, canonicals,
+  // the icons above — resolve against the real site instead of the host that
+  // happened to serve the request. Without it Next emits og:image as a bare
+  // "/amneh.png", which Facebook/WhatsApp cannot fetch, so shared links came
+  // through with no preview image; and on Vercel preview deploys it would
+  // resolve to the *.vercel.app host, canonicalising previews as real pages.
+  metadataBase: new URL(SITE_URL),
+
+  // Every child page sets a short, page-specific `title` and Next fills it into
+  // this template, so the brand is appended once, consistently, in one place.
+  // `default` covers the home page and anything that doesn't set a title.
+  title: {
+    default: "Amneh | Best Skincare Brand in Pakistan",
+    template: `%s | ${TITLE_SUFFIX}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+
+  // Site-wide default. Individual pages override this — account/utility pages
+  // set index:false via utilityPageMetadata in lib/seo.ts.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      // Let Google use full-size image previews and untruncated text snippets.
+      // The defaults are conservative and, for a visual skincare catalog, a
+      // large image preview is the difference between a click and a scroll-past.
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
   icons: {
     icon: "/amneh.png",
     apple: "/amneh.png",
@@ -26,16 +59,17 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Amneh | Best Skincare Brand in Pakistan",
-    description:
-      "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website",
+    locale: "en_PK",
     images: ["/amneh.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "Amneh | Best Skincare Brand in Pakistan",
-    description:
-      "Luxury beauty essentials crafted to elevate your glow with confidence and elegance.",
+    description: DEFAULT_DESCRIPTION,
     images: ["/amneh.png"],
   },
 };

@@ -2,15 +2,37 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
 import { waChatLink, WHATSAPP_DISPLAY } from "@/lib/contact";
+import { pageMetadata, SITE_URL } from "@/lib/seo";
+import {
+  graph,
+  webPageNode,
+  breadcrumbNode,
+  shippingDetailsNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = {
-  title: "Shipping Policy — amneh.",
-  description: "amneh. shipping rates, delivery times, and order tracking.",
-};
+export const metadata = pageMetadata({
+  title: "Shipping Policy",
+  description:
+    "Amneh delivery times across Pakistan, shipping charges, and free shipping on orders above PKR 2,500.",
+  path: "/shipping",
+});
 
 export default function ShippingPage() {
+  const data = graph([
+    webPageNode({
+      path: "/shipping",
+      name: "Shipping Policy",
+      description:
+        "Amneh delivery times across Pakistan, shipping charges, and free shipping on orders above PKR 2,500.",
+    }),
+    shippingDetailsNode(),
+    breadcrumbNode([{ name: "Shipping Policy", path: "/shipping" }], `${SITE_URL}/shipping`),
+  ]);
+
   return (
     <>
+      <JsonLd data={data} />
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-[148px] pb-20">
         <div className="max-w-2xl mx-auto px-6">

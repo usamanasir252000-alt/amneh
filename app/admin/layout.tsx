@@ -1,5 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import LogoutButton from "@/components/admin/LogoutButton";
+
+// Everything under /admin is staff-only. middleware.ts already redirects
+// unauthenticated visitors, but /admin/login itself is public and reachable, so
+// it needs an explicit noindex to stay out of search results. follow:false here
+// (unlike the customer-facing utility pages) — there is nothing behind the admin
+// nav that a crawler should be walking into.
+export const metadata: Metadata = {
+  title: "Admin",
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({
   children,

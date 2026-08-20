@@ -1,5 +1,24 @@
+import type { Metadata } from "next";
 import { getProducts } from "@/lib/shopify";
+import { SITE_URL, DEFAULT_DESCRIPTION } from "@/lib/seo";
+import {
+  graph,
+  organizationNode,
+  websiteNode,
+  webPageNode,
+  itemListNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 import HomeClient from "./HomeClient";
+
+// The title/description/OG tags come from the root layout defaults — this page
+// only needs to claim the canonical. It matters most here: paid traffic lands on
+// "/" carrying ?fbclid=... from Meta and ?_rb=<timestamp> from the bfcache fix
+// in app/layout.tsx, and each variant is a separate URL to a crawler. The
+// self-referencing canonical folds them all back into the bare home page.
+export const metadata: Metadata = {
+  alternates: { canonical: SITE_URL },
+};
 
 // SERVER component. Fetching products here (not in a client useEffect) bakes the
 // product carousel into the initial HTML — so visitors from Facebook/Instagram
@@ -14,5 +33,27 @@ export const revalidate = 120;
 
 export default async function Home() {
   const products = await getProducts().catch(() => []);
-  return <HomeClient initialProducts={products} />;
+
+  // The Organization + WebSite nodes are declared HERE, on the home page, and
+  // every other page refers back to them by @id rather than redeclaring them.
+  const data = graph([
+    organizationNode(),
+    websiteNode(),
+    webPageNode({
+      path: "/",
+      name: "Amneh | Best Skincare Brand in Pakistan",
+      description: DEFAULT_DESCRIPTION,
+    }),
+    itemListNode(products, {
+      id: `${SITE_URL}/#featured-products`,
+      name: "Featured Skincare",
+    }),
+  ]);
+
+  return (
+    <>
+      <JsonLd data={data} />
+      <HomeClient initialProducts={products} />
+    </>
+  );
 }

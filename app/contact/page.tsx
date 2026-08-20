@@ -2,15 +2,38 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackButton from "@/components/BackButton";
 import { waChatLink, WHATSAPP_DISPLAY } from "@/lib/contact";
+import { pageMetadata, SITE_URL } from "@/lib/seo";
+import {
+  graph,
+  webPageNode,
+  breadcrumbNode,
+} from "@/lib/jsonld";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = {
-  title: "Contact Us — amneh.",
-  description: "Get in touch with the amneh. team.",
-};
+export const metadata = pageMetadata({
+  title: "Contact Us",
+  description:
+    "Contact the Amneh team on WhatsApp or email for help with an order, a product question, or a delivery update.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
+  const data = graph([
+    {
+      ...webPageNode({
+      path: "/contact",
+      name: "Contact Us",
+      description:
+        "Contact the Amneh team on WhatsApp or email for help with an order, a product question, or a delivery update.",
+    }),
+      "@type": "ContactPage",
+    },
+    breadcrumbNode([{ name: "Contact Us", path: "/contact" }], `${SITE_URL}/contact`),
+  ]);
+
   return (
     <>
+      <JsonLd data={data} />
       <Navbar />
       <main className="min-h-screen bg-[#f1efef] pt-[148px] pb-20">
         <div className="max-w-2xl mx-auto px-6">
