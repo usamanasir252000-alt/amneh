@@ -13,6 +13,7 @@ import { fbTrack } from "@/lib/fbpixel";
 import { fetchWithRetry } from "@/lib/fetchRetry";
 import { logEvent } from "@/lib/clientLog";
 import { bundleDiscountCodes } from "@/lib/bundle";
+import { navigateToCheckout } from "@/lib/checkoutNavigate";
 import { LEFT_FOR_CHECKOUT_KEY } from "@/components/BFCacheReload";
 
 export interface CartItem {
@@ -469,11 +470,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Mark that we're leaving the site for checkout, so returning via Back
       // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
       sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
-      window.location.href = url;
+      navigateToCheckout(url, { from: "cart", cartId: id });
     } finally {
       // Reset after a beat so the spinner persists through the redirect but
-      // recovers if navigation never happened (no URL / user came Back).
-      setTimeout(() => setIsCheckingOut(false), 4000);
+      // recovers if navigation never happened (no URL / user came Back). Must
+      // outlast navigateToCheckout's re-rolls (up to ~6s) or the button would
+      // flick back to "checkout" while a retry is still in flight.
+      setTimeout(() => setIsCheckingOut(false), 8000);
     }
   }, [isCheckingOut, items]);
 

@@ -23,6 +23,7 @@ import TrustBadgesComponent from "@/components/TrustBadges";
 import { FaWhatsapp } from "react-icons/fa";
 import { waChatLink } from "@/lib/contact";
 import { BUNDLE_TIERS, bundleDiscountCodes } from "@/lib/bundle";
+import { navigateToCheckout } from "@/lib/checkoutNavigate";
 import { POINTS_PER_ORDER, MIN_ORDER_VALUE } from "@/lib/loyalty";
 import type { ShopifyProduct } from "@/lib/shopify";
 
@@ -1601,7 +1602,7 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
         // Mark that we're leaving the site for checkout, so returning via Back
         // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
         sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
-        window.location.href = checkoutUrl;
+        navigateToCheckout(checkoutUrl, { from: "buy_now", variantId: product.variantId });
       } else {
         logEvent("buy_now_failed", { variantId: product.variantId, reason: "no_checkout_url" });
         setBuyingNow(false);
