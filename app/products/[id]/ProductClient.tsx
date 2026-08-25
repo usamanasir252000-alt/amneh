@@ -1252,6 +1252,26 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
   const touchStartX = useRef(0);
   const addToCartRef = useRef<HTMLButtonElement>(null);
 
+  // ⚠️ Do NOT add a background `fetch(checkoutUrl)` here to "warm" the Shopify
+  // checkout. That used to live in this effect, on the theory that Shopify is
+  // slow on the cold first hit for a token and the real click would then be
+  // the fast "reload". Measured on the live store with a scripted Chrome, the
+  // theory is wrong and the fetch is actively harmful — median time from
+  // navigation to checkout's load event, 5 paired runs each:
+  //
+  //                        no background fetch   with background fetch
+  //   HTTP/3 enabled          7.9s (1/5 >10s)      19.1s (5/5 >10s)
+  //   HTTP/3 disabled         3.5s (0/5)            3.3s (0/5)
+  //
+  // The cost is not the second hit; it's touching shop.amnehofficial.com at
+  // all before the navigation. Cloudflare advertises `alt-svc: h3=":443"`
+  // there, Chrome races QUIC, and where UDP/443 is throttled (Pakistani
+  // mobile/broadband, where most of this store's traffic is) that race stalls
+  // ~30s before falling back to HTTP/2 — so ALL ~120 checkout assets land at
+  // once, 30s late. An early background request makes the navigation more
+  // likely to inherit that stalled state, not less. Prewarming the CART below
+  // is fine and stays: it only talks to our own origin.
+  //
   // Pre-warmed Buy Now checkout — the Shopify cart for the current
   // variant+quantity is created in the background on page load (and
   // re-created, debounced, when the quantity changes), so tapping Buy Now
@@ -1268,7 +1288,11 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
     const key = `${product.variantId}:${quantity}`;
     const existing = prewarmedCheckout.current;
     if (existing?.key === key && existing.url !== null) return;
-    // Debounced so tapping through quantities doesn't create a cart per tap.
+    // Debounced so tapping through quantities doesn't create a cart per tap —
+    // but the FIRST prewarm of the page fires immediately. It used to eat the
+    // same 600ms, which is 600ms of a ~4s warm-up sequence (cart create, then
+    // the checkout session build) spent doing nothing while the shopper is
+    // already scrolling toward the button.
     const t = window.setTimeout(() => {
       const promise = fetchWithRetry("/api/buy-now", {
         method: "POST",
@@ -1289,18 +1313,9 @@ export default function ProductClient({ product, relatedProducts = [], bundleRes
       const entry = { key, promise, url: undefined as string | null | undefined };
       promise.then((url) => {
         entry.url = url;
-        // Hit the checkout URL once, quietly, well before the user taps Buy
-        // Now. Reports show checkout blanks out for 20s+ on a brand-new cart
-        // token but a manual reload of the SAME url always fixes it — i.e.
-        // Shopify's checkout is slow/flaky on the cold first hit for a token.
-        // This makes that first hit happen here in the background, so the
-        // real navigation on click is effectively the "reload" that works.
-        if (url) {
-          fetch(url, { mode: "no-cors", credentials: "include" }).catch(() => {});
-        }
       });
       prewarmedCheckout.current = entry;
-    }, 600);
+    }, existing ? 500 : 0);
     return () => window.clearTimeout(t);
   }, [product.variantId, product.price, quantity]);
 

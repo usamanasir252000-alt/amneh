@@ -14,6 +14,8 @@ const ALLOWED_EVENTS = new Set([
   "buy_now_failed",
   "checkout_click",
   "checkout_link_timeout",
+  "checkout_no_url",
+  "checkout_prep_timeout",
   "checkout_redirect",
   "whatsapp_order_click",
   "bundle_discount_timeout",

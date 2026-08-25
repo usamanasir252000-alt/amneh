@@ -60,6 +60,16 @@ const CART_ID_KEY = "shopify_cart_id";
 let tempIdSeq = 0;
 const isTempLineId = (lineId: string) => lineId.startsWith("tmp-");
 
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// Identifies exactly what's in the cart, so checkout prep done in the
+// background can be matched against what's on screen at click time.
+const cartKey = (id: string, items: CartItem[]) =>
+  `${id}|${items
+    .map((i) => `${i.variantId}:${i.quantity}`)
+    .sort()
+    .join(",")}`;
+
 async function cartAPI(body: Record<string, unknown>) {
   // Retry a dropped connection (net::ERR_HTTP2_PING_FAILED / timeout) once, so a
   // network wobble doesn't fail Add-to-Cart or the checkout link. We deliberately
@@ -327,6 +337,91 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
+  // ── Background checkout prep ────────────────────────────────────────────
+  // Everything checkout needs is done BEFORE the click instead of during it.
+  // Previously all of it ran inside goToCheckout: up to 6s waiting on the
+  // optimistic mutation queue, then up to 4s applying bundle discounts and
+  // linking the customer, and only then a cold navigation to a checkout token
+  // Shopify had never seen — ~10s of our own blocking on top of a cold
+  // checkout load. That is the 20-second checkout.
+  //
+  // Now it runs as soon as the cart settles, while the drawer is open and the
+  // shopper is still reading: discounts applied and the customer linked, both
+  // against our own origin. By the time they tap "checkout" there is normally
+  // nothing left to do but navigate.
+  const checkoutPrep = useRef<{
+    key: string;
+    promise: Promise<string | null>;
+    url: string | null;
+  } | null>(null);
+  // Set only once a link actually SUCCEEDS, so it's skipped as redundant
+  // thereafter. A null result means the shopper was a guest at the time, which
+  // is not a permanent answer — they may log in before checking out — so that
+  // case stays retryable.
+  const linkedCartId = useRef<string | null>(null);
+  // Bundle codes already on the cart, so unchanged codes aren't re-sent.
+  // Starts "" (not null) because a fresh single-item cart qualifies for no
+  // codes and has none — nothing to send.
+  const appliedCodes = useRef<string>("");
+
+  useEffect(() => {
+    const id = cartId;
+    if (!id || items.length === 0) return;
+    const key = cartKey(id, items);
+    if (checkoutPrep.current?.key === key) return;
+
+    // Debounced so tapping ± through quantities preps once, not per tap.
+    const t = window.setTimeout(() => {
+      const numItems = items.reduce((n, i) => n + i.quantity, 0);
+      const value = items.reduce((v, i) => v + i.price * i.quantity, 0);
+      const codes = bundleDiscountCodes(numItems, value);
+      const codeKey = codes.join(",");
+
+      const promise = (async (): Promise<string | null> => {
+        let discountUrl: string | null = null;
+        let linkUrl: string | null = null;
+
+        await Promise.all([
+          codeKey !== appliedCodes.current
+            ? cartAPI({ action: "discount", cartId: id, discountCodes: codes })
+                .then((cart) => {
+                  appliedCodes.current = codeKey;
+                  discountUrl = cart?.checkoutUrl ?? null;
+                })
+                .catch(() => {})
+            : Promise.resolve(),
+          linkedCartId.current !== id
+            ? cartAPI({ action: "link", cartId: id })
+                .then((res) => {
+                  linkUrl = res?.checkoutUrl ?? null;
+                  if (linkUrl) linkedCartId.current = id;
+                })
+                .catch(() => {})
+            : Promise.resolve(),
+        ]);
+
+        // Prefer the link's url — it's the one carrying the authenticated
+        // customer session into checkout. It comes back null for guests
+        // (most ad traffic), who then keep the discount-applied url.
+        // Deliberately NOT followed by a background fetch of this url to
+        // "warm" Shopify's checkout — that measured 19.1s vs 7.9s median and
+        // made every run slow. See the note in ProductClient's prewarm effect.
+        const url: string | null =
+          linkUrl ?? discountUrl ?? checkoutUrlRef.current;
+        if (url) checkoutUrlRef.current = url;
+        return url;
+      })();
+
+      const entry = { key, promise, url: null as string | null };
+      promise.then((url) => {
+        entry.url = url;
+      });
+      checkoutPrep.current = entry;
+    }, 400);
+
+    return () => window.clearTimeout(t);
+  }, [cartId, items, checkoutUrl]);
+
   // Link the cart to the logged-in customer (if any) right before redirecting,
   // so checkout is pre-filled even when the cart was built while logged out.
   const goToCheckout = useCallback(async () => {
@@ -345,49 +440,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       // Cart mutations are optimistic, so a just-tapped add/± may still be in
       // flight. Wait for the queue (capped) so checkout matches what's on
-      // screen; past the cap we go with whatever the server has.
-      await Promise.race([
-        opChain.current,
-        new Promise((resolve) => setTimeout(resolve, 6000)),
-      ]);
+      // screen; past the cap we go with whatever the server has. Capped at 2s,
+      // not the old 6s — this is dead time in front of a shopper who has
+      // already decided to buy, and the queue has almost always drained by the
+      // time the drawer has been open long enough to reach the button.
+      await Promise.race([opChain.current, wait(2000)]);
 
       const id = cartIdRef.current;
-      const cachedUrl = checkoutUrlRef.current;
-      if (!cachedUrl) {
+      // Discounts + customer link normally already ran in the background (see
+      // the checkout prep effect above), so this resolves with zero waiting.
+      // Only a click that lands mid-prep waits, and only until the cap.
+      const prep = checkoutPrep.current;
+      let preppedUrl: string | null = null;
+      if (id && prep?.key === cartKey(id, items)) {
+        preppedUrl =
+          prep.url ??
+          (await Promise.race([prep.promise, wait(2000).then(() => null)]));
+        if (!preppedUrl) logEvent("checkout_prep_timeout", { cartId: id });
+      }
+
+      const url = preppedUrl ?? checkoutUrlRef.current;
+      if (!url) {
         logEvent("checkout_no_url", { cartId: id });
         return;
       }
-      let url: string = cachedUrl;
 
-      // Apply the bundle discount codes matching the cart's total quantity
-      // (%-off + free shipping, e.g. BUNDLE10 + FREEBUNDLE10 at 3+) so the
-      // "buy more, save more" saving is on the cart before checkout, and link
-      // the cart to the logged-in customer for a pre-filled checkout. Both run
-      // concurrently and are capped so neither can hang the redirect; if they
-      // fail the shopper checks out without them.
-      const bundleCodes = bundleDiscountCodes(numItems, value);
-      const capped = <T,>(p: Promise<T>, label: string): Promise<T | null> =>
-        Promise.race([
-          p,
-          new Promise<null>((_, reject) =>
-            setTimeout(() => reject(new Error(`${label}-timeout`)), 4000)
-          ),
-        ]).catch(() => {
-          logEvent(`${label}_timeout`, { cartId: id });
-          return null;
-        });
-
-      const [, linkRes] = await Promise.all([
-        id && bundleCodes.length > 0
-          ? capped(cartAPI({ action: "discount", cartId: id, discountCodes: bundleCodes }), "bundle_discount")
-          : Promise.resolve(null),
-        id ? capped(cartAPI({ action: "link", cartId: id }), "checkout_link") : Promise.resolve(null),
-      ]);
-      // Prefer the fresh checkout URL returned by the link — it carries the
-      // authenticated customer session into checkout.
-      if (linkRes?.checkoutUrl) url = linkRes.checkoutUrl;
-
-      logEvent("checkout_redirect", { cartId: id, usedFallbackUrl: url === checkoutUrlRef.current });
+      logEvent("checkout_redirect", { cartId: id, prepped: preppedUrl != null });
       // Mark that we're leaving the site for checkout, so returning via Back
       // forces a clean reload instead of a stuck/frozen page (see BFCacheReload).
       sessionStorage.setItem(LEFT_FOR_CHECKOUT_KEY, "1");
